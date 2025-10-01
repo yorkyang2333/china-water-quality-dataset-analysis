@@ -24,6 +24,7 @@ ENV/
 
 # Outputs
 EDA/
+GTWR_Predictions/
 *.png
 valid_ranges_analysis.txt
 
