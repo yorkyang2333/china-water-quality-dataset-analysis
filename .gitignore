@@ -1,0 +1,32 @@
+# Environment variables - DO NOT commit this file
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (optional - uncomment if you don't want to commit data)
+# *.csv
+# *.xlsx
+
+# Outputs
+EDA/
+*.png
+valid_ranges_analysis.txt
+
+# OS files
+.DS_Store
+Thumbs.db
