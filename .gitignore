@@ -24,9 +24,8 @@ ENV/
 
 # Outputs
 EDA/
-GTWR_Predictions/
+Outputs/
 *.png
-valid_ranges_analysis.txt
 
 # OS files
 .DS_Store
