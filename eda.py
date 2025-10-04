@@ -17,7 +17,7 @@ sns.set_style("whitegrid")
 sns.set_palette("husl")
 
 # Create output directory
-OUTPUT_DIR = 'EDA'
+OUTPUT_DIR = 'Outputs/EDA'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -583,10 +583,164 @@ def analyze_physical_parameters(df):
     print(f"Saved: {OUTPUT_DIR}/10_physical_parameters.png")
 
 
-def generate_summary_report(df):
-    """11. Generate summary report"""
+def analyze_time_series_feasibility(df):
+    """11. Time series prediction feasibility analysis"""
     print("\n" + "="*80)
-    print("11. GENERATING SUMMARY REPORT")
+    print("11. TIME SERIES PREDICTION FEASIBILITY ANALYSIS")
+    print("="*80)
+
+    fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+
+    # 11.1 数据点数分布（每个监测站）
+    station_counts = df.groupby(['Province', 'City', 'Monitoring_Station']).size()
+
+    axes[0, 0].hist(station_counts.values, bins=50, color='coral', edgecolor='black', alpha=0.7)
+    axes[0, 0].axvline(x=30, color='red', linestyle='--', linewidth=2, label='LSTM Min (30)')
+    axes[0, 0].axvline(x=50, color='orange', linestyle='--', linewidth=2, label='Recommended (50)')
+    axes[0, 0].set_xlabel('Number of Data Points per Station', fontsize=11)
+    axes[0, 0].set_ylabel('Number of Stations', fontsize=11)
+    axes[0, 0].set_title('Distribution of Data Points per Monitoring Station', fontsize=12, fontweight='bold')
+    axes[0, 0].legend()
+    axes[0, 0].grid(axis='y', alpha=0.3)
+
+    # 添加统计信息
+    textstr = f'Mean: {station_counts.mean():.1f}\nMedian: {station_counts.median():.1f}\nMin: {station_counts.min()}\nMax: {station_counts.max()}'
+    axes[0, 0].text(0.7, 0.95, textstr, transform=axes[0, 0].transAxes, fontsize=10,
+                    verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+    # 11.2 数据时间跨度分析
+    date_ranges = df.groupby(['Province', 'City', 'Monitoring_Station'])['Date'].agg(['min', 'max'])
+    date_ranges['days'] = (date_ranges['max'] - date_ranges['min']).dt.days
+
+    axes[0, 1].hist(date_ranges['days'].values, bins=50, color='skyblue', edgecolor='black', alpha=0.7)
+    axes[0, 1].set_xlabel('Time Span (Days)', fontsize=11)
+    axes[0, 1].set_ylabel('Number of Stations', fontsize=11)
+    axes[0, 1].set_title('Time Span Distribution per Station', fontsize=12, fontweight='bold')
+    axes[0, 1].grid(axis='y', alpha=0.3)
+
+    textstr = f'Mean: {date_ranges["days"].mean():.1f} days\nMedian: {date_ranges["days"].median():.1f} days'
+    axes[0, 1].text(0.7, 0.95, textstr, transform=axes[0, 1].transAxes, fontsize=10,
+                    verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+    # 11.3 数据密度分析（数据点/天数）
+    station_density = station_counts / (date_ranges['days'] + 1)
+
+    axes[0, 2].hist(station_density.values, bins=50, color='lightgreen', edgecolor='black', alpha=0.7)
+    axes[0, 2].axvline(x=1, color='red', linestyle='--', linewidth=2, label='1 point/day (ideal)')
+    axes[0, 2].set_xlabel('Data Density (points/day)', fontsize=11)
+    axes[0, 2].set_ylabel('Number of Stations', fontsize=11)
+    axes[0, 2].set_title('Data Density per Station', fontsize=12, fontweight='bold')
+    axes[0, 2].legend()
+    axes[0, 2].grid(axis='y', alpha=0.3)
+
+    # 11.4 满足不同模型要求的监测站数量
+    model_requirements = {
+        'LSTM (≥30)': (station_counts >= 30).sum(),
+        'ARIMA (≥30)': (station_counts >= 30).sum(),
+        'SARIMA (≥40)': (station_counts >= 40).sum(),
+        'Prophet (≥30)': (station_counts >= 30).sum(),
+        'AR (≥25)': (station_counts >= 25).sum(),
+        'Total Stations': len(station_counts)
+    }
+
+    models = list(model_requirements.keys())[:-1]
+    counts = [model_requirements[m] for m in models]
+    colors = ['#3498db', '#e74c3c', '#9b59b6', '#f39c12', '#27ae60']
+
+    bars = axes[1, 0].bar(range(len(models)), counts, color=colors, alpha=0.7)
+    axes[1, 0].axhline(y=len(station_counts), color='red', linestyle='--',
+                       linewidth=2, label=f'Total: {len(station_counts)}')
+    axes[1, 0].set_xticks(range(len(models)))
+    axes[1, 0].set_xticklabels(models, rotation=45, ha='right')
+    axes[1, 0].set_ylabel('Number of Qualified Stations', fontsize=11)
+    axes[1, 0].set_title('Stations Meeting Time Series Model Requirements', fontsize=12, fontweight='bold')
+    axes[1, 0].legend()
+    axes[1, 0].grid(axis='y', alpha=0.3)
+
+    # 添加百分比标签
+    for bar, count in zip(bars, counts):
+        height = bar.get_height()
+        pct = count / len(station_counts) * 100
+        axes[1, 0].text(bar.get_x() + bar.get_width()/2., height,
+                       f'{count}\n({pct:.1f}%)', ha='center', va='bottom', fontsize=9)
+
+    # 11.5 示例监测站的时间序列模式
+    # 选择数据点最多的监测站
+    top_station = station_counts.idxmax()
+    station_data = df[
+        (df['Province'] == top_station[0]) &
+        (df['City'] == top_station[1]) &
+        (df['Monitoring_Station'] == top_station[2])
+    ].sort_values('Date')
+
+    if len(station_data) > 0:
+        axes[1, 1].plot(station_data['Date'], station_data['Water_Quality_Index'],
+                       marker='o', linestyle='-', linewidth=1, markersize=4, color='darkblue')
+        axes[1, 1].set_xlabel('Date', fontsize=11)
+        axes[1, 1].set_ylabel('Water Quality Index', fontsize=11)
+        axes[1, 1].set_title(f'Time Series Example: {top_station[2]}\n({len(station_data)} points)',
+                            fontsize=12, fontweight='bold')
+        axes[1, 1].grid(True, alpha=0.3)
+        axes[1, 1].tick_params(axis='x', rotation=45)
+
+    # 11.6 结论面板
+    axes[1, 2].axis('off')
+
+    # 计算关键统计
+    avg_points = station_counts.mean()
+    median_points = station_counts.median()
+    pct_sufficient = (station_counts >= 30).sum() / len(station_counts) * 100
+    avg_density = station_density.mean()
+
+    conclusion_text = "WHY THIS DATASET IS NOT SUITABLE\nFOR TIME SERIES PREDICTION\n\n"
+    conclusion_text += "="*50 + "\n\n"
+    conclusion_text += "CRITICAL ISSUES:\n\n"
+    conclusion_text += f"1. INSUFFICIENT DATA POINTS\n"
+    conclusion_text += f"   • Average: {avg_points:.1f} points/station\n"
+    conclusion_text += f"   • Median: {median_points:.1f} points/station\n"
+    conclusion_text += f"   • Requirement: ≥30-50 points\n"
+    conclusion_text += f"   • Only {pct_sufficient:.1f}% stations qualified\n\n"
+
+    conclusion_text += f"2. LOW DATA DENSITY\n"
+    conclusion_text += f"   • Average: {avg_density:.2f} points/day\n"
+    conclusion_text += f"   • Most stations have sparse data\n"
+    conclusion_text += f"   • Irregular time intervals\n\n"
+
+    conclusion_text += f"3. UNSUITABLE FOR:\n"
+    conclusion_text += f"   ✗ LSTM (needs sequential patterns)\n"
+    conclusion_text += f"   ✗ ARIMA (needs stationarity)\n"
+    conclusion_text += f"   ✗ SARIMA (needs seasonality)\n"
+    conclusion_text += f"   ✗ Prophet (needs trends)\n"
+    conclusion_text += f"   ✗ AR (needs autocorrelation)\n\n"
+
+    conclusion_text += f"RECOMMENDATION:\n"
+    conclusion_text += f"   → Use cross-sectional models\n"
+    conclusion_text += f"   → Use spatial features\n"
+    conclusion_text += f"   → Use regression models\n"
+    conclusion_text += f"   → Collect more temporal data\n"
+
+    axes[1, 2].text(0.1, 0.95, conclusion_text, transform=axes[1, 2].transAxes,
+                   fontsize=10, verticalalignment='top', family='monospace',
+                   bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
+
+    plt.tight_layout()
+    plt.savefig(f'{OUTPUT_DIR}/11_time_series_feasibility.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"Saved: {OUTPUT_DIR}/11_time_series_feasibility.png")
+
+    # 打印统计摘要
+    print(f"\nTime Series Feasibility Summary:")
+    print(f"  Total stations: {len(station_counts)}")
+    print(f"  Avg points per station: {avg_points:.1f}")
+    print(f"  Stations with ≥30 points: {(station_counts >= 30).sum()} ({pct_sufficient:.1f}%)")
+    print(f"  Avg data density: {avg_density:.2f} points/day")
+    print(f"\n  ⚠️  CONCLUSION: Dataset is NOT suitable for time series prediction!")
+
+
+def generate_summary_report(df):
+    """12. Generate summary report"""
+    print("\n" + "="*80)
+    print("12. GENERATING SUMMARY REPORT")
     print("="*80)
 
     report = []
@@ -704,6 +858,7 @@ def main():
     analyze_nutrient_pollution(df)
     analyze_organic_pollution(df)
     analyze_physical_parameters(df)
+    analyze_time_series_feasibility(df)
     generate_summary_report(df)
 
     print("\n" + "="*80)
@@ -711,7 +866,7 @@ def main():
     print("="*80)
     print(f"\nAll visualizations and reports saved to: {OUTPUT_DIR}/")
     print("\nGenerated files:")
-    for i in range(12):
+    for i in range(13):
         if i == 0:
             print(f"  - 00_summary_report.txt")
         else:
@@ -725,7 +880,8 @@ def main():
                 7: "07_heavy_metal_analysis.png",
                 8: "08_nutrient_pollution.png",
                 9: "09_organic_pollution.png",
-                10: "10_physical_parameters.png"
+                10: "10_physical_parameters.png",
+                11: "11_time_series_feasibility.png"
             }
             if i in files:
                 print(f"  - {files[i]}")

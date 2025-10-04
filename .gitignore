@@ -18,6 +18,9 @@ ENV/
 *.swp
 *.swo
 
+# CLI agents
+.claude/
+
 # Data files (optional - uncomment if you don't want to commit data)
 # *.csv
 # *.xlsx
