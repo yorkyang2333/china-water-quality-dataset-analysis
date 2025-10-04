@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
-OUTPUT_DIR = 'TimeSeries_Station_Predictions'
+OUTPUT_DIR = 'Outputs/TimeSeries_Station_Predictions'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
