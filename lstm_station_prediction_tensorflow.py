@@ -1,3 +1,27 @@
+"""
+LSTM时间序列预测 - TensorFlow/Keras版
+
+方法：
+- 使用TensorFlow/Keras实现的2层LSTM神经网络（32/16 units）
+- 10个时间步的序列预测
+- Keras高级API，代码简洁
+- 数据归一化 + EarlyStopping回调
+
+适用机型：
+- Linux (推荐) - TensorFlow在Linux上最稳定
+- Windows - 需要确保TensorFlow安装正确
+- Mac - 不推荐！可能遇到mutex锁问题导致程序卡死
+
+性能：
+- 训练速度：慢（存在线程锁竞争）
+- 内存需求：中等
+- 稳定性：Mac上较差，Linux/Windows较好
+
+注意：
+- Mac用户建议使用pytorch版本
+- 该版本主要用于对比实验或TensorFlow生态集成
+"""
+
 import pandas as pd
 import numpy as np
 from datetime import datetime

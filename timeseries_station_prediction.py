@@ -1,3 +1,28 @@
+"""
+时间序列预测 - 传统机器学习版 (RandomForest + Ridge)
+
+方法：
+- 使用传统机器学习方法：RandomForest和Ridge回归
+- 特征工程：滞后值（1,2,3,5,7,14,30天）+ 滚动统计 + 差分 + 时间特征
+- 自动选择最佳模型（通过R²评分）
+- 纯时间序列分析，每个监测站独立建模
+
+适用机型：
+- 全平台 - Mac/Windows/Linux通用
+- 无需GPU，适合所有电脑
+- 最稳定可靠的版本
+
+性能：
+- 训练速度：快（sklearn优化良好）
+- 内存需求：低（< 1GB）
+- 稳定性：极高（无神经网络相关问题）
+- 预测效果：可能优于LSTM（取决于数据特性）
+
+推荐：
+- 首选基准模型，用于对比深度学习效果
+- 不确定LSTM是否有效时，先运行此版本
+"""
+
 import pandas as pd
 import numpy as np
 from datetime import datetime

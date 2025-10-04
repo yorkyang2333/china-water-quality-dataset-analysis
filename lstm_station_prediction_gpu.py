@@ -1,3 +1,27 @@
+"""
+LSTM时间序列预测 - PyTorch GPU加速版
+
+方法：
+- 使用PyTorch实现的3层LSTM神经网络（64 hidden units）
+- 30个时间步的序列预测
+- 自动检测并使用CUDA GPU加速训练
+- 数据归一化 + 早停策略 + 梯度裁剪 + pin_memory优化
+
+适用机型：
+- Windows (推荐) - 配备NVIDIA GPU的电脑，可获得3-10倍加速
+- Linux - 支持CUDA的服务器
+- Mac - 自动降级为CPU模式（建议使用pytorch版本）
+
+性能：
+- 训练速度：快（GPU并行计算）
+- 内存需求：中等（需GPU显存 > 2GB）
+- 跨平台兼容：自动适配CPU/GPU
+
+依赖：
+- torch (with CUDA support for GPU)
+- 如无GPU，程序自动使用CPU模式
+"""
+
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -164,7 +188,7 @@ def build_timeseries_lstm(station_data, indicator, seq_length=30, train_ratio=0.
     # 只保留目标指标和日期
     data = data[['Date', indicator]].dropna()
 
-    if len(data) < seq_length + 30:
+    if len(data) < seq_length + 20:  # 降低到50（30+20）保证180个站点
         return None
 
     # 提取目标值
@@ -177,7 +201,7 @@ def build_timeseries_lstm(station_data, indicator, seq_length=30, train_ratio=0.
     # 创建序列
     X, y = create_sequences(scaled_values, seq_length)
 
-    if len(X) < 30:
+    if len(X) < 20:  # 降低最小序列要求
         return None
 
     # 时间顺序分割
@@ -185,7 +209,7 @@ def build_timeseries_lstm(station_data, indicator, seq_length=30, train_ratio=0.
     X_train, X_test = X[:split_idx], X[split_idx:]
     y_train, y_test = y[:split_idx], y[split_idx:]
 
-    if len(X_train) < 24 or len(X_test) < 3:
+    if len(X_train) < 16 or len(X_test) < 2:  # 降低要求
         return None
 
     try:
@@ -246,7 +270,7 @@ def predict_station(df, province, city, station, seq_length=30, device=None):
         (df['Monitoring_Station'] == station)
     ].copy()
 
-    if len(station_data) < seq_length + 30:
+    if len(station_data) < seq_length + 20:  # 降低到50
         return None
 
     indicators = [
@@ -263,7 +287,7 @@ def predict_station(df, province, city, station, seq_length=30, device=None):
     for indicator in indicators:
         # 检查数据量
         valid_count = station_data[indicator].notna().sum()
-        if valid_count < seq_length + 20:
+        if valid_count < seq_length + 15:  # 降低到45
             continue
 
         result = build_timeseries_lstm(station_data, indicator, seq_length, device=device)
@@ -281,10 +305,10 @@ def process_all_stations(df, seq_length=30, device=None):
 
     # 获取所有监测站
     stations_info = df.groupby(['Province', 'City', 'Monitoring_Station']).size().reset_index(name='count')
-    stations_info = stations_info[stations_info['count'] >= seq_length + 30]
+    stations_info = stations_info[stations_info['count'] >= seq_length + 20]  # 降低到50
 
     print(f"\n总监测站数: {len(stations_info)}")
-    print(f"样本数>={seq_length + 30}的监测站: {len(stations_info)}")
+    print(f"样本数>={seq_length + 20}的监测站: {len(stations_info)}")
     print(f"\n优化参数:")
     print(f"  - 序列长度: {seq_length}")
     print(f"  - 模型: 3层LSTM (64 units)")
