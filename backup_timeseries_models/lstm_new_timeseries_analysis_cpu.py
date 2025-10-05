@@ -2,6 +2,11 @@
 LSTM时间序列分析 - PyTorch CPU版本
 Time Series Analysis using LSTM Neural Network - CPU Version
 
+⚠️ 警告：此模型不适合当前数据集！(Warning: Not suitable for current dataset!)
+原因：数据时间间隔极不规则（0-222天），违反LSTM等间隔采样假设
+结果：R² < 0，预测效果极差
+建议：使用横截面预测或传统机器学习方法（详见 README.md）
+
 方法说明 (Method Description):
 - 使用3层LSTM神经网络（128 hidden units）进行水质指数时间序列预测
 - 采用滑动窗口（30个时间步）构建序列数据
@@ -9,9 +14,9 @@ Time Series Analysis using LSTM Neural Network - CPU Version
 - 数据归一化 + 早停策略 + 学习率调度 + 梯度裁剪
 
 适用场景 (Use Cases):
-- ⚠️ 警告：该数据集时间序列数据不足（每站1-3个点），预测效果可能较差
-- 适合有充足时间序列数据的监测站（>30个时间点）
-- 可用于演示LSTM在时间序列预测中的应用
+- ⚠️ 当前数据集时间间隔不规则（0-222天），不适合时间序列预测
+- 仅适合有规律采样间隔的时间序列数据（如每日/每小时定期监测）
+- 可用于演示LSTM在时间序列预测中的应用（但效果差）
 
 适用机型 (Compatible Devices):
 - Mac (推荐) - Apple Silicon / Intel芯片
@@ -21,7 +26,7 @@ Time Series Analysis using LSTM Neural Network - CPU Version
 性能指标 (Performance):
 - 训练速度: 中等（CPU优化）
 - 内存需求: 低（< 2GB）
-- 预测准确度: 取决于数据充足程度
+- 预测准确度: 极差（R² < 0），因数据不适合
 
 依赖库 (Dependencies):
 pip install torch pandas numpy scikit-learn matplotlib
