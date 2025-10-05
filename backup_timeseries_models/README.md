@@ -28,9 +28,11 @@
 ## 📁 文件列表
 
 ### LSTM 模型（深度学习）
-- `lstm_station_prediction_pytorch.py` - PyTorch CPU版
-- `lstm_station_prediction_tensorflow.py` - TensorFlow CPU版
-- `lstm_station_prediction_gpu.py` - GPU加速版
+- `lstm_station_prediction_pytorch.py` - PyTorch CPU版（旧版）
+- `lstm_station_prediction_tensorflow.py` - TensorFlow CPU版（旧版）
+- `lstm_station_prediction_gpu.py` - GPU加速版（旧版）
+- `lstm_new_timeseries_analysis_cpu.py` - **新版** PyTorch CPU优化版
+- `lstm_new_timeseries_analysis_gpu.py` - **新版** PyTorch GPU加速版
 
 ### ARIMA 模型（传统统计）
 - `arima_station_prediction_cpu.py` - CPU标准版
@@ -54,6 +56,15 @@
 - **R² 平均值**: -0.05 到 -0.15（负值！）
 - **结论**: 预测效果比简单均值还差
 
+### 新版LSTM模型改进
+新版LSTM脚本（`lstm_new_timeseries_analysis_cpu.py` 和 `lstm_new_timeseries_analysis_gpu.py`）包含以下改进：
+- ✅ 更完善的数据验证（最小样本数检查）
+- ✅ 更强的模型架构（128 hidden units, 3层LSTM）
+- ✅ 学习率调度 + 梯度裁剪
+- ✅ 详细的中英文双语报告
+- ✅ GPU版本自动适配CUDA/CPU
+- ⚠️ 但仍然不适合本数据集！数据量不足是根本问题
+
 ## ✅ 推荐方法
 
 应该使用：
@@ -73,5 +84,6 @@
 ---
 
 **创建日期**: 2025-01-05
+**最后更新**: 2025-10-05（添加新版LSTM模型）
 **状态**: 已归档（不推荐使用）
 **原因**: 数据集不适合时间序列预测
