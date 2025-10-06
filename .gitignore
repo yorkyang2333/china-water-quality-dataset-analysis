@@ -28,7 +28,6 @@ ENV/
 # Outputs
 */Outputs/
 Outputs/
-Outputs/*.png
 
 # OS files
 .DS_Store
