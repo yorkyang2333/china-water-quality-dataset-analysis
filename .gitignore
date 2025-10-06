@@ -19,14 +19,14 @@ ENV/
 *.swo
 
 # CLI agents
-.claude/
+# .claude/
 
 # Data files (optional - uncomment if you don't want to commit data)
 # *.csv
 # *.xlsx
 
 # Outputs
-EDA/
+*/Outputs/
 Outputs/
 *.png
 
