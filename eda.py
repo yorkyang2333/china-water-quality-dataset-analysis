@@ -5,6 +5,7 @@ import seaborn as sns
 from datetime import datetime
 import warnings
 import os
+import folium
 
 warnings.filterwarnings('ignore')
 
@@ -835,6 +836,72 @@ def generate_summary_report(df):
     print(f"\nSaved: {OUTPUT_DIR}/00_summary_report.txt")
 
 
+def create_station_map(df):
+    """12. Create a map of monitoring stations using Folium."""
+    print("\n" + "="*80)
+    print("12. CREATING MONITORING STATION MAP")
+    print("="*80)
+
+    # Define colors for each pollution level
+    color_map = {
+        'Excellent': 'green',
+        'Good': 'blue',
+        'Moderate': 'orange',
+        'Poor': 'red',
+        'Very Poor': 'darkred'
+    }
+
+    # Create a base map centered on China
+    # Coordinates for the approximate center of China
+    map_center = [35.8617, 104.1954]
+    station_map = folium.Map(location=map_center, zoom_start=5)
+
+    # Get unique stations to avoid plotting the same station multiple times
+    # We take the first entry for each station to get its location and a representative pollution level
+    unique_stations = df.drop_duplicates(subset=['Monitoring_Station'])
+
+    # Add a marker for each station
+    for _, row in unique_stations.iterrows():
+        lat = row['Latitude']
+        lon = row['Longitude']
+        
+        # Ensure lat/lon are valid numbers
+        if pd.isna(lat) or pd.isna(lon):
+            continue
+
+        station_name = row['Monitoring_Station']
+        pollution_level = row['Pollution_Level']
+        city = row['City']
+        province = row['Province']
+
+        # Create a popup with station information
+        popup_html = f"""
+        <b>Station:</b> {station_name}<br>
+        <b>City:</b> {city}<br>
+        <b>Province:</b> {province}<br>
+        <b>Pollution Level:</b> {pollution_level}
+        """
+        popup = folium.Popup(popup_html, max_width=300)
+
+        # Get color for the marker
+        marker_color = color_map.get(pollution_level, 'gray') # Default to gray if level is unknown
+
+        folium.CircleMarker(
+            location=[lat, lon],
+            radius=5,
+            color=marker_color,
+            fill=True,
+            fill_color=marker_color,
+            fill_opacity=0.7,
+            popup=popup
+        ).add_to(station_map)
+
+    # Save the map to an HTML file
+    map_path = f'{OUTPUT_DIR}/12_station_distribution_map.html'
+    station_map.save(map_path)
+    print(f"\nSaved: {map_path}")
+
+
 def main():
     """Main function"""
     print("\n" + "="*80)
@@ -859,6 +926,7 @@ def main():
     analyze_organic_pollution(df)
     analyze_physical_parameters(df)
     analyze_time_series_feasibility(df)
+    create_station_map(df) # Call the new map function
     generate_summary_report(df)
 
     print("\n" + "="*80)
@@ -881,7 +949,8 @@ def main():
                 8: "08_nutrient_pollution.png",
                 9: "09_organic_pollution.png",
                 10: "10_physical_parameters.png",
-                11: "11_time_series_feasibility.png"
+                11: "11_time_series_feasibility.png",
+                12: "12_station_distribution_map.html" # Add the new map file
             }
             if i in files:
                 print(f"  - {files[i]}")
