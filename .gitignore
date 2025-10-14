@@ -26,8 +26,8 @@ ENV/
 # *.xlsx
 
 # Outputs
-*/Outputs/
 Outputs/
+catboost_info/
 
 # OS files
 .DS_Store
