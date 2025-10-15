@@ -11,6 +11,7 @@ china-water-quality-dataset-analysis/
 ├── preprocessed_data_feature_eng.csv     # 带有新工程特征的数据
 ├── preprocess.py                         # 数据预处理脚本
 ├── eda.py                                # 探索性数据分析脚本
+├── eda_map.py                            # ⭐ 新增：省级交互式地图可视化脚本
 ├── eda_feature_engineering.py            # EDA及特征工程脚本
 ├── classification_random_forest.py       # 随机森林分类模型脚本
 ├── classification_xgboost.py             # XGBoost分类模型脚本
@@ -29,6 +30,7 @@ china-water-quality-dataset-analysis/
 │
 └── Outputs/                              # 所有模型的输出结果
     ├── EDA/                              # 探索性数据分析结果
+    ├── EDA_Map/                          # ⭐ 新增：交互式地图输出
     ├── Feature_Engineering_EDA/          # 特征工程分析结果
     ├── Classification_RandomForest/      # 随机森林模型输出
     ├── Classification_XGBoost/           # XGBoost模型输出
@@ -66,6 +68,16 @@ china-water-quality-dataset-analysis/
 - **方法**: 利用相关性强的多个水质指标来预测另一个目标指标（如 `Water_Quality_Index`）。
 - **模型**: 可使用线性回归、随机森林回归、XGBoost回归等。
 
+## 🗺️ 地图可视化 (Map Visualization)
+新增的 `eda_map.py` 脚本提供了一个强大的交互式地理可视化工具，用于探索各省份的水质状况。
+
+- **功能**: 生成一个以省份为单位的多图层交互式地图。
+- **核心特性**:
+  - **分层设色**: 根据不同水质指标（如水质指数、COD、总氮等）的平均值对省份进行颜色渲染。
+  - **图层切换**: 用户可以在地图控件中方便地切换不同的指标图层，进行对比分析。
+  - **详细信息**: 点击每个省份的中心标记，可以弹出窗口显示该地区详细的水质统计数据。
+- **技术栈**: 使用 `folium` 库生成 HTML 地图，并从网络实时获取 GeoJSON 地理数据。
+
 ## 🚀 快速开始
 
 ### 1. 运行探索性数据分析与特征工程
@@ -75,7 +87,14 @@ python eda_feature_engineering.py
 # 输出: Outputs/Feature_Engineering_EDA/ 和 preprocessed_data_feature_eng.csv
 ```
 
-### 2. 运行分类模型
+### 2. 生成交互式地图
+```bash
+# 此脚本会生成一个多图层的省级水质地图
+python eda_map.py
+# 输出: Outputs/EDA_Map/province_level_water_quality_map.html
+```
+
+### 3. 运行分类模型
 ```bash
 # 运行随机森林模型
 python classification_random_forest.py
@@ -119,11 +138,11 @@ pip install xgboost
 ### 主要库
 - **数据处理**: pandas, numpy
 - **机器学习**: scikit-learn, xgboost
-- **可视化**: matplotlib, seaborn
+- **可视化**: matplotlib, seaborn, folium
 
 ---
 
 **创建日期**: 2025-01-05
-**最后更新**: 2025-10-14
+**最后更新**: 2025-10-15
 **维护者**: Gemini Agent
-**版本**: 2.1 (新增分类模型评估)
+**版本**: 2.2 (新增地图可视化功能)
