@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import folium
-from folium import FeatureGroup
+from folium import FeatureGroup, Element
 import json
 import requests
 
@@ -68,16 +68,16 @@ def get_geojson_data(url):
 
 def create_province_choropleth_map(df, geo_data, province_centers):
     """使用Folium创建按省份聚合的中国水质地图，包含多个可切换图层"""
-    print("CREATING PROVINCE-LEVEL WATER QUALITY MAP WITH MULTIPLE LAYERS")
+    print("CREATING PROVINCE-LEVEL WATER QUALITY MAP WITH STABLE RENDERING")
 
     # 1. 定义要可视化的指标及其配置
     indicators_to_visualize = {
-        'Water_Quality_Index': {'name': 'Avg. Water Quality Index', 'color': 'YlOrRd'},
-        'Total_Heavy_Metals_ug_L': {'name': 'Avg. Total Heavy Metals (µg/L)', 'color': 'Reds'},
-        'COD_mg_L': {'name': 'Avg. COD (mg/L)', 'color': 'Oranges'},
-        'Total_Nitrogen_mg_L': {'name': 'Avg. Total Nitrogen (mg/L)', 'color': 'Purples'},
-        'Total_Phosphorus_mg_L': {'name': 'Avg. Total Phosphorus (mg/L)', 'color': 'BuPu'},
-        'Dissolved_Oxygen_mg_L': {'name': 'Avg. Dissolved Oxygen (mg/L)', 'color': 'GnBu_r'}
+        'Water_Quality_Index': {'name': '平均水质指数 (WQI)', 'color': 'YlOrRd'},
+        'Total_Heavy_Metals_ug_L': {'name': '平均总重金属', 'color': 'Reds'},
+        'COD_mg_L': {'name': '平均化学需氧量 (COD)', 'color': 'Oranges'},
+        'Total_Nitrogen_mg_L': {'name': '平均总氮', 'color': 'Purples'},
+        'Total_Phosphorus_mg_L': {'name': '平均总磷', 'color': 'BuPu'},
+        'Dissolved_Oxygen_mg_L': {'name': '平均溶解氧', 'color': 'GnBu_r'}
     }
     
     # 2. 按省份聚合所有需要的指标
@@ -93,38 +93,38 @@ def create_province_choropleth_map(df, geo_data, province_centers):
 
     # 4. 创建底图
     map_center = [35.8617, 104.1954]
-    m = folium.Map(location=map_center, zoom_start=5, tiles='CartoDB positron')
+    m = folium.Map(location=map_center, zoom_start=5, tiles=None)
+    folium.TileLayer('CartoDB positron', name='浅色底图 (Base Map)').add_to(m)
 
-    # 5. 循环创建多个Choropleth图层
-    print("\nCreating map layers...")
+    # 5. 循环创建多个Choropleth图层，并设置为互斥的“基础图层”
+    print("\nCreating map layers as mutually exclusive base layers (radio buttons)...")
     for i, (indicator, config) in enumerate(indicators_to_visualize.items()):
-        is_visible = (i == 0)
         layer_name = config['name']
-        
         folium.Choropleth(
             geo_data=geo_data,
             name=layer_name,
             data=province_agg,
-            columns=['Province_CN_Normalized', indicator], # 使用标准化的中文名进行匹配
-            key_on='feature.properties.normalized_name', # 使用GeoJSON中新增的标准化名称字段
+            columns=['Province_CN_Normalized', indicator],
+            key_on='feature.properties.normalized_name',
             fill_color=config['color'],
             fill_opacity=0.7,
             line_opacity=0.2,
-            legend_name=layer_name,
+            legend_name=layer_name, # Re-enable legend for all layers
             highlight=True,
             nan_fill_color='gray',
-            show=is_visible
+            overlay=False,
+            show=(i == 0)
         ).add_to(m)
-        print(f" - Layer '{layer_name}' created.")
+        print(f" - Layer '{layer_name}' created as a base layer.")
 
-    # 6. 创建并添加省份信息标记图层
-    marker_group = FeatureGroup(name='Province Info Markers', show=True)
+    # 6. 创建并添加省份信息标记图层 (这是一个真正的覆盖图层)
+    marker_group = FeatureGroup(name='Province Info Markers', show=True, overlay=True)
     for _, row in province_agg.iterrows():
         if pd.isna(row['Province_CN_Normalized']):
             continue
         center_coords = province_centers.get(row['Province_CN_Normalized'])
         if center_coords:
-            popup_html = f"<h4><b>{row['Province']} ({row['Province_CN']})</b></h4><hr>"
+            popup_html = f"<h4><b>{row['Province_CN']}</b></h4><hr>"
             popup_html += f"<b>Most Common Pollution Level:</b> {row['Most_Common_Pollution_Level']}<br><br>"
             for indicator, config in indicators_to_visualize.items():
                 popup_html += f"<b>{config['name']}:</b> {row[indicator]:.2f}<br>"
@@ -144,6 +144,34 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     m.save(map_path)
     print(f"\nMap saved successfully to: {map_path}")
     print("The map is interactive. Open the HTML file in a browser to explore the layers.")
+
+def main():
+    """主函数，用于生成地图"""
+    print("\n" + "="*80)
+    print(" " * 10 + "WATER POLLUTION EDA - MULTI-LAYER PROVINCE MAP GENERATION")
+    print("="*80 + "\n")
+
+    print(f"Fetching and processing GeoJSON data from: {GEOJSON_URL}")
+    geo_data, province_centers = get_geojson_data(GEOJSON_URL)
+    if not geo_data or not province_centers:
+        print("Could not generate map due to missing GeoJSON data.")
+        return
+    print("GeoJSON data processed successfully.")
+    
+    INPUT_FILE = 'preprocessed_data_feature_eng.csv'
+    print(f"Loading data from: {INPUT_FILE}")
+    df = load_data(INPUT_FILE)
+    print(f"Data loaded successfully: {len(df)} records\n")
+
+    create_province_choropleth_map(df, geo_data, province_centers)
+
+    print("\n" + "="*80)
+    print(" " * 20 + "MAP GENERATION COMPLETED SUCCESSFULLY!")
+    print("="*80 + "\n")
+
+if __name__ == '__main__':
+    main()
+
 
 def main():
     """主函数，用于生成地图"""
