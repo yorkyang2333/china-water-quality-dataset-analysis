@@ -165,6 +165,16 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     # 存储图层元数据（用于图例）
     layer_metadata = []
 
+    # 定义不同颜色方案的实际颜色值
+    color_schemes = {
+        'YlOrRd': ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#b10026'],
+        'Reds': ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#99000d'],
+        'Oranges': ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d94801', '#8c2d04'],
+        'Purples': ['#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6a51a3', '#4a1486'],
+        'BuPu': ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#88419d', '#6e016b'],
+        'GnBu_r': ['#084081', '#0868ac', '#2b8cbe', '#4eb3d3', '#7bccc4', '#a8ddb5', '#ccebc5', '#f0f9e8'],  # reversed
+    }
+
     for i, (indicator, config) in enumerate(indicators_to_visualize.items()):
         layer_id = f"layer_{i}"
 
@@ -175,11 +185,16 @@ def create_province_choropleth_map(df, geo_data, province_centers):
         min_val = province_agg[indicator].min()
         max_val = province_agg[indicator].max()
 
-        # 创建颜色映射
+        # 使用配置中定义的颜色方案
+        color_scheme_name = config['color']
+        colors = color_schemes.get(color_scheme_name, color_schemes['YlOrRd'])
+
+        # 创建颜色映射 - 每个指标使用不同的颜色方案
         colormap = cm.LinearColormap(
-            colors=['#ffffcc', '#c7e9b4', '#7fcdbb', '#41b6c4', '#2c7fb8', '#253494'],
+            colors=colors,
             vmin=min_val,
-            vmax=max_val
+            vmax=max_val,
+            caption=f"{config['name']} ({config['unit']})"
         )
 
         # 存储图层元数据
@@ -187,7 +202,8 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             'min': float(min_val),
             'max': float(max_val),
             'avg': float(national_averages[indicator]),
-            'unit': config['unit']
+            'unit': config['unit'],
+            'colors': colors  # 保存颜色方案用于前端显示
         })
 
         # 创建省份数据字典
@@ -196,26 +212,29 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             if not pd.isna(row['Province_CN_Normalized']):
                 province_data[row['Province_CN_Normalized']] = row[indicator]
 
-        # 定义样式函数
-        def style_function(feature, province_data=province_data, colormap=colormap):
-            province_name = normalize_province_name(feature['properties'].get('name', ''))
-            value = province_data.get(province_name, 0)
-            return {
-                'fillColor': colormap(value) if value else '#e0e0e0',
-                'color': 'black',
-                'weight': 0.5,
-                'fillOpacity': 0.7
-            }
+        # 定义样式函数 - 使用深拷贝确保每个图层独立
+        def make_style_function(data_dict, cmap):
+            def style_function(feature):
+                province_name = normalize_province_name(feature['properties'].get('name', ''))
+                value = data_dict.get(province_name, 0)
+                return {
+                    'fillColor': cmap(value) if value else '#e0e0e0',
+                    'color': 'black',
+                    'weight': 0.5,
+                    'fillOpacity': 0.7
+                }
+            return style_function
 
-        # 添加GeoJson层
+        # 添加GeoJson层 - 为每个图层创建独立的GeoJson副本
+        import copy
         folium.GeoJson(
-            geo_data,
-            style_function=style_function,
+            copy.deepcopy(geo_data),
+            style_function=make_style_function(province_data, colormap),
             highlight_function=lambda x: {'weight': 2, 'fillOpacity': 0.9}
         ).add_to(feature_group)
 
         feature_group.add_to(m)
-        print(f" - Layer '{config['name']}' created with ID '{layer_id}'")
+        print(f" - Layer '{config['name']}' ({color_scheme_name}) created with ID '{layer_id}' | Range: {min_val:.2f} - {max_val:.2f}")
 
     # 7. 创建省份信息标记 - 始终显示
     for _, row in province_agg.iterrows():
@@ -431,8 +450,8 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             .legend-gradient {{
                 height: 20px;
                 border-radius: 10px;
-                background: linear-gradient(to right, #ffffcc, #c7e9b4, #7fcdbb, #41b6c4, #2c7fb8, #253494);
                 margin: 10px 0;
+                transition: background 0.3s ease;
             }}
 
             .legend-labels {{
@@ -725,7 +744,7 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             <div class="panel">
                 <div class="panel-title">🎨 颜色图例</div>
                 <div class="color-legend">
-                    <div class="legend-gradient"></div>
+                    <div class="legend-gradient" id="legendGradient"></div>
                     <div class="legend-labels">
                         <span id="legendMin">{layer_metadata[0]['min']:.1f}</span>
                         <span id="legendMax">{layer_metadata[0]['max']:.1f}</span>
@@ -833,6 +852,8 @@ def create_province_choropleth_map(df, geo_data, province_centers):
 
             // 图层切换函数
             function switchLayer(layerIndex) {{
+                console.log('切换到图层:', layerIndex);
+
                 // 更新按钮状态
                 const buttons = document.querySelectorAll('.layer-btn');
                 buttons.forEach((btn, idx) => {{
@@ -857,11 +878,27 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 document.getElementById('legendAvg').textContent = metadata.avg.toFixed(2);
                 document.getElementById('legendUnit').textContent = metadata.unit;
 
+                // 更新颜色渐变条
+                if (metadata.colors && metadata.colors.length > 0) {{
+                    const gradient = 'linear-gradient(to right, ' + metadata.colors.join(', ') + ')';
+                    console.log('设置颜色渐变:', gradient.substring(0, 80) + '...');
+                    const gradientElement = document.getElementById('legendGradient');
+                    if (gradientElement) {{
+                        gradientElement.style.background = gradient;
+                        console.log('图例颜色已更新');
+                    }} else {{
+                        console.error('找不到legendGradient元素！');
+                    }}
+                }} else {{
+                    console.warn('图层', layerIndex, '没有颜色数据');
+                }}
+
                 // 更新排名
                 updateRankings(layerIndex);
 
                 // 切换地图图层
                 if (window.leafletMap) {{
+                    let layersSwitched = 0;
                     window.leafletMap.eachLayer(function(layer) {{
                         if (layer.options && layer.options.name) {{
                             const layerName = layer.options.name;
@@ -869,12 +906,17 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                                 const idx = parseInt(layerName.split('_')[1]);
                                 if (idx === layerIndex) {{
                                     window.leafletMap.addLayer(layer);
+                                    layersSwitched++;
+                                    console.log('显示图层:', layerName);
                                 }} else {{
                                     window.leafletMap.removeLayer(layer);
                                 }}
                             }}
                         }}
                     }});
+                    console.log('地图图层已切换，显示了', layersSwitched, '个图层');
+                }} else {{
+                    console.error('Leaflet地图实例未找到！');
                 }}
             }}
 
@@ -913,11 +955,34 @@ def create_province_choropleth_map(df, geo_data, province_centers):
 
             // 页面加载完成后初始化
             window.addEventListener('load', function() {{
+                console.log('页面加载完成，开始初始化...');
+
+                // 初始化第一个图层的颜色渐变
+                const firstMetadata = layerMetadata[0];
+                console.log('第一个图层元数据:', firstMetadata);
+
+                if (firstMetadata.colors && firstMetadata.colors.length > 0) {{
+                    const gradient = 'linear-gradient(to right, ' + firstMetadata.colors.join(', ') + ')';
+                    console.log('初始颜色渐变:', gradient.substring(0, 80) + '...');
+                    const gradientElement = document.getElementById('legendGradient');
+                    if (gradientElement) {{
+                        gradientElement.style.background = gradient;
+                        console.log('初始图例颜色已设置');
+                    }} else {{
+                        console.error('初始化时找不到legendGradient元素！');
+                    }}
+                }} else {{
+                    console.error('第一个图层没有颜色数据！');
+                }}
+
+                // 捕获Leaflet地图实例
                 setTimeout(function() {{
                     const mapDiv = document.getElementById('map').querySelector('.folium-map');
                     if (mapDiv && mapDiv._leaflet_id) {{
                         window.leafletMap = window[mapDiv._leaflet_id];
-                        console.log('Leaflet map instance captured');
+                        console.log('Leaflet地图实例已捕获:', window.leafletMap);
+                    }} else {{
+                        console.error('无法捕获Leaflet地图实例');
                     }}
                 }}, 500);
             }});

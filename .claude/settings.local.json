@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(python:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(del check_data.py)",
+      "Read(//c/**)"
     ],
     "deny": [],
     "ask": []
