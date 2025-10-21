@@ -4,7 +4,8 @@
       "Bash(python:*)",
       "Bash(dir:*)",
       "Bash(del check_data.py)",
-      "Read(//c/**)"
+      "Read(//c/**)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []

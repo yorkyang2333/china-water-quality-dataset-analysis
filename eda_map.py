@@ -155,6 +155,7 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     }
 
     # 2. 按省份聚合所有需要的指标
+    print("\n按省份聚合数据...")
     agg_dict = {indicator: 'mean' for indicator in indicators_to_visualize}
     agg_dict['Pollution_Level'] = lambda x: x.value_counts().index[0]
     agg_dict['Monitoring_Station'] = 'nunique'
@@ -164,6 +165,12 @@ def create_province_choropleth_map(df, geo_data, province_centers):
         'Pollution_Level': 'Most_Common_Pollution_Level',
         'Monitoring_Station': 'Station_Count'
     }, inplace=True)
+
+    # 打印每个省份的关键统计信息以供验证
+    print("\n=== 各省份水质指标统计（验证数据） ===")
+    for _, row in province_agg.iterrows():
+        print(f"{row['Province']:12s} | WQI: {row['Water_Quality_Index']:6.2f} | pH: {row['pH']:6.3f} | COD: {row['COD_mg_L']:6.2f} | 站点: {row['Station_Count']:2.0f}")
+    print()
 
     # 3. 添加中文名称和标准化中文名称列
     province_agg['Province_CN'] = province_agg['Province'].map(PROVINCE_NAME_MAP)
@@ -185,11 +192,18 @@ def create_province_choropleth_map(df, geo_data, province_centers):
 
     # 5. 创建地图基础
     map_center = [35.8617, 104.1954]
-    m = folium.Map(location=map_center, zoom_start=5, tiles=None)
+    m = folium.Map(
+        location=map_center,
+        zoom_start=5,
+        tiles=None,
+        zoom_control=True,  # 保留缩放控件，通过CSS调整位置
+        control_scale=False
+    )
     folium.TileLayer('CartoDB positron', control=False).add_to(m)
 
     # 6. 准备所有指标的数据
-    print("\nPreparing data for all indicators...")
+    print("\n准备所有指标数据...")
+    print("\n=== 各指标在所有省份的数据范围 ===")
 
     # 定义不同颜色方案的实际颜色值
     color_schemes = {
@@ -212,6 +226,7 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     for i, (indicator, config) in enumerate(indicators_to_visualize.items()):
         min_val = province_agg[indicator].min()
         max_val = province_agg[indicator].max()
+        range_val = max_val - min_val
 
         colors = color_schemes.get(config['color'], color_schemes['YlOrRd'])
 
@@ -235,7 +250,7 @@ def create_province_choropleth_map(df, geo_data, province_centers):
 
             province_data_all[normalized_name][indicator] = float(row[indicator])
 
-        print(f" - Prepared data for '{config['name']}' | Range: {min_val:.2f} - {max_val:.2f}")
+        print(f"{config['name']:12s} ({config['unit']:8s}) | 最小: {min_val:8.3f} | 最大: {max_val:8.3f} | 差值: {range_val:8.3f} | 全国均值: {national_averages[indicator]:8.3f}")
 
     # 7. 创建单个GeoJSON图层（不使用多图层）
     print("\nCreating map with single interactive layer...")
@@ -387,25 +402,42 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 box-shadow: 0 8px 32px rgba(0,0,0,0.15);
                 z-index: 999;
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 gap: 8px;
                 max-width: 90vw;
                 overflow-x: auto;
-                justify-content: center;
+                overflow-y: hidden;
+                white-space: nowrap;
+            }}
+
+            /* 美化横向滚动条 */
+            .layer-switcher::-webkit-scrollbar {{
+                height: 6px;
+            }}
+
+            .layer-switcher::-webkit-scrollbar-track {{
+                background: #f1f1f1;
+                border-radius: 10px;
+            }}
+
+            .layer-switcher::-webkit-scrollbar-thumb {{
+                background: #667eea;
+                border-radius: 10px;
             }}
 
             .layer-btn {{
-                padding: 8px 16px;
+                padding: 6px 12px;
                 border: none;
-                border-radius: 25px;
+                border-radius: 20px;
                 background: #f5f7fa;
                 color: #4a5568;
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 white-space: nowrap;
                 font-family: 'Poppins', sans-serif;
+                flex-shrink: 0;
             }}
 
             .layer-btn:hover {{
@@ -643,6 +675,18 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 left: 0;
                 right: 0;
                 bottom: 0;
+            }}
+
+            /* 调整Leaflet缩放控件位置 - 移到右侧 */
+            .leaflet-top.leaflet-left {{
+                left: auto !important;
+                right: 10px !important;
+                top: 90px !important;
+            }}
+
+            .leaflet-control-zoom {{
+                margin: 0 !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
             }}
 
             /* 隐藏默认控制器 */
