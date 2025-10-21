@@ -16,11 +16,11 @@ if (typeof WaterQualityApp !== 'undefined') {
                 COD_mg_L: parseFloat(document.getElementById('input_cod').value) || 20.0,
                 BOD_mg_L: 4.0, // 默认值
                 Total_Nitrogen_mg_L: parseFloat(document.getElementById('input_tn').value) || 3.0,
-                Total_Phosphorus_mg_L: 0.1, // 默认值
-                Dissolved_Oxygen_mg_L: 8.0, // 默认值
+                Total_Phosphorus_mg_L: parseFloat(document.getElementById('input_tp').value) || 0.1,
+                Dissolved_Oxygen_mg_L: parseFloat(document.getElementById('input_do').value) || 8.0,
                 pH: parseFloat(document.getElementById('input_ph').value) || 7.0,
-                Ammonia_N_mg_L: 0.5, // 默认值
-                Turbidity_NTU: 5.0, // 默认值
+                Ammonia_N_mg_L: parseFloat(document.getElementById('input_ammonia').value) || 0.5,
+                Turbidity_NTU: parseFloat(document.getElementById('input_turbidity').value) || 5.0,
                 Temperature_C: 20.0, // 默认值
                 Conductivity_uS_cm: 500.0, // 默认值
                 Lead_ug_L: 1.0, // 默认值

@@ -428,10 +428,28 @@ class WaterQualityApp {
     /**
      * 时间轴变化处理
      */
-    handleTimelineChange(value) {
+    async handleTimelineChange(value) {
         const current = document.getElementById('timelineCurrent');
-        if (current) {
-            current.textContent = `${value}%`;
+
+        // 计算实际日期
+        if (this.dateRange.start && this.dateRange.end) {
+            const startDate = new Date(this.dateRange.start);
+            const endDate = new Date(this.dateRange.end);
+            const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+            const selectedDays = Math.floor(totalDays * (value / 100));
+            const selectedDate = new Date(startDate.getTime() + selectedDays * 24 * 60 * 60 * 1000);
+
+            if (current) {
+                current.textContent = selectedDate.toLocaleDateString('zh-CN');
+            }
+
+            // 重新加载数据到选定日期
+            this.selectedDate = selectedDate.toISOString().split('T')[0];
+            await this.loadStations();
+        } else {
+            if (current) {
+                current.textContent = `${value}%`;
+            }
         }
     }
 

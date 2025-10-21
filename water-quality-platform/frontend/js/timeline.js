@@ -84,6 +84,12 @@ if (typeof WaterQualityApp !== 'undefined') {
         const labels = trendData.map(d => d.period);
         const values = trendData.map(d => d.value);
 
+        // 设置canvas固定尺寸防止伸张
+        canvas.style.width = '100%';
+        canvas.style.height = '200px';
+        canvas.width = canvas.offsetWidth;
+        canvas.height = 200;
+
         this.trendChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -96,12 +102,16 @@ if (typeof WaterQualityApp !== 'undefined') {
                     tension: 0.4,
                     fill: true,
                     pointRadius: 3,
-                    pointHoverRadius: 6
+                    pointHoverRadius: 6,
+                    borderWidth: 2
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,  // 关键修复：关闭响应式避免伸张
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 0  // 关闭动画避免重绘问题
+                },
                 plugins: {
                     legend: {
                         display: true,
@@ -110,7 +120,8 @@ if (typeof WaterQualityApp !== 'undefined') {
                             font: {
                                 size: 11,
                                 family: 'Poppins'
-                            }
+                            },
+                            padding: 10
                         }
                     },
                     tooltip: {
@@ -133,10 +144,12 @@ if (typeof WaterQualityApp !== 'undefined') {
                         ticks: {
                             font: {
                                 size: 10
-                            }
+                            },
+                            padding: 5
                         },
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
                         }
                     },
                     x: {
@@ -145,7 +158,8 @@ if (typeof WaterQualityApp !== 'undefined') {
                                 size: 10
                             },
                             maxRotation: 45,
-                            minRotation: 0
+                            minRotation: 0,
+                            maxTicksLimit: 8  // 限制X轴标签数量
                         },
                         grid: {
                             display: false
@@ -155,7 +169,7 @@ if (typeof WaterQualityApp !== 'undefined') {
             }
         });
 
-        console.log('📈 Trend chart rendered');
+        console.log('📈 Trend chart rendered with fixed size');
     };
 
     /**

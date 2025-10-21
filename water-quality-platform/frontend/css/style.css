@@ -101,9 +101,27 @@ body {
 /* Panels */
 .panel {
     background: white;
-    border-radius: 15px;
+    border-radius: 16px;
     padding: 20px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.12);
 }
 
 .panel-title {
@@ -144,40 +162,68 @@ body {
 
 .date-input, .select-input, .form-input {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    padding: 12px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
     font-size: 13px;
     font-family: inherit;
     transition: all 0.3s;
+    background: white;
 }
 
 .date-input:focus, .select-input:focus, .form-input:focus {
     outline: none;
     border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+    transform: translateY(-1px);
+}
+
+.date-input:hover, .select-input:hover, .form-input:hover {
+    border-color: #cbd5e0;
 }
 
 /* Buttons */
 .btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     font-family: inherit;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn-primary {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    box-shadow: 0 4px 15px rgba(102,126,234,0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
 }
 
 .btn-sm {
@@ -333,25 +379,48 @@ body {
 /* Prediction Panel */
 .prediction-tabs {
     display: flex;
-    gap: 8px;
-    margin-bottom: 15px;
+    gap: 6px;
+    margin-bottom: 18px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 4px;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 10px;
-    background: #f7fafc;
+    padding: 12px 8px;
+    background: transparent;
     border: none;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s;
+    color: #6c757d;
+    position: relative;
+}
+
+.tab-btn:hover {
+    color: #495057;
+    background: rgba(102, 126, 234, 0.1);
 }
 
 .tab-btn.active {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
 }
 
 .prediction-form {
@@ -363,15 +432,26 @@ body {
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
 }
 
 .form-group label {
     display: block;
     font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 6px;
-    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label::before {
+    content: '';
+    width: 3px;
+    height: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
 }
 
 .prediction-result {
