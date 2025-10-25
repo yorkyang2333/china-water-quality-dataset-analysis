@@ -5,7 +5,8 @@
       "Bash(dir:*)",
       "Bash(del check_data.py)",
       "Read(//c/**)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
