@@ -331,16 +331,15 @@ def process_all_provinces(df, device):
     print("LSTM时间序列预测 - 2023训练/2024验证 + GPU加速 (Province级别)")
     print("="*80)
 
-    provinces = df["Province"].unique()
-
-    print(f"\n总监测站数: {len(stations)}")
+    provinces = df['Province'].unique()
+    print(f"\n总省份数: {len(provinces)}")
     print(f"设备: {device}")
 
     all_results = {}
     successful = 0
 
-    for idx, province in enumerate(provinces, 1):, row['City'], row['Monitoring_Station']
-        print(f"\n[{idx}/{len(provinces)}] {province} - {city} - {station}")
+    for idx, province in enumerate(provinces, 1):
+        print(f"\n[{idx}/{len(provinces)}] {province}")
 
         province_data = df[df["Province"] == province].copy()
 
@@ -350,14 +349,12 @@ def process_all_provinces(df, device):
             province_key = province
             all_results[province_key] = {
                 'province': province,
-                'city': city,
-                'station': station,
                 'result': result
             }
             successful += 1
             print(f"  ✓ R² = {result['metrics']['R2']:.4f}, RMSE = {result['metrics']['RMSE']:.2f}")
 
-    print(f"\n成功: {successful}/{len(stations)}")
+    print(f"\n成功: {successful}/{len(provinces)}")
     return all_results
 
 
