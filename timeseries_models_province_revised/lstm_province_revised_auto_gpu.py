@@ -231,7 +231,7 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=200, batch_s
         else:
             patience_counter += 1
             if patience_counter >= patience:
-                print(f"  早停于 Epoch {epoch+1}")
+                # print(f"  早停于 Epoch {epoch+1}")  # 减少输出
                 break
 
         if (epoch + 1) % 20 == 0:
@@ -358,9 +358,9 @@ def process_all_provinces(df, device):
     return all_results
 
 
-def visualize_station(station_key, station_info, output_dir):
-    """可视化单个监测站的预测结果（折线图）"""
-    result = station_info['result']
+def visualize_province(province_key, province_info, output_dir):
+    """可视化单个省份的预测结果（折线图）"""
+    result = province_info['result']
 
     fig, ax = plt.subplots(1, 1, figsize=(12, 6))
 
@@ -379,7 +379,7 @@ def visualize_station(station_key, station_info, output_dir):
     ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
             va='top', bbox=dict(boxstyle='round', fc='wheat', alpha=0.8))
 
-    ax.set_title(f"{station_info['province']} - {station_info['city']} - {station_info['station']}\n" +
+    ax.set_title(f"{province_info['province']} Province\n" +
                  f"LSTM Prediction (Train: 2023, Test: 2024)", fontsize=12, fontweight='bold')
     ax.set_xlabel('Date (2024)', fontsize=10)
     ax.set_ylabel('Water Quality Index', fontsize=10)
@@ -388,7 +388,7 @@ def visualize_station(station_key, station_info, output_dir):
     plt.xticks(rotation=45)
     plt.tight_layout()
 
-    filename = f'{output_dir}/Province_Plots/{station_key}.png'
+    filename = f'{output_dir}/Province_Plots/{province_key}.png'
     plt.savefig(filename, dpi=200, bbox_inches='tight')
     plt.close()
 
@@ -474,10 +474,10 @@ def main():
         return
 
     print("\n[3/4] 生成可视化...")
-    for idx, (station_key, station_info) in enumerate(all_results.items(), 1):
-        if idx % 10 == 0:
+    for idx, (province_key, province_info) in enumerate(all_results.items(), 1):
+        if idx % 5 == 0:
             print(f"  进度: {idx}/{len(all_results)}")
-        visualize_station(station_key, station_info, OUTPUT_DIR)
+        visualize_province(province_key, province_info, OUTPUT_DIR)
 
     print("\n[4/4] 生成报告...")
     generate_report(all_results, OUTPUT_DIR, DEVICE)

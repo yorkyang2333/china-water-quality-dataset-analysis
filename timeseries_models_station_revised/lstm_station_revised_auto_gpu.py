@@ -231,7 +231,7 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=200, batch_s
         else:
             patience_counter += 1
             if patience_counter >= patience:
-                print(f"  早停于 Epoch {epoch+1}")
+                # print(f"  早停于 Epoch {epoch+1}")  # 减少输出
                 break
 
         if (epoch + 1) % 20 == 0:
