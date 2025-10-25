@@ -4,7 +4,20 @@
       "Bash(python:*)",
       "Bash(dir:*)",
       "Bash(del check_data.py)",
-      "Read(//c/**)"
+      "Read(//c/**)",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(grep:*)",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(tree:*)",
+      "Bash(source:*)",
+      "Bash(pip:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(awk:*)",
+      "Bash(xargs:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
