@@ -418,14 +418,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"监测站数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"平稳序列数: {stationary_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {

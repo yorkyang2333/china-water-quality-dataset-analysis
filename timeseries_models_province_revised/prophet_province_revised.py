@@ -75,7 +75,7 @@ def calculate_metrics(y_true, y_pred):
     }
 
 
-def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
+def build_timeseries_prophet(province_data, indicator):
     """
     使用Prophet进行时间序列预测
 
@@ -96,53 +96,73 @@ def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
     if len(data) < 50:
         return None
 
-    # 准备Prophet格式数据
-    prophet_data = pd.DataFrame({
-        'ds': data['Date'],
-        'y': data[indicator]
-    })
-
     # ⭐ 按年份分割（2023训练，2024测试）
     data['Year'] = data['Date'].dt.year
     train_data = data[data['Year'] == 2023]
     test_data = data[data['Year'] == 2024]
 
-    if len(train_data) < 30 or len(test_data) < 5:
+    # 准备Prophet格式数据
+    prophet_train = pd.DataFrame({
+        'ds': train_data['Date'],
+        'y': train_data[indicator]
+    }).reset_index(drop=True)
+
+    prophet_test = pd.DataFrame({
+        'ds': test_data['Date'],
+        'y': test_data[indicator]
+    }).reset_index(drop=True)
+
+    if len(prophet_train) < 30 or len(prophet_test) < 5:
         return None
 
     try:
         # 创建Prophet模型
         # 使用较保守的设置以提高稳定性
-        model = Prophet(
-            yearly_seasonality=True if len(train_data) >= 60 else False,
-            weekly_seasonality=False,  # 水质数据通常无周季节性
-            daily_seasonality=False,
-            seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
-            changepoint_prior_scale=0.05,  # 降低过拟合风险
-            seasonality_prior_scale=10,
-            interval_width=0.95
-        )
+        if len(prophet_train) >= 60:
+            model = Prophet(
+                yearly_seasonality='auto',
+                weekly_seasonality='off',  # 水质数据通常无周季节性
+                daily_seasonality='off',   # 关闭日季节性
+                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
+                changepoint_prior_scale=0.05,  # 降低过拟合风险
+                seasonality_prior_scale=10,
+                interval_width=0.95
+            )
+        else:
+            model = Prophet(
+                yearly_seasonality='off',  # 关闭年季节性
+                weekly_seasonality='off',  # 水质数据通常无周季节性
+                daily_seasonality='off',   # 关闭日季节性
+                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
+                changepoint_prior_scale=0.05,  # 降低过拟合风险
+                seasonality_prior_scale=10,
+                interval_width=0.95
+            )
 
         # 添加自定义季节性（月度或季度）
-        if len(train_data) >= 60:
+        if len(prophet_train) >= 60:
             model.add_seasonality(name='monthly', period=30.5, fourier_order=3)
-        elif len(train_data) >= 30:
+        elif len(prophet_train) >= 30:
             model.add_seasonality(name='quarterly', period=91.25, fourier_order=2)
 
         # 训练模型（抑制输出）
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            model.fit(train_data)
+            model.fit(prophet_train)
 
         # 预测
-        future = test_data[['ds']].copy()
+        future = prophet_test[['ds']].copy()
         forecast = model.predict(future)
 
         y_pred = forecast['yhat'].values
-        y_test = test_data['y'].values
+        y_test = prophet_test['y'].values
+
+        # 获取测试日期
+        test_dates = prophet_test['ds'].values
 
         # 检查预测值的合理性
-        if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
+        y_pred_array = np.asarray(y_pred)
+        if np.any(np.isnan(y_pred_array)) or np.any(np.isinf(y_pred_array)):
             return None
 
         # 计算指标
@@ -155,23 +175,24 @@ def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
             return None
 
         # 提取趋势信息
-        has_trend = len(model.changepoints) > 0
+        changepoints = getattr(model, 'changepoints', None)
+        has_trend = len(changepoints) > 0 if changepoints is not None else False
         trend_strength = abs(forecast['trend'].iloc[-1] - forecast['trend'].iloc[0]) if len(forecast) > 1 else 0
 
         return {
             'model_name': 'Prophet',
             'y_test': y_test,
             'y_pred': y_pred,
-            'train_size': len(train_data),
-            'test_size': len(test_data),
+            'train_size': len(prophet_train),
+            'test_size': len(prophet_test),
             'test_dates': test_dates,  # ⭐ 新增：保存日期用于折线图
             'metrics': metrics,
             'has_trend': has_trend,
             'trend_strength': trend_strength,
-            'changepoints': len(model.changepoints)
+            'changepoints': len(changepoints) if changepoints is not None else 0
         }
 
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -282,8 +303,8 @@ def visualize_province(province, province_info, output_dir):
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
                 color='orangered', label='Predicted', alpha=0.8, linestyle='--')
 
-        min_val = min(y_test.min(), y_pred.min())
-        max_val = max(y_test.max(), y_pred.max())
+        _ = min(y_test.min(), y_pred.min())  # unused
+        _ = max(y_test.max(), y_pred.max())  # unused
 
         trend_text = f"趋势变化: {result['trend_strength']:.2f}" if result['has_trend'] else "无明显趋势"
         textstr = f"Model: Prophet\nR² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nN = {m['Sample_Size']}\n{trend_text}"
@@ -347,14 +368,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"省份数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"检测到趋势的模型数: {has_trend_count} ({has_trend_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"检测到趋势的模型数: {has_trend_count} ({has_trend_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"检测到趋势的模型数: {has_trend_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {
@@ -370,14 +397,28 @@ def generate_report(all_results, output_dir):
             f.write(f"  {range_name}: {count} ({percentage:.1f}%)\n")
         f.write("\n")
 
-        f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
-        f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        if len(all_rmse) > 0:
+            f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
+        else:
+            f.write("RMSE 平均值: 无有效数据\n")
+
+        if len(all_mae) > 0:
+            f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n")
+        else:
+            f.write("MAE 平均值: 无有效数据\n")
+        f.write("\n")
 
         # 趋势统计
         f.write(f"趋势强度统计:\n")
-        f.write(f"  平均趋势强度: {np.mean(all_trends):.4f}\n")
-        f.write(f"  最大趋势强度: {np.max(all_trends):.4f}\n")
-        f.write(f"  最小趋势强度: {np.min(all_trends):.4f}\n\n")
+        if len(all_trends) > 0:
+            f.write(f"  平均趋势强度: {np.mean(all_trends):.4f}\n")
+            f.write(f"  最大趋势强度: {np.max(all_trends):.4f}\n")
+            f.write(f"  最小趋势强度: {np.min(all_trends):.4f}\n")
+        else:
+            f.write("  平均趋势强度: 无有效数据\n")
+            f.write("  最大趋势强度: 无有效数据\n")
+            f.write("  最小趋势强度: 无有效数据\n")
+        f.write("\n")
 
         f.write("\n" + "="*80 + "\n\n")
 

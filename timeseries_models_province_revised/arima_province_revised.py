@@ -115,7 +115,7 @@ def find_best_arima_params(timeseries, max_p=3, max_d=2, max_q=3):
     return best_params, best_aic, best_model
 
 
-def build_timeseries_arima(province_data, indicator, train_ratio=0.8, auto_params=True):
+def build_timeseries_arima(province_data, indicator, auto_params=True):
     """
     使用ARIMA进行时间序列预测
 
@@ -145,8 +145,13 @@ def build_timeseries_arima(province_data, indicator, train_ratio=0.8, auto_param
 
     # ⭐ 按年份分割（2023训练，2024测试）
     data['Year'] = data['Date'].dt.year
-    train_data = data[data['Year'] == 2023]
-    test_data = data[data['Year'] == 2024]
+    train_data_df = data[data['Year'] == 2023]
+    test_data_df = data[data['Year'] == 2024]
+    test_dates = test_data_df['Date'].values  # ⭐ 新增：保存测试集日期
+
+    # 提取实际的时间序列值
+    train_data = train_data_df[indicator].values
+    test_data = test_data_df[indicator].values
 
     if len(train_data) < 30 or len(test_data) < 5:
         return None
@@ -154,7 +159,7 @@ def build_timeseries_arima(province_data, indicator, train_ratio=0.8, auto_param
     try:
         # 选择ARIMA参数
         if auto_params:
-            best_params, aic_score, fitted_model = find_best_arima_params(train_data)
+            best_params, _, fitted_model = find_best_arima_params(train_data)
             if fitted_model is None:
                 # 如果自动选择失败，使用默认参数
                 best_params = (1, 1, 1)
@@ -198,7 +203,7 @@ def build_timeseries_arima(province_data, indicator, train_ratio=0.8, auto_param
             'p_value': p_value
         }
 
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -310,8 +315,8 @@ def visualize_province(province, province_info, output_dir):
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
                 color='orangered', label='Predicted', alpha=0.8, linestyle='--')
 
-        min_val = min(y_test.min(), y_pred.min())
-        max_val = max(y_test.max(), y_pred.max())
+        _ = min(y_test.min(), y_pred.min())  # unused
+        _ = max(y_test.max(), y_pred.max())  # unused
 
         stationary_text = "平稳" if result['is_stationary'] else "非平稳"
         textstr = f"Model: ARIMA{params}\nR² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nN = {m['Sample_Size']}\n{stationary_text}"
@@ -375,14 +380,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"省份数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"平稳序列数: {stationary_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {
@@ -409,9 +420,12 @@ def generate_report(all_results, output_dir):
                 param_counts[p] = 0
             param_counts[p] += 1
 
-        top_params = sorted(param_counts.items(), key=lambda x: x[1], reverse=True)[:5]
-        for param, count in top_params:
-            f.write(f"  ARIMA{param}: {count} 次 ({count/len(all_params)*100:.1f}%)\n")
+        if len(all_params) > 0:
+            top_params = sorted(param_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+            for param, count in top_params:
+                f.write(f"  ARIMA{param}: {count} 次 ({count/len(all_params)*100:.1f}%)\n")
+        else:
+            f.write("  无有效参数数据\n")
         f.write("\n")
 
         f.write("\n" + "="*80 + "\n\n")

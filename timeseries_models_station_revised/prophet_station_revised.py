@@ -108,15 +108,26 @@ def build_timeseries_prophet(station_data, indicator, train_ratio=0.8):
     try:
         # 创建Prophet模型
         # 使用较保守的设置以提高稳定性
-        model = Prophet(
-            yearly_seasonality=True if len(train_data) >= 48 else False,
-            weekly_seasonality=False,  # 水质数据通常无周季节性
-            daily_seasonality=False,
-            seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
-            changepoint_prior_scale=0.05,  # 降低过拟合风险
-            seasonality_prior_scale=10,
-            interval_width=0.95
-        )
+        if len(train_data) >= 48:
+            model = Prophet(
+                yearly_seasonality='auto',
+                weekly_seasonality='off',  # 水质数据通常无周季节性
+                daily_seasonality='off',
+                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
+                changepoint_prior_scale=0.05,  # 降低过拟合风险
+                seasonality_prior_scale=10,
+                interval_width=0.95
+            )
+        else:
+            model = Prophet(
+                yearly_seasonality='off',
+                weekly_seasonality='off',  # 水质数据通常无周季节性
+                daily_seasonality='off',
+                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
+                changepoint_prior_scale=0.05,  # 降低过拟合风险
+                seasonality_prior_scale=10,
+                interval_width=0.95
+            )
 
         # 添加自定义季节性（月度或季度）
         if len(train_data) >= 48:
@@ -353,14 +364,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"监测站数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"检测到趋势: {trend_count} ({trend_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"检测到趋势: {trend_count} ({trend_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"检测到趋势: {trend_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {

@@ -421,12 +421,15 @@ def generate_report(all_results, output_dir):
         f.write(f"省份数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {
@@ -442,8 +445,15 @@ def generate_report(all_results, output_dir):
             f.write(f"  {range_name}: {count} ({percentage:.1f}%)\n")
         f.write("\n")
 
-        f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
-        f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        if len(all_rmse) > 0:
+            f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
+        else:
+            f.write("RMSE 平均值: 无有效数据\n")
+
+        if len(all_mae) > 0:
+            f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        else:
+            f.write("MAE 平均值: 无有效数据\n\n")
 
         f.write("\n" + "="*80 + "\n\n")
 

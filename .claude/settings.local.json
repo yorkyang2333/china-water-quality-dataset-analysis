@@ -1,16 +1,10 @@
 {
   "permissions": {
     "allow": [
+      "Bash(timeout 30s python3:*)",
+      "Bash(gtimeout:*)",
       "Bash(python:*)",
-      "Bash(dir:*)",
-      "Bash(del check_data.py)",
-      "Read(//c/**)",
-      "Bash(findstr:*)",
-      "Bash(tree:*)",
-      "Bash(python3 -m py_compile:*)",
-      "Bash(for file in timeseries_models_station_revised/*.py timeseries_models_province_revised/*.py)",
-      "Bash(do echo \"检查: $file\")",
-      "Bash(done)"
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

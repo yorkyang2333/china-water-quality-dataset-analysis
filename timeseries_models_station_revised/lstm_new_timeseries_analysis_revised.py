@@ -196,6 +196,7 @@ def train_lstm_model(X_train, y_train, X_val, y_val, epochs=200, batch_size=16, 
 
     history = {'train_loss': [], 'val_loss': []}
     best_val_loss = float('inf')
+    best_model_state = None  # 初始化best_model_state
     patience_counter = 0
 
     for epoch in range(epochs):
@@ -242,7 +243,8 @@ def train_lstm_model(X_train, y_train, X_val, y_val, epochs=200, batch_size=16, 
         if (epoch + 1) % 20 == 0:
             print(f"  Epoch {epoch+1}/{epochs} - Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}")
 
-    model.load_state_dict(best_model_state)
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
     return model, history
 
 

@@ -142,19 +142,20 @@ def build_timeseries_ar(province_data, indicator, train_ratio=0.8, auto_lag=True
     try:
         # 选择滞后阶数
         if auto_lag:
-            best_lag, aic = find_best_ar_lag(train_data, maxlag=min(15, len(train_data) // 4))
+            best_lag, aic = find_best_ar_lag(train_data[indicator].values, maxlag=min(15, len(train_data) // 4))
         else:
             best_lag = min(5, len(train_data) // 4)
             aic = None
 
-        # 训练AR模型
-        model = AutoReg(train_data, lags=best_lag, old_names=False)
+        # 训练AR模型（使用指标列）
+        model = AutoReg(train_data[indicator].values, lags=best_lag, old_names=False)
         fitted_model = model.fit()
 
         # 预测
         forecast = fitted_model.predict(start=len(train_data), end=len(train_data) + len(test_data) - 1)
         y_pred = np.array(forecast)
-        y_test = test_data
+        y_test = test_data[indicator].values
+        test_dates = test_data['Date'].values
 
         # 检查预测值的合理性
         if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
@@ -360,14 +361,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"省份数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"平稳序列数: {stationary_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {
@@ -395,8 +402,11 @@ def generate_report(all_results, output_dir):
             if lag not in lag_counts:
                 lag_counts[lag] = 0
             lag_counts[lag] += 1
-        for lag in sorted(lag_counts.keys())[:5]:
-            f.write(f"  AR({lag}): {lag_counts[lag]} 次 ({lag_counts[lag]/len(all_lags)*100:.1f}%)\n")
+        if len(all_lags) > 0:
+            for lag in sorted(lag_counts.keys())[:5]:
+                f.write(f"  AR({lag}): {lag_counts[lag]} 次 ({lag_counts[lag]/len(all_lags)*100:.1f}%)\n")
+        else:
+            f.write("  无有效滞后阶数数据\n")
         f.write("\n")
 
         f.write("\n" + "="*80 + "\n\n")

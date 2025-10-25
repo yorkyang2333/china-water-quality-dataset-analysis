@@ -122,11 +122,28 @@ def find_best_sarima_params(timeseries, seasonal_period=12):
                 )
                 fitted = model.fit(disp=False, maxiter=50)
 
-                if fitted.aic < best_aic:
-                    best_aic = fitted.aic
-                    best_params = ((p, d, q), (P, D, Q, seasonal_period))
-                    best_model = fitted
-            except:
+                # Check if fitted is a tuple (error case) or SARIMAXResults object (success case)
+                if isinstance(fitted, tuple):
+                    continue
+
+                # Check if fitted has the aic attribute
+                if not hasattr(fitted, 'aic'):
+                    continue
+
+                try:
+                    # Access AIC safely - check if it's a valid number
+                    aic_value = getattr(fitted, 'aic', None)
+                    if aic_value is not None and not isinstance(aic_value, np.ndarray) and isinstance(aic_value, (int, float)):
+                        if aic_value < best_aic:
+                            best_aic = aic_value
+                            best_params = ((p, d, q), (P, D, Q, seasonal_period))
+                            best_model = fitted
+                    else:
+                        continue
+                except (AttributeError, TypeError, ValueError):
+                    continue
+            except Exception:
+                # Continue to next parameter combination if this one fails
                 continue
 
         if search_count > max_searches:
@@ -135,7 +152,7 @@ def find_best_sarima_params(timeseries, seasonal_period=12):
     return best_params, best_aic, best_model
 
 
-def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_params=True):
+def build_timeseries_sarima(province_data, indicator, auto_params=True):
     """
     使用SARIMA进行时间序列预测
 
@@ -165,8 +182,13 @@ def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_para
 
     # ⭐ 按年份分割（2023训练，2024测试）
     data['Year'] = data['Date'].dt.year
-    train_data = data[data['Year'] == 2023]
-    test_data = data[data['Year'] == 2024]
+    train_data_df = data[data['Year'] == 2023]
+    test_data_df = data[data['Year'] == 2024]
+    test_dates = test_data_df['Date'].values  # ⭐ 新增：保存测试集日期
+
+    # 提取实际的时间序列值
+    train_data = train_data_df[indicator].values
+    test_data = test_data_df[indicator].values
 
     if len(train_data) < 40 or len(test_data) < 5:
         return None
@@ -176,24 +198,17 @@ def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_para
         # 如果数据足够多，使用月度季节性(12)，否则使用季度(4)
         seasonal_period = 12 if len(train_data) >= 60 else 4
 
+        # Initialize variables
+        fitted_model = None
+        best_params = ((1, 1, 1), (0, 0, 0, seasonal_period))
+
         # 选择SARIMA参数
         if auto_params and len(train_data) >= 50:
-            best_params, aic_score, fitted_model = find_best_sarima_params(train_data, seasonal_period)
-            if fitted_model is None:
-                # 如果自动选择失败，使用默认参数
-                order = (1, 1, 1)
-                seasonal_order = (0, 0, 0, seasonal_period)
-                model = SARIMAX(
-                    train_data,
-                    order=order,
-                    seasonal_order=seasonal_order,
-                    enforce_stationarity=False,
-                    enforce_invertibility=False
-                )
-                fitted_model = model.fit(disp=False, maxiter=50)
-                best_params = (order, seasonal_order)
-        else:
-            # 默认参数
+            best_params, _, fitted_model = find_best_sarima_params(train_data, seasonal_period)
+
+        # 检查 fitted_model 是否有效，如果无效则使用默认参数
+        if fitted_model is None or isinstance(fitted_model, (tuple, np.ndarray)):
+            # 使用默认参数
             order = (1, 1, 1)
             seasonal_order = (0, 0, 0, seasonal_period)
             model = SARIMAX(
@@ -206,10 +221,30 @@ def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_para
             fitted_model = model.fit(disp=False, maxiter=50)
             best_params = (order, seasonal_order)
 
-        # 预测
-        forecast = fitted_model.forecast(steps=len(test_data))
-        y_pred = np.array(forecast)
-        y_test = test_data
+        # Final verification that fitted_model is a valid SARIMAXResults object
+        if fitted_model is None or isinstance(fitted_model, (tuple, np.ndarray)):
+            return None
+
+        # Verify it has the required methods
+        if not hasattr(fitted_model, 'forecast'):
+            return None
+
+        # 预测 - 检查模型类型和属性
+
+        try:
+            forecast = fitted_model.forecast(steps=len(test_data))
+            # 确保forecast是数组而不是元组或其他类型
+            if isinstance(forecast, tuple):
+                forecast = forecast[0] if len(forecast) > 0 else np.array([])
+            elif isinstance(forecast, np.ndarray):
+                pass  # already good
+            else:
+                forecast = np.array([forecast] if not isinstance(forecast, (list, np.ndarray)) else forecast)
+
+            y_pred = np.array(forecast)
+            y_test = test_data
+        except (AttributeError, TypeError, ValueError):
+            return None
 
         # 检查预测值的合理性
         if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
@@ -224,6 +259,9 @@ def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_para
         if metrics['R2'] < -100:
             return None
 
+        # 获取AIC值（如果存在）
+        aic_score = getattr(fitted_model, 'aic', None)
+
         return {
             'model_name': 'SARIMA',
             'y_test': y_test,
@@ -233,13 +271,13 @@ def build_timeseries_sarima(province_data, indicator, train_ratio=0.8, auto_para
             'test_dates': test_dates,  # ⭐ 新增：保存日期用于折线图
             'metrics': metrics,
             'params': best_params,
-            'aic': fitted_model.aic,
+            'aic': aic_score,
             'is_stationary': is_stationary,
             'p_value': p_value,
             'seasonal_period': seasonal_period
         }
 
-    except Exception as e:
+    except Exception:
         return None
 
 
@@ -344,7 +382,7 @@ def visualize_province(province, province_info, output_dir):
         y_pred = result['y_pred']
         m = result['metrics']
         params = result['params']
-        seasonal_period = result['seasonal_period']
+        _ = result['seasonal_period']  # unused but kept for completeness
 
         # ⭐ 使用折线图代替散点图
         test_dates = pd.to_datetime(result['test_dates'])
@@ -353,8 +391,8 @@ def visualize_province(province, province_info, output_dir):
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
                 color='orangered', label='Predicted', alpha=0.8, linestyle='--')
 
-        min_val = min(y_test.min(), y_pred.min())
-        max_val = max(y_test.max(), y_pred.max())
+        _ = min(y_test.min(), y_pred.min())  # unused
+        _ = max(y_test.max(), y_pred.max())  # unused
 
         stationary_text = "平稳" if result['is_stationary'] else "非平稳"
         order_str = f"({params[0][0]},{params[0][1]},{params[0][2]})"
@@ -423,14 +461,20 @@ def generate_report(all_results, output_dir):
         f.write("="*80 + "\n")
         f.write(f"省份数量: {len(all_results)}\n")
         f.write(f"总预测模型数: {len(all_r2)}\n")
-        f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        if len(all_r2) > 0:
+            f.write(f"平稳序列数: {stationary_count} ({stationary_count/len(all_r2)*100:.1f}%)\n\n")
+        else:
+            f.write(f"平稳序列数: {stationary_count} (无有效模型)\n\n")
 
-        f.write(f"R² 统计:\n")
-        f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"  中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"  标准差: {np.std(all_r2):.4f}\n")
-        f.write(f"  最大值: {np.max(all_r2):.4f}\n")
-        f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        if len(all_r2) > 0:
+            f.write(f"R² 统计:\n")
+            f.write(f"  平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"  中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"  标准差: {np.std(all_r2):.4f}\n")
+            f.write(f"  最大值: {np.max(all_r2):.4f}\n")
+            f.write(f"  最小值: {np.min(all_r2):.4f}\n\n")
+        else:
+            f.write("R² 统计: 无有效模型数据\n\n")
 
         # R²分布
         r2_ranges = {
@@ -446,15 +490,26 @@ def generate_report(all_results, output_dir):
             f.write(f"  {range_name}: {count} ({percentage:.1f}%)\n")
         f.write("\n")
 
-        f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
-        f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        if len(all_rmse) > 0:
+            f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
+        else:
+            f.write("RMSE 平均值: 无有效数据\n")
+
+        if len(all_mae) > 0:
+            f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        else:
+            f.write("MAE 平均值: 无有效数据\n\n")
 
         # 季节性周期统计
         f.write(f"季节性周期分布:\n")
         period_12 = sum(1 for p in all_seasonal_periods if p == 12)
         period_4 = sum(1 for p in all_seasonal_periods if p == 4)
-        f.write(f"  月度周期(12): {period_12} ({period_12/len(all_seasonal_periods)*100:.1f}%)\n")
-        f.write(f"  季度周期(4): {period_4} ({period_4/len(all_seasonal_periods)*100:.1f}%)\n\n")
+        if len(all_seasonal_periods) > 0:
+            f.write(f"  月度周期(12): {period_12} ({period_12/len(all_seasonal_periods)*100:.1f}%)\n")
+            f.write(f"  季度周期(4): {period_4} ({period_4/len(all_seasonal_periods)*100:.1f}%)\n\n")
+        else:
+            f.write("  月度周期(12): 无有效数据\n")
+            f.write("  季度周期(4): 无有效数据\n\n")
 
         # 常用参数统计
         f.write(f"SARIMA参数分布 (Top 5):\n")
@@ -464,11 +519,14 @@ def generate_report(all_results, output_dir):
                 param_counts[p] = 0
             param_counts[p] += 1
 
-        top_params = sorted(param_counts.items(), key=lambda x: x[1], reverse=True)[:5]
-        for param, count in top_params:
-            order_str = f"({param[0][0]},{param[0][1]},{param[0][2]})"
-            seasonal_str = f"({param[1][0]},{param[1][1]},{param[1][2]},{param[1][3]})"
-            f.write(f"  SARIMA{order_str}x{seasonal_str}: {count} 次 ({count/len(all_params)*100:.1f}%)\n")
+        if len(all_params) > 0:
+            top_params = sorted(param_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+            for param, count in top_params:
+                order_str = f"({param[0][0]},{param[0][1]},{param[0][2]})"
+                seasonal_str = f"({param[1][0]},{param[1][1]},{param[1][2]},{param[1][3]})"
+                f.write(f"  SARIMA{order_str}x{seasonal_str}: {count} 次 ({count/len(all_params)*100:.1f}%)\n")
+        else:
+            f.write("  无有效参数数据\n")
         f.write("\n")
 
         f.write("\n" + "="*80 + "\n\n")
