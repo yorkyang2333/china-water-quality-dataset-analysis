@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水质监测可视化平台 | Water Quality Monitoring Platform</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">
+                <span class="icon">💧</span>
+                水质监测可视化平台
+            </h1>
+            <p class="header-subtitle">Water Quality Monitoring & Analysis Platform</p>
+        </div>
+        <div class="header-stats" id="headerStats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalStations">-</div>
+                <div class="stat-label">监测站点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalRecords">-</div>
+                <div class="stat-label">数据记录</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgWQI">-</div>
+                <div class="stat-label">平均水质指数</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar left-sidebar">
+            <!-- Control Panel -->
+            <div class="panel control-panel">
+                <h3 class="panel-title">🎛️ 控制面板</h3>
+
+                <!-- Time Range -->
+                <div class="control-group">
+                    <label>时间范围</label>
+                    <div class="date-inputs">
+                        <input type="date" id="startDate" class="date-input">
+                        <span>至</span>
+                        <input type="date" id="endDate" class="date-input">
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="app.applyTimeFilter()">应用</button>
+                </div>
+
+                <!-- Province Filter -->
+                <div class="control-group">
+                    <label>省份筛选</label>
+                    <select id="provinceFilter" class="select-input" onchange="app.filterByProvince()">
+                        <option value="">全部省份</option>
+                    </select>
+                </div>
+
+                <!-- Indicator Selection -->
+                <div class="control-group">
+                    <label>显示指标</label>
+                    <select id="indicatorSelect" class="select-input" onchange="app.changeIndicator()">
+                        <option value="Water_Quality_Index">水质指数 (WQI)</option>
+                        <option value="COD_mg_L">化学需氧量 (COD)</option>
+                        <option value="pH">pH值</option>
+                        <option value="Total_Nitrogen_mg_L">总氮</option>
+                        <option value="Total_Phosphorus_mg_L">总磷</option>
+                        <option value="Dissolved_Oxygen_mg_L">溶解氧</option>
+                    </select>
+                </div>
+
+                <!-- Spatial Query Tools -->
+                <div class="control-group">
+                    <label>空间查询工具</label>
+                    <div class="button-group">
+                        <button class="btn btn-tool" onclick="app.enableRectangleSelect()" title="矩形选择">
+                            <span>📐</span> 矩形
+                        </button>
+                        <button class="btn btn-tool" onclick="app.enableCircleSelect()" title="圆形选择">
+                            <span>⭕</span> 圆形
+                        </button>
+                        <button class="btn btn-tool" onclick="app.clearSelection()" title="清除选择">
+                            <span>🗑️</span> 清除
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Panel -->
+            <div class="panel stats-panel">
+                <h3 class="panel-title">📊 数据统计</h3>
+                <div id="statisticsContent">
+                    <p class="loading-text">加载中...</p>
+                </div>
+            </div>
+
+            <!-- Trend Chart Panel -->
+            <div class="panel chart-panel">
+                <h3 class="panel-title">📈 趋势图表</h3>
+                <canvas id="trendChart" width="400" height="200"></canvas>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <main class="map-container">
+            <div id="map"></div>
+
+            <!-- Timeline Control -->
+            <div class="timeline-control">
+                <div class="timeline-header">
+                    <span class="timeline-icon">🕐</span>
+                    <span class="timeline-title">时间轴控制</span>
+                </div>
+                <div class="timeline-body">
+                    <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="100">
+                    <div class="timeline-labels">
+                        <span id="timelineStart">2020-01-01</span>
+                        <span id="timelineCurrent">当前</span>
+                        <span id="timelineEnd">2024-12-31</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <h4>图例</h4>
+                <div class="legend-item">
+                    <span class="legend-marker excellent"></span>
+                    <span>优秀 (WQI &lt; 20)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-marker good"></span>
+                    <span>良好 (20-40)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-marker fair"></span>
+                    <span>一般 (40-60)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-marker poor"></span>
+                    <span>较差 (60-80)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-marker very-poor"></span>
+                    <span>很差 (&gt; 80)</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="sidebar right-sidebar">
+            <!-- Prediction Panel -->
+            <div class="panel prediction-panel">
+                <h3 class="panel-title">🔮 水质预测</h3>
+
+                <div class="prediction-tabs">
+                    <button class="tab-btn active" onclick="app.switchPredictionTab('level')">
+                        污染等级预测
+                    </button>
+                    <button class="tab-btn" onclick="app.switchPredictionTab('quality')">
+                        水质指标预测
+                    </button>
+                </div>
+
+                <!-- Pollution Level Prediction Form -->
+                <div id="predictionFormLevel" class="prediction-form active">
+                    <div class="form-group">
+                        <label>水质指数 (WQI)</label>
+                        <input type="number" id="input_wqi" class="form-input" placeholder="35.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>COD (mg/L)</label>
+                        <input type="number" id="input_cod" class="form-input" placeholder="20.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>pH</label>
+                        <input type="number" id="input_ph" class="form-input" placeholder="7.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>总氮 (mg/L)</label>
+                        <input type="number" id="input_tn" class="form-input" placeholder="3.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>总磷 (mg/L)</label>
+                        <input type="number" id="input_tp" class="form-input" placeholder="0.1" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>溶解氧 (mg/L)</label>
+                        <input type="number" id="input_do" class="form-input" placeholder="8.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>氨氮 (mg/L)</label>
+                        <input type="number" id="input_ammonia" class="form-input" placeholder="0.5" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>浊度 (NTU)</label>
+                        <input type="number" id="input_turbidity" class="form-input" placeholder="5.0" step="0.1">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="app.predictPollutionLevel()">
+                        预测污染等级
+                    </button>
+                </div>
+
+                <!-- Water Quality Prediction Form -->
+                <div id="predictionFormQuality" class="prediction-form">
+                    <div class="form-group">
+                        <label>选择省份</label>
+                        <select id="predict_province" class="form-input">
+                            <option value="Beijing">北京</option>
+                            <option value="Shanghai">上海</option>
+                            <option value="Guangdong">广东</option>
+                            <option value="Jiangsu">江苏</option>
+                            <option value="Zhejiang">浙江</option>
+                            <option value="Shandong">山东</option>
+                            <option value="Henan">河南</option>
+                            <option value="Hubei">湖北</option>
+                            <option value="Sichuan">四川</option>
+                            <option value="Yunnan">云南</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>预测日期</label>
+                        <input type="date" id="predict_date" class="form-input">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="app.predictWaterQuality()">
+                        预测水质指标
+                    </button>
+                </div>
+
+                <!-- Prediction Result -->
+                <div id="predictionResult" class="prediction-result"></div>
+            </div>
+
+            <!-- Selected Area Info -->
+            <div class="panel selected-info-panel">
+                <h3 class="panel-title">📍 选中区域信息</h3>
+                <div id="selectedAreaInfo">
+                    <p class="info-text">请使用空间查询工具选择区域</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>加载中...</p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom Scripts -->
+    <script src="js/map.js"></script>
+    <script src="js/timeline.js"></script>
+    <script src="js/prediction.js"></script>
+
+    <script>
+        // Initialize app when page loads
+        window.addEventListener('load', () => {
+            console.log('🚀 Water Quality Platform initializing...');
+            if (typeof WaterQualityApp !== 'undefined') {
+                window.app = new WaterQualityApp();
+                window.app.init();
+            }
+        });
+    </script>
+</body>
+</html>

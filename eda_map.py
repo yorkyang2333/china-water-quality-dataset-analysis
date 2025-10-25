@@ -67,7 +67,7 @@ def get_geojson_data(url):
     return geo_data, province_centers
 
 def create_province_choropleth_map(df, geo_data, province_centers):
-    """创建现代化的交互式水质地图，使用自定义图层切换器避免UI遮挡"""
+    """创建现代化的交互式水质地图，使用动态重着色而非图层切换"""
     print("CREATING PROVINCE-LEVEL WATER QUALITY MAP WITH CUSTOM UI")
 
     # 1. 定义要可视化的指标及其配置
@@ -119,10 +119,43 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             'description': '水中氧气含量，越高越好',
             'unit': 'mg/L',
             'icon': '💨'
+        },
+        'pH': {
+            'name': 'pH值',
+            'name_en': 'pH',
+            'color': 'RdYlBu',
+            'description': '酸碱度，pH=7为中性，越低越酸，越高越碱',
+            'unit': 'pH',
+            'icon': '⚗️'
+        },
+        'Ammonia_N_mg_L': {
+            'name': '氨氮',
+            'name_en': 'Ammonia-N',
+            'color': 'YlGn',
+            'description': '水体污染的重要指标，值越低越好',
+            'unit': 'mg/L',
+            'icon': '🔬'
+        },
+        'Turbidity_NTU': {
+            'name': '浊度',
+            'name_en': 'Turbidity',
+            'color': 'Greys',
+            'description': '水的清澈程度，值越低水越清澈',
+            'unit': 'NTU',
+            'icon': '🌫️'
+        },
+        'COD_BOD_Ratio': {
+            'name': 'COD/BOD比值',
+            'name_en': 'COD/BOD Ratio',
+            'color': 'PuRd',
+            'description': '反映有机物可生物降解性，比值越高越难降解',
+            'unit': '比值',
+            'icon': '📊'
         }
     }
 
     # 2. 按省份聚合所有需要的指标
+    print("\n按省份聚合数据...")
     agg_dict = {indicator: 'mean' for indicator in indicators_to_visualize}
     agg_dict['Pollution_Level'] = lambda x: x.value_counts().index[0]
     agg_dict['Monitoring_Station'] = 'nunique'
@@ -132,6 +165,12 @@ def create_province_choropleth_map(df, geo_data, province_centers):
         'Pollution_Level': 'Most_Common_Pollution_Level',
         'Monitoring_Station': 'Station_Count'
     }, inplace=True)
+
+    # 打印每个省份的关键统计信息以供验证
+    print("\n=== 各省份水质指标统计（验证数据） ===")
+    for _, row in province_agg.iterrows():
+        print(f"{row['Province']:12s} | WQI: {row['Water_Quality_Index']:6.2f} | pH: {row['pH']:6.3f} | COD: {row['COD_mg_L']:6.2f} | 站点: {row['Station_Count']:2.0f}")
+    print()
 
     # 3. 添加中文名称和标准化中文名称列
     province_agg['Province_CN'] = province_agg['Province'].map(PROVINCE_NAME_MAP)
@@ -151,19 +190,20 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     # 计算污染等级分布
     pollution_distribution = df['Pollution_Level'].value_counts().to_dict()
 
-    # 5. 创建地图基础 - 不使用folium的LayerControl
+    # 5. 创建地图基础
     map_center = [35.8617, 104.1954]
-    m = folium.Map(location=map_center, zoom_start=5, tiles=None)
+    m = folium.Map(
+        location=map_center,
+        zoom_start=5,
+        tiles=None,
+        zoom_control=True,  # 保留缩放控件，通过CSS调整位置
+        control_scale=False
+    )
     folium.TileLayer('CartoDB positron', control=False).add_to(m)
 
-    # 6. 创建所有图层 - 使用GeoJson代替Choropleth以获得更好的控制
-    print("\nCreating interactive map layers...")
-
-    # 准备颜色映射函数
-    import branca.colormap as cm
-
-    # 存储图层元数据（用于图例）
-    layer_metadata = []
+    # 6. 准备所有指标的数据
+    print("\n准备所有指标数据...")
+    print("\n=== 各指标在所有省份的数据范围 ===")
 
     # 定义不同颜色方案的实际颜色值
     color_schemes = {
@@ -172,30 +212,23 @@ def create_province_choropleth_map(df, geo_data, province_centers):
         'Oranges': ['#fff5eb', '#fee6ce', '#fdd0a2', '#fdae6b', '#fd8d3c', '#f16913', '#d94801', '#8c2d04'],
         'Purples': ['#fcfbfd', '#efedf5', '#dadaeb', '#bcbddc', '#9e9ac8', '#807dba', '#6a51a3', '#4a1486'],
         'BuPu': ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8c6bb1', '#88419d', '#6e016b'],
-        'GnBu_r': ['#084081', '#0868ac', '#2b8cbe', '#4eb3d3', '#7bccc4', '#a8ddb5', '#ccebc5', '#f0f9e8'],  # reversed
+        'GnBu_r': ['#084081', '#0868ac', '#2b8cbe', '#4eb3d3', '#7bccc4', '#a8ddb5', '#ccebc5', '#f0f9e8'],
+        'RdYlBu': ['#d73027', '#f46d43', '#fdae61', '#fee090', '#e0f3f8', '#abd9e9', '#74add1', '#4575b4'],  # pH (红-黄-蓝)
+        'YlGn': ['#ffffe5', '#f7fcb9', '#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32'],  # 氨氮 (黄-绿)
+        'Greys': ['#ffffff', '#f0f0f0', '#d9d9d9', '#bdbdbd', '#969696', '#737373', '#525252', '#252525'],  # 浊度 (灰色)
+        'PuRd': ['#f7f4f9', '#e7e1ef', '#d4b9da', '#c994c7', '#df65b0', '#e7298a', '#ce1256', '#91003f'],  # COD/BOD比值 (紫-红)
     }
 
+    # 准备每个省份的所有指标数据
+    province_data_all = {}
+    layer_metadata = []
+
     for i, (indicator, config) in enumerate(indicators_to_visualize.items()):
-        layer_id = f"layer_{i}"
-
-        # 创建FeatureGroup
-        feature_group = FeatureGroup(name=layer_id, show=(i == 0))
-
-        # 获取该指标的值范围用于颜色映射
         min_val = province_agg[indicator].min()
         max_val = province_agg[indicator].max()
+        range_val = max_val - min_val
 
-        # 使用配置中定义的颜色方案
-        color_scheme_name = config['color']
-        colors = color_schemes.get(color_scheme_name, color_schemes['YlOrRd'])
-
-        # 创建颜色映射 - 每个指标使用不同的颜色方案
-        colormap = cm.LinearColormap(
-            colors=colors,
-            vmin=min_val,
-            vmax=max_val,
-            caption=f"{config['name']} ({config['unit']})"
-        )
+        colors = color_schemes.get(config['color'], color_schemes['YlOrRd'])
 
         # 存储图层元数据
         layer_metadata.append({
@@ -203,38 +236,59 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             'max': float(max_val),
             'avg': float(national_averages[indicator]),
             'unit': config['unit'],
-            'colors': colors  # 保存颜色方案用于前端显示
+            'colors': colors
         })
 
-        # 创建省份数据字典
-        province_data = {}
+        # 为每个省份准备数据
         for _, row in province_agg.iterrows():
-            if not pd.isna(row['Province_CN_Normalized']):
-                province_data[row['Province_CN_Normalized']] = row[indicator]
+            normalized_name = row['Province_CN_Normalized']
+            if pd.isna(normalized_name):
+                continue
 
-        # 定义样式函数 - 使用深拷贝确保每个图层独立
-        def make_style_function(data_dict, cmap):
-            def style_function(feature):
-                province_name = normalize_province_name(feature['properties'].get('name', ''))
-                value = data_dict.get(province_name, 0)
-                return {
-                    'fillColor': cmap(value) if value else '#e0e0e0',
-                    'color': 'black',
-                    'weight': 0.5,
-                    'fillOpacity': 0.7
-                }
-            return style_function
+            if normalized_name not in province_data_all:
+                province_data_all[normalized_name] = {}
 
-        # 添加GeoJson层 - 为每个图层创建独立的GeoJson副本
-        import copy
-        folium.GeoJson(
-            copy.deepcopy(geo_data),
-            style_function=make_style_function(province_data, colormap),
-            highlight_function=lambda x: {'weight': 2, 'fillOpacity': 0.9}
-        ).add_to(feature_group)
+            province_data_all[normalized_name][indicator] = float(row[indicator])
 
-        feature_group.add_to(m)
-        print(f" - Layer '{config['name']}' ({color_scheme_name}) created with ID '{layer_id}' | Range: {min_val:.2f} - {max_val:.2f}")
+        print(f"{config['name']:12s} ({config['unit']:8s}) | 最小: {min_val:8.3f} | 最大: {max_val:8.3f} | 差值: {range_val:8.3f} | 全国均值: {national_averages[indicator]:8.3f}")
+
+    # 7. 创建单个GeoJSON图层（不使用多图层）
+    print("\nCreating map with single interactive layer...")
+
+    # 默认使用第一个指标
+    first_indicator = list(indicators_to_visualize.keys())[0]
+    first_config = indicators_to_visualize[first_indicator]
+    first_colors = color_schemes[first_config['color']]
+    first_min = province_agg[first_indicator].min()
+    first_max = province_agg[first_indicator].max()
+
+    import branca.colormap as cm
+    first_colormap = cm.LinearColormap(
+        colors=first_colors,
+        vmin=first_min,
+        vmax=first_max
+    )
+
+    def style_function(feature):
+        province_name = normalize_province_name(feature['properties'].get('name', ''))
+        value = province_data_all.get(province_name, {}).get(first_indicator, 0)
+        return {
+            'fillColor': first_colormap(value) if value else '#e0e0e0',
+            'color': 'black',
+            'weight': 0.5,
+            'fillOpacity': 0.7,
+            'className': 'water-quality-polygon'
+        }
+
+    # 添加GeoJson层
+    geojson_layer = folium.GeoJson(
+        geo_data,
+        style_function=style_function,
+        highlight_function=lambda x: {'weight': 2, 'fillOpacity': 0.9}
+    )
+    geojson_layer.add_to(m)
+
+    print(" - Single interactive layer created successfully")
 
     # 7. 创建省份信息标记 - 始终显示
     for _, row in province_agg.iterrows():
@@ -343,28 +397,47 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 left: 50%;
                 transform: translateX(-50%);
                 background: white;
-                border-radius: 50px;
-                padding: 8px 15px;
+                border-radius: 15px;
+                padding: 10px 15px;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.15);
                 z-index: 999;
                 display: flex;
+                flex-wrap: nowrap;
                 gap: 8px;
                 max-width: 90vw;
                 overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+            }}
+
+            /* 美化横向滚动条 */
+            .layer-switcher::-webkit-scrollbar {{
+                height: 6px;
+            }}
+
+            .layer-switcher::-webkit-scrollbar-track {{
+                background: #f1f1f1;
+                border-radius: 10px;
+            }}
+
+            .layer-switcher::-webkit-scrollbar-thumb {{
+                background: #667eea;
+                border-radius: 10px;
             }}
 
             .layer-btn {{
-                padding: 10px 20px;
+                padding: 6px 12px;
                 border: none;
-                border-radius: 25px;
+                border-radius: 20px;
                 background: #f5f7fa;
                 color: #4a5568;
-                font-size: 13px;
+                font-size: 11px;
                 font-weight: 500;
                 cursor: pointer;
                 transition: all 0.3s ease;
                 white-space: nowrap;
                 font-family: 'Poppins', sans-serif;
+                flex-shrink: 0;
             }}
 
             .layer-btn:hover {{
@@ -382,10 +455,10 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             /* 左侧面板容器 */
             .left-panels-container {{
                 position: fixed;
-                top: 160px;
+                top: 180px;
                 left: 20px;
                 width: 280px;
-                max-height: calc(100vh - 180px);
+                max-height: calc(100vh - 200px);
                 overflow-y: auto;
                 z-index: 999;
             }}
@@ -602,6 +675,18 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 left: 0;
                 right: 0;
                 bottom: 0;
+            }}
+
+            /* 调整Leaflet缩放控件位置 - 移到右侧 */
+            .leaflet-top.leaflet-left {{
+                left: auto !important;
+                right: 10px !important;
+                top: 90px !important;
+            }}
+
+            .leaflet-control-zoom {{
+                margin: 0 !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
             }}
 
             /* 隐藏默认控制器 */
@@ -836,6 +921,12 @@ def create_province_choropleth_map(df, geo_data, province_centers):
         </div>
 
         <script>
+            // 省份数据 - 所有指标
+            const provinceDataAll = {json.dumps(province_data_all)};
+
+            // 指标名称列表
+            const indicatorKeys = {json.dumps(list(indicators_to_visualize.keys()))};
+
             // 指标配置数据
             const indicators = {json.dumps([{
                 'name': config['name'],
@@ -850,9 +941,43 @@ def create_province_choropleth_map(df, geo_data, province_centers):
             // 排名数据
             const rankingsData = {json.dumps(rankings_data)};
 
-            // 图层切换函数
+            // 颜色插值函数
+            function interpolateColor(colors, value, min, max) {{
+                if (value <= min) return colors[0];
+                if (value >= max) return colors[colors.length - 1];
+
+                const ratio = (value - min) / (max - min);
+                const index = ratio * (colors.length - 1);
+                const lowerIndex = Math.floor(index);
+                const upperIndex = Math.ceil(index);
+
+                if (lowerIndex === upperIndex) return colors[lowerIndex];
+
+                const lowerColor = colors[lowerIndex];
+                const upperColor = colors[upperIndex];
+                const localRatio = index - lowerIndex;
+
+                // 解析颜色
+                function parseColor(hex) {{
+                    const r = parseInt(hex.slice(1, 3), 16);
+                    const g = parseInt(hex.slice(3, 5), 16);
+                    const b = parseInt(hex.slice(5, 7), 16);
+                    return [r, g, b];
+                }}
+
+                const [r1, g1, b1] = parseColor(lowerColor);
+                const [r2, g2, b2] = parseColor(upperColor);
+
+                const r = Math.round(r1 + (r2 - r1) * localRatio);
+                const g = Math.round(g1 + (g2 - g1) * localRatio);
+                const b = Math.round(b1 + (b2 - b1) * localRatio);
+
+                return `#${{r.toString(16).padStart(2, '0')}}${{g.toString(16).padStart(2, '0')}}${{b.toString(16).padStart(2, '0')}}`;
+            }}
+
+            // 图层切换函数 - 使用DOM重着色
             function switchLayer(layerIndex) {{
-                console.log('切换到图层:', layerIndex);
+                console.log('🔄 切换到指标:', layerIndex);
 
                 // 更新按钮状态
                 const buttons = document.querySelectorAll('.layer-btn');
@@ -881,42 +1006,63 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 // 更新颜色渐变条
                 if (metadata.colors && metadata.colors.length > 0) {{
                     const gradient = 'linear-gradient(to right, ' + metadata.colors.join(', ') + ')';
-                    console.log('设置颜色渐变:', gradient.substring(0, 80) + '...');
                     const gradientElement = document.getElementById('legendGradient');
                     if (gradientElement) {{
                         gradientElement.style.background = gradient;
-                        console.log('图例颜色已更新');
-                    }} else {{
-                        console.error('找不到legendGradient元素！');
+                        console.log('✅ 图例颜色已更新');
                     }}
-                }} else {{
-                    console.warn('图层', layerIndex, '没有颜色数据');
                 }}
 
                 // 更新排名
                 updateRankings(layerIndex);
 
-                // 切换地图图层
-                if (window.leafletMap) {{
-                    let layersSwitched = 0;
-                    window.leafletMap.eachLayer(function(layer) {{
-                        if (layer.options && layer.options.name) {{
-                            const layerName = layer.options.name;
-                            if (layerName.startsWith('layer_')) {{
-                                const idx = parseInt(layerName.split('_')[1]);
-                                if (idx === layerIndex) {{
-                                    window.leafletMap.addLayer(layer);
-                                    layersSwitched++;
-                                    console.log('显示图层:', layerName);
-                                }} else {{
-                                    window.leafletMap.removeLayer(layer);
-                                }}
-                            }}
-                        }}
-                    }});
-                    console.log('地图图层已切换，显示了', layersSwitched, '个图层');
-                }} else {{
-                    console.error('Leaflet地图实例未找到！');
+                // 重新着色地图上的多边形
+                const indicatorKey = indicatorKeys[layerIndex];
+                const colors = metadata.colors;
+                const minVal = metadata.min;
+                const maxVal = metadata.max;
+
+                console.log('🎨 开始重新着色地图...');
+                let polygonsRecolored = 0;
+
+                // 找到所有的path元素
+                const allPaths = document.querySelectorAll('path');
+                console.log('  找到', allPaths.length, '个path元素');
+
+                allPaths.forEach(path => {{
+                    // 尝试找到该path对应的省份名称
+                    // 方法: 从父元素的属性或数据中获取
+                    let provinceName = null;
+
+                    // 检查是否有data-province属性
+                    if (path.dataset && path.dataset.province) {{
+                        provinceName = path.dataset.province;
+                    }}
+
+                    // 如果没有找到省份名称，暂时跳过
+                    if (!provinceName) {{
+                        return;
+                    }}
+
+                    // 获取该省份该指标的值
+                    const provinceData = provinceDataAll[provinceName];
+                    if (!provinceData || !provinceData[indicatorKey]) {{
+                        return;
+                    }}
+
+                    const value = provinceData[indicatorKey];
+                    const color = interpolateColor(colors, value, minVal, maxVal);
+
+                    // 应用新颜色
+                    path.style.fill = color;
+                    polygonsRecolored++;
+                }});
+
+                console.log('✅ 重新着色完成:', polygonsRecolored, '个多边形');
+
+                if (polygonsRecolored === 0) {{
+                    console.warn('⚠️ 没有任何多边形被重新着色');
+                    console.log('💡 可能需要为GeoJSON元素添加省份标识');
                 }}
             }}
 
@@ -953,9 +1099,106 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                 document.getElementById('rankingContent').innerHTML = html;
             }}
 
+            // 捕获Leaflet地图实例的函数
+            function captureLeafletMap() {{
+                console.log('尝试捕获Leaflet地图实例...');
+
+                // 方法0: 检查是否已经暴露为mainLeafletMap
+                if (window.mainLeafletMap) {{
+                    window.leafletMap = window.mainLeafletMap;
+                    console.log('✅ 方法0成功: 使用预暴露的 mainLeafletMap');
+                    return true;
+                }}
+
+                // 方法1: 通过全局变量查找
+                for (let key in window) {{
+                    if (key.startsWith('map_') && window[key] instanceof L.Map) {{
+                        window.leafletMap = window[key];
+                        console.log('✅ 方法1成功: 通过全局变量 ' + key + ' 捕获到地图实例');
+                        return true;
+                    }}
+                }}
+
+                // 方法2: 通过DOM元素查找
+                const mapDiv = document.getElementById('map');
+                if (mapDiv) {{
+                    const leafletContainer = mapDiv.querySelector('.leaflet-container');
+                    if (leafletContainer && leafletContainer._leaflet_id) {{
+                        // 尝试直接从window对象获取
+                        for (let key in window) {{
+                            if (window[key] instanceof L.Map) {{
+                                window.leafletMap = window[key];
+                                console.log('✅ 方法2成功: 找到地图实例');
+                                return true;
+                            }}
+                        }}
+                    }}
+                }}
+
+                // 方法3: 遍历所有可能的map对象
+                const allDivs = document.querySelectorAll('.leaflet-container');
+                if (allDivs.length > 0) {{
+                    for (let key in window) {{
+                        if (window[key] instanceof L.Map) {{
+                            window.leafletMap = window[key];
+                            console.log('✅ 方法3成功: 通过leaflet-container找到地图实例');
+                            return true;
+                        }}
+                    }}
+                }}
+
+                console.error('❌ 所有方法都失败了，无法捕获Leaflet地图实例');
+                console.log('调试信息: L对象存在?', typeof L !== 'undefined');
+                console.log('调试信息: map div存在?', !!document.getElementById('map'));
+                console.log('调试信息: mainLeafletMap存在?', !!window.mainLeafletMap);
+                return false;
+            }}
+
+            // 为地图的path元素添加省份标识
+            function tagProvincePolygons() {{
+                console.log('🏷️ 开始标记省份多边形...');
+
+                if (!window.leafletMap) {{
+                    console.error('❌ 地图实例未找到，无法标记');
+                    return false;
+                }}
+
+                let taggedCount = 0;
+                const provinceNameMap = {json.dumps(PROVINCE_NAME_MAP)};
+                const normalizedNames = {{}};
+
+                // 创建标准化名称映射
+                Object.entries(provinceNameMap).forEach(([en, cn]) => {{
+                    // 移除常见后缀
+                    const normalized = cn.replace('省', '').replace('市', '').replace('自治区', '');
+                    normalizedNames[normalized] = normalized;
+                }});
+
+                // 遍历所有图层
+                window.leafletMap.eachLayer(function(layer) {{
+                    if (layer.feature && layer.feature.properties) {{
+                        const provinceName = layer.feature.properties.name || '';
+                        if (provinceName) {{
+                            // 标准化省份名称
+                            const normalized = provinceName.replace('省', '').replace('市', '').replace('自治区', '').replace('壮族自治区', '').replace('回族自治区', '').replace('维吾尔自治区', '').replace('特别行政区', '');
+
+                            // 找到该图层对应的DOM元素
+                            if (layer._path) {{
+                                layer._path.dataset.province = normalized;
+                                taggedCount++;
+                                console.log('  ✅ 标记:', normalized);
+                            }}
+                        }}
+                    }}
+                }});
+
+                console.log('✅ 标记完成:', taggedCount, '个省份');
+                return taggedCount > 0;
+            }}
+
             // 页面加载完成后初始化
             window.addEventListener('load', function() {{
-                console.log('页面加载完成，开始初始化...');
+                console.log('📄 页面加载完成，开始初始化...');
 
                 // 初始化第一个图层的颜色渐变
                 const firstMetadata = layerMetadata[0];
@@ -967,24 +1210,47 @@ def create_province_choropleth_map(df, geo_data, province_centers):
                     const gradientElement = document.getElementById('legendGradient');
                     if (gradientElement) {{
                         gradientElement.style.background = gradient;
-                        console.log('初始图例颜色已设置');
+                        console.log('✅ 初始图例颜色已设置');
                     }} else {{
-                        console.error('初始化时找不到legendGradient元素！');
+                        console.error('❌ 初始化时找不到legendGradient元素！');
                     }}
                 }} else {{
-                    console.error('第一个图层没有颜色数据！');
+                    console.error('❌ 第一个图层没有颜色数据！');
                 }}
 
-                // 捕获Leaflet地图实例
-                setTimeout(function() {{
-                    const mapDiv = document.getElementById('map').querySelector('.folium-map');
-                    if (mapDiv && mapDiv._leaflet_id) {{
-                        window.leafletMap = window[mapDiv._leaflet_id];
-                        console.log('Leaflet地图实例已捕获:', window.leafletMap);
-                    }} else {{
-                        console.error('无法捕获Leaflet地图实例');
+                // 捕获Leaflet地图实例并标记省份 - 多次尝试
+                let attempts = 0;
+                const maxAttempts = 10;
+                const tryInitialize = function() {{
+                    attempts++;
+                    console.log('第', attempts, '次尝试捕获地图实例和标记省份...');
+
+                    if (captureLeafletMap()) {{
+                        console.log('🎉 地图实例捕获成功！');
+
+                        // 标记省份多边形
+                        setTimeout(function() {{
+                            if (tagProvincePolygons()) {{
+                                console.log('🎊 所有初始化完成！地图已准备就绪。');
+                            }} else {{
+                                console.warn('⚠️ 标记省份失败，将在下次尝试');
+                                if (attempts < maxAttempts) {{
+                                    setTimeout(tryInitialize, 500);
+                                }}
+                            }}
+                        }}, 200);
+                        return;
                     }}
-                }}, 500);
+
+                    if (attempts < maxAttempts) {{
+                        setTimeout(tryInitialize, 300 * attempts); // 逐渐增加延迟
+                    }} else {{
+                        console.error('⚠️ 已尝试', maxAttempts, '次，仍无法完全初始化');
+                        console.log('💡 图例颜色切换仍可工作，但地图着色切换可能无效');
+                    }}
+                }};
+
+                setTimeout(tryInitialize, 300);
             }});
         </script>
     </body>
@@ -1001,11 +1267,39 @@ def create_province_choropleth_map(df, geo_data, province_centers):
     # 将自定义HTML插入到body标签之后
     html_content = html_content.replace('<body>', custom_html)
 
-    # 调整地图div的ID
-    html_content = html_content.replace(
-        'style="width: 100.0%; height: 100.0%;">',
-        'id="map" style="width: 100.0%; height: 100.0%;">'
+    # 调整地图div的ID - 更精确的替换
+    # 查找folium创建的div并添加id="map"
+    import re
+    # 匹配folium创建的主div容器
+    html_content = re.sub(
+        r'(<div[^>]*class="folium-map"[^>]*)',
+        r'\1 id="map"',
+        html_content
     )
+
+    # 在</body>之前添加一个脚本来暴露地图实例
+    expose_map_script = """
+    <script>
+        // 暴露地图实例到全局作用域
+        (function() {
+            // 等待Leaflet加载完成
+            const exposeInterval = setInterval(function() {
+                if (typeof L !== 'undefined') {
+                    clearInterval(exposeInterval);
+                    // 查找所有Leaflet地图实例并暴露到window
+                    for (let key in window) {
+                        if (key.match(/^map_[a-f0-9]+$/) && window[key] instanceof L.Map) {
+                            window.mainLeafletMap = window[key];
+                            console.log('✅ 地图实例已暴露为 window.mainLeafletMap');
+                            break;
+                        }
+                    }
+                }
+            }, 100);
+        })();
+    </script>
+    """
+    html_content = html_content.replace('</body>', expose_map_script + '</body>')
 
     # 写回文件
     with open(map_path, 'w', encoding='utf-8') as f:
