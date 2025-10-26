@@ -122,11 +122,27 @@ def find_best_sarima_params(timeseries, seasonal_period=12):
                 )
                 fitted = model.fit(disp=False, maxiter=50)
 
-                if fitted.aic < best_aic:
-                    best_aic = fitted.aic
-                    best_params = ((p, d, q), (P, D, Q, seasonal_period))
-                    best_model = fitted
-            except:
+                # Check if fitted is a tuple (error case) or SARIMAXResults object (success case)
+                if isinstance(fitted, tuple):
+                    continue
+
+                # Check if fitted has the aic attribute
+                if not hasattr(fitted, 'aic'):
+                    continue
+
+                try:
+                    # Access AIC safely - check if it's a valid number
+                    aic_value = getattr(fitted, 'aic', None)
+                    if aic_value is not None and not isinstance(aic_value, np.ndarray) and isinstance(aic_value, (int, float)):
+                        if aic_value < best_aic:
+                            best_aic = aic_value
+                            best_params = ((p, d, q), (P, D, Q, seasonal_period))
+                            best_model = fitted
+                    else:
+                        continue
+                except (AttributeError, TypeError, ValueError):
+                    continue
+            except Exception:
                 continue
 
         if search_count > max_searches:
@@ -170,9 +186,13 @@ def build_timeseries_sarima(station_data, indicator, train_ratio=0.8, auto_param
         # 如果数据足够多，使用月度季节性(12)，否则使用季度(4)
         seasonal_period = 12 if len(train_data) >= 48 else 4
 
+        # 初始化变量
+        fitted_model = None
+        best_params = ((1, 1, 1), (0, 0, 0, seasonal_period))
+
         # 选择SARIMA参数
         if auto_params and len(train_data) >= 40:
-            best_params, aic_score, fitted_model = find_best_sarima_params(train_data, seasonal_period)
+            best_params, _, fitted_model = find_best_sarima_params(train_data, seasonal_period)
             if fitted_model is None:
                 # 如果自动选择失败，使用默认参数
                 order = (1, 1, 1)
@@ -200,10 +220,29 @@ def build_timeseries_sarima(station_data, indicator, train_ratio=0.8, auto_param
             fitted_model = model.fit(disp=False, maxiter=50)
             best_params = (order, seasonal_order)
 
+        # 检查fitted_model是否有效
+        if fitted_model is None or isinstance(fitted_model, (tuple, np.ndarray)):
+            return None
+
+        # 验证模型有必要的方法
+        if not hasattr(fitted_model, 'forecast'):
+            return None
+
         # 预测
-        forecast = fitted_model.forecast(steps=len(test_data))
-        y_pred = np.array(forecast)
-        y_test = test_data
+        try:
+            forecast = fitted_model.forecast(steps=len(test_data))
+            # 确保forecast是数组而不是元组或其他类型
+            if isinstance(forecast, tuple):
+                forecast = forecast[0] if len(forecast) > 0 else np.array([])
+            elif isinstance(forecast, np.ndarray):
+                pass  # already good
+            else:
+                forecast = np.array([forecast] if not isinstance(forecast, (list, np.ndarray)) else forecast)
+
+            y_pred = np.array(forecast)
+            y_test = test_data
+        except (AttributeError, TypeError, ValueError):
+            return None
 
         # 检查预测值的合理性
         if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
@@ -218,6 +257,9 @@ def build_timeseries_sarima(station_data, indicator, train_ratio=0.8, auto_param
         if metrics['R2'] < -100:
             return None
 
+        # 获取AIC值（如果存在）
+        aic_score = getattr(fitted_model, 'aic', None)
+
         return {
             'model_name': 'SARIMA',
             'y_test': y_test,
@@ -226,13 +268,13 @@ def build_timeseries_sarima(station_data, indicator, train_ratio=0.8, auto_param
             'test_size': len(test_data),
             'metrics': metrics,
             'params': best_params,
-            'aic': fitted_model.aic,
+            'aic': aic_score,
             'is_stationary': is_stationary,
             'p_value': p_value,
             'seasonal_period': seasonal_period
         }
 
-    except Exception as e:
+    except Exception:
         return None
 
 

@@ -148,7 +148,8 @@ def build_timeseries_prophet(station_data, indicator, train_ratio=0.8):
         y_test = test_data['y'].values
 
         # 检查预测值的合理性
-        if np.any(np.isnan(y_pred)) or np.any(np.isinf(y_pred)):
+        y_pred_array = np.asarray(y_pred)
+        if np.any(np.isnan(y_pred_array)) or np.any(np.isinf(y_pred_array)):
             return None
 
         # 计算指标
@@ -161,7 +162,8 @@ def build_timeseries_prophet(station_data, indicator, train_ratio=0.8):
             return None
 
         # 提取趋势信息
-        has_trend = len(model.changepoints) > 0
+        changepoints = getattr(model, 'changepoints', None)
+        has_trend = len(changepoints) > 0 if changepoints is not None else False
         trend_strength = abs(forecast['trend'].iloc[-1] - forecast['trend'].iloc[0]) if len(forecast) > 1 else 0
 
         return {
@@ -173,10 +175,10 @@ def build_timeseries_prophet(station_data, indicator, train_ratio=0.8):
             'metrics': metrics,
             'has_trend': has_trend,
             'trend_strength': trend_strength,
-            'changepoints': len(model.changepoints)
+            'changepoints': len(changepoints) if changepoints is not None else 0
         }
 
-    except Exception as e:
+    except Exception:
         return None
 
 
