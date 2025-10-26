@@ -26,7 +26,6 @@ ENV/
 # *.xlsx
 
 # Outputs
-Outputs/
 catboost_info/
 
 # OS files

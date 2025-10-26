@@ -598,12 +598,17 @@ class ModelFusionSystem:
         """训练深度元学习器"""
         print("\n🎓 训练深度元学习器...")
 
+        # 确保数据格式正确
+        if hasattr(X_train, 'values'):
+            X_train = X_train.values
+        if hasattr(y_train, 'values'):
+            y_train = y_train.values
+
         # 获取所有模型的预测
         all_predictions = []
 
         # 深度学习模型预测
         with torch.no_grad():
-            X_train_tensor = torch.FloatTensor(X_train).to(self.device)
             train_features = self.extract_features(X_train)
 
             # 融合模型预测
@@ -664,6 +669,10 @@ class ModelFusionSystem:
 
     def predict_with_fusion(self, X):
         """使用融合模型进行预测"""
+        # 确保数据格式正确
+        if hasattr(X, 'values'):
+            X = X.values
+
         # 提取特征
         features = self.extract_features(X)
 
