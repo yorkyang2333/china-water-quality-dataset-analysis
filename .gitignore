@@ -20,6 +20,7 @@ ENV/
 
 # CLI agents
 # .claude/
+.gemini/
 
 # Data files (optional - uncomment if you don't want to commit data)
 # *.csv
