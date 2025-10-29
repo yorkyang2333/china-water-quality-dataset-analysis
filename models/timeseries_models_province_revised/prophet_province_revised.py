@@ -1,10 +1,10 @@
 """
 Prophet时间序列预测 - 按省份建模
 
-⚠️ 警告：此模型不适合当前数据集！
-原因：数据时间间隔极不规则（0-222天），虽然Prophet对缺失值鲁棒，但间隔过大仍无法学习有效模式
-结果：R² < 0，预测效果极差
-建议：使用横截面预测或传统机器学习方法（详见 README.md）
+⭐ 关键修改（仅2023数据版本）：
+1. 仅使用2023年的数据
+2. 按时间顺序80/20分割训练集和测试集
+3. 可视化输出改为折线图（实际值vs预测值随时间变化）
 
 方法：
 - 使用Facebook Prophet自动时间序列预测
@@ -20,11 +20,6 @@ Prophet时间序列预测 - 按省份建模
 - 训练速度：快（优化的Stan后端）
 - 内存需求：低（< 1GB）
 - 相比ARIMA更易用，对异常值更鲁棒
-
-⭐ 关键修改（2023/2024版本）：
-1. 仅使用2023年的数据进行模型训练
-2. 2024年的数据作为验证/测试集
-3. 可视化输出改为折线图（实际值vs预测值随时间变化）
 
 """
 
@@ -54,7 +49,7 @@ np.random.seed(42)
 plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
-OUTPUT_DIR = 'Outputs/Prophet_Province_2023Train_2024Valid_Province'
+OUTPUT_DIR = 'Outputs/Prophet_2023Only_Province'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
@@ -75,14 +70,14 @@ def calculate_metrics(y_true, y_pred):
     }
 
 
-def build_timeseries_prophet(province_data, indicator):
+def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
     """
-    使用Prophet进行时间序列预测
+    使用Prophet进行时间序列预测（仅使用2023年数据）
 
     参数:
     - province_data: 省份数据（聚合所有监测站）
     - indicator: 预测指标
-    - train_ratio: 训练集比例
+    - train_ratio: 训练集比例（默认0.8）
     """
     data = province_data.copy()
     data['Date'] = pd.to_datetime(data['Date'])
@@ -93,57 +88,70 @@ def build_timeseries_prophet(province_data, indicator):
     # 只保留目标指标和日期
     data = data[['Date', indicator]].dropna()
 
-    if len(data) < 50:
+    if len(data) < 30:
         return None
 
-    # ⭐ 按年份分割（2023训练，2024测试）
+    # ⭐ 只使用2023年的数据
     data['Year'] = data['Date'].dt.year
-    train_data = data[data['Year'] == 2023]
-    test_data = data[data['Year'] == 2024]
+    data_2023 = data[data['Year'] == 2023].copy()
+
+    if len(data_2023) < 30:
+        return None
 
     # 准备Prophet格式数据
-    prophet_train = pd.DataFrame({
-        'ds': train_data['Date'],
-        'y': train_data[indicator]
+    prophet_data = pd.DataFrame({
+        'ds': data_2023['Date'],
+        'y': data_2023[indicator]
     }).reset_index(drop=True)
 
-    prophet_test = pd.DataFrame({
-        'ds': test_data['Date'],
-        'y': test_data[indicator]
-    }).reset_index(drop=True)
+    # ⭐ 按时间顺序分割（80% 训练，20% 测试）
+    split_idx = int(len(prophet_data) * train_ratio)
+    prophet_train = prophet_data[:split_idx].copy()
+    prophet_test = prophet_data[split_idx:].copy()
 
-    if len(prophet_train) < 30 or len(prophet_test) < 5:
+    # 至少需要20条训练数据和5条测试数据
+    if len(prophet_train) < 20 or len(prophet_test) < 5:
         return None
 
     try:
-        # 创建Prophet模型
-        # 使用较保守的设置以提高稳定性
+        # ⭐ 创建Prophet模型，针对不同数据量优化配置
         if len(prophet_train) >= 60:
+            # 充足数据：使用完整配置
             model = Prophet(
                 yearly_seasonality='auto',
-                weekly_seasonality='off',  # 水质数据通常无周季节性
-                daily_seasonality='off',   # 关闭日季节性
-                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
-                changepoint_prior_scale=0.05,  # 降低过拟合风险
+                weekly_seasonality='off',
+                daily_seasonality='off',
+                seasonality_mode='multiplicative',
+                changepoint_prior_scale=0.05,
                 seasonality_prior_scale=10,
                 interval_width=0.95
             )
-        else:
-            model = Prophet(
-                yearly_seasonality='off',  # 关闭年季节性
-                weekly_seasonality='off',  # 水质数据通常无周季节性
-                daily_seasonality='off',   # 关闭日季节性
-                seasonality_mode='multiplicative',  # 乘法季节性，适合幅度变化的数据
-                changepoint_prior_scale=0.05,  # 降低过拟合风险
-                seasonality_prior_scale=10,
-                interval_width=0.95
-            )
-
-        # 添加自定义季节性（月度或季度）
-        if len(prophet_train) >= 60:
             model.add_seasonality(name='monthly', period=30.5, fourier_order=3)
         elif len(prophet_train) >= 30:
+            # 中等数据：添加季度季节性
+            model = Prophet(
+                yearly_seasonality='off',
+                weekly_seasonality='off',
+                daily_seasonality='off',
+                seasonality_mode='additive',  # ⭐ 改为加法模型，更稳定
+                changepoint_prior_scale=0.05,
+                seasonality_prior_scale=5,  # ⭐ 降低以避免过拟合
+                interval_width=0.95
+            )
             model.add_seasonality(name='quarterly', period=91.25, fourier_order=2)
+        else:
+            # ⭐ 小数据集（15-30条）：极简配置
+            model = Prophet(
+                yearly_seasonality='off',
+                weekly_seasonality='off',
+                daily_seasonality='off',
+                seasonality_mode='additive',  # 加法模型更稳定
+                changepoint_prior_scale=0.01,  # ⭐ 大幅降低，避免过拟合
+                seasonality_prior_scale=1,  # ⭐ 降低
+                n_changepoints=3,  # ⭐ 限制变化点数量
+                interval_width=0.95
+            )
+            # 不添加自定义季节性
 
         # 训练模型（抑制输出）
         with warnings.catch_warnings():
@@ -181,11 +189,13 @@ def build_timeseries_prophet(province_data, indicator):
 
         return {
             'model_name': 'Prophet',
+            'y_train': prophet_train['y'].values,  # ⭐ 保存训练数据
+            'train_dates': prophet_train['ds'].values,
             'y_test': y_test,
             'y_pred': y_pred,
+            'test_dates': test_dates,
             'train_size': len(prophet_train),
             'test_size': len(prophet_test),
-            'test_dates': test_dates,  # ⭐ 新增：保存日期用于折线图
             'metrics': metrics,
             'has_trend': has_trend,
             'trend_strength': trend_strength,
@@ -197,10 +207,17 @@ def build_timeseries_prophet(province_data, indicator):
 
 
 def predict_province(df, province):
-    """为单个省份预测所有指标（聚合所有监测站数据）"""
+    """为单个省份预测所有指标（聚合所有监测站数据，仅使用2023年）"""
     province_data = df[df['Province'] == province].copy()
 
-    if len(province_data) < 50:
+    if len(province_data) < 30:
+        return None
+
+    # ⭐ 只保留2023年的数据
+    province_data['Date'] = pd.to_datetime(province_data['Date'])
+    province_data = province_data[province_data['Date'].dt.year == 2023].copy()
+
+    if len(province_data) < 30:
         return None
 
     indicators = [
@@ -215,9 +232,11 @@ def predict_province(df, province):
     results = {}
 
     for indicator in indicators:
-        # 检查数据量
-        valid_count = province_data[indicator].notna().sum()
-        if valid_count < 40:
+        # 检查该指标在2023年的数据量
+        data_count = province_data[indicator].notna().sum()
+
+        # 至少需要30条有效数据
+        if data_count < 30:
             continue
 
         result = build_timeseries_prophet(province_data, indicator)
@@ -292,30 +311,35 @@ def visualize_province(province, province_info, output_dir):
     for idx, (indicator, result) in enumerate(results.items()):
         ax = plt.subplot(nrows, ncols, idx + 1)
 
+        # ⭐ 画出2023-2024完整时间序列
+        y_train = result['y_train']
+        train_dates = pd.to_datetime(result['train_dates'])
         y_test = result['y_test']
         y_pred = result['y_pred']
+        test_dates = pd.to_datetime(result['test_dates'])
         m = result['metrics']
 
-        # ⭐ 使用折线图代替散点图
-        test_dates = pd.to_datetime(result['test_dates'])
+        # 训练数据（实际值） - 2023年前80%
+        ax.plot(train_dates, y_train, marker='o', linewidth=1.5, markersize=3,
+                color='green', label='Train Data', alpha=0.6)
+        # 测试数据（实际值） - 2023年后20%
         ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
-                color='steelblue', label='Actual (2024)', alpha=0.8)
+                color='steelblue', label='Actual (Test)', alpha=0.8)
+        # 测试预测值 - 2023年后20%
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
                 color='orangered', label='Predicted', alpha=0.8, linestyle='--')
 
-        _ = min(y_test.min(), y_pred.min())  # unused
-        _ = max(y_test.max(), y_pred.max())  # unused
-
         trend_text = f"趋势变化: {result['trend_strength']:.2f}" if result['has_trend'] else "无明显趋势"
-        textstr = f"Model: Prophet\nR² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nN = {m['Sample_Size']}\n{trend_text}"
+        textstr = f"Model: Prophet\nR² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nN_test = {m['Sample_Size']}\n{trend_text}"
         ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=7,
                 va='top', bbox=dict(boxstyle='round', fc='lightyellow', alpha=0.7))
 
         ax.set_title(indicator.replace('_', ' '), fontsize=9, fontweight='bold')
-        ax.set_xlabel('Date (2024)', fontsize=8)
+        ax.set_xlabel('Date (2023 only, 80/20 split)', fontsize=8)
         ax.set_ylabel('Value', fontsize=8)
-        ax.legend(fontsize=7)
+        ax.legend(fontsize=6, loc='best')
         ax.grid(True, alpha=0.3)
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
 
     title = f"{province} Province\nProphet Time Series Prediction (Province-Level Aggregation)"
     plt.suptitle(title, fontsize=14, fontweight='bold')
@@ -339,10 +363,10 @@ def generate_report(all_results, output_dir):
 
         f.write("方法说明：\n")
         f.write("-" * 80 + "\n")
+        f.write("- ⭐ 仅使用2023年的数据\n")
         f.write("- 每个省份独立建模（聚合省内所有监测站数据）\n")
         f.write("- 使用Facebook Prophet自动时间序列预测\n")
         f.write("- 自动检测趋势、季节性和变化点\n")
-        f.write("- 季节性模式：乘法模型\n")
         f.write("- 对异常值和缺失值有良好的鲁棒性\n")
         f.write("- 数据按时间顺序分割：前80%训练，后20%测试\n\n")
 

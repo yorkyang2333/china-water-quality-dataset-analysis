@@ -1,18 +1,18 @@
 """
-LSTM时间序列预测 - 2023训练/2024验证 + 自动GPU加速版
-LSTM Time Series Prediction - Auto GPU Detection
+LSTM时间序列预测 - ⭐ 仅使用2023年数据（80/20分割）+ 自动GPU加速版
+LSTM Time Series Prediction - Auto GPU Detection (2023 Only)
 
 ⭐ 关键特性：
 1. 自动检测并使用CUDA GPU（如果可用）
-2. 仅使用2023年的数据进行模型训练
-3. 2024年的数据作为验证/测试集
+2. ⭐ 仅使用2023年的数据
+3. ⭐ 按时间顺序80/20分割（前80%训练，后20%测试）
 4. 可视化输出改为折线图（实际值vs预测值随时间变化）
 5. 支持CPU/CUDA/MPS(Apple Silicon)
 
 方法说明：
 - 使用3层LSTM神经网络（128 hidden units）
-- 采用滑动窗口（30个时间步）构建序列数据
-- 针对每个监测站独立训练模型
+- 采用滑动窗口（5个时间步）构建序列数据
+- 针对每个省份独立训练模型（聚合所有监测站）
 - 数据归一化 + 早停策略 + 学习率调度 + 梯度裁剪
 
 适用机型：
@@ -75,13 +75,13 @@ plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
 plt.rcParams['axes.unicode_minus'] = False
 
 # 输出目录配置
-OUTPUT_DIR = 'Outputs/LSTM_2023Train_2024Valid_Province_GPU'
+OUTPUT_DIR = 'Outputs/LSTM_2023Only_Province_GPU'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/Province_Plots", exist_ok=True)
 
 # 全局配置参数
-SEQUENCE_LENGTH = 30  # 时间序列窗口长度
-MIN_SAMPLES = 50      # 最小样本数要求
+SEQUENCE_LENGTH = 5   # ⭐ 降低时间序列窗口长度（原30，对2024年数据太长）
+MIN_SAMPLES = 40      # 最小样本数要求
 
 
 def calculate_metrics(y_true, y_pred):
@@ -242,72 +242,77 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=200, batch_s
     return model, history
 
 
-def predict_station(station_data, station_name, device):
+def predict_indicator(province_data, indicator, device, train_ratio=0.8):
     """
-    ⭐ 修改：使用2023年数据训练，2024年数据测试
+    ⭐ 修改：为单个指标训练LSTM模型（⭐ 仅使用2023年数据，80/20分割）
     """
-    station_data['Date'] = pd.to_datetime(station_data['Date'])
-    station_data = station_data.sort_values('Date').reset_index(drop=True)
+    province_data = province_data.copy()
+    province_data['Date'] = pd.to_datetime(province_data['Date'])
+    province_data = province_data.sort_values('Date').reset_index(drop=True)
 
-    # ⭐ 按年份分割数据
-    station_data['Year'] = station_data['Date'].dt.year
-    data_2023 = station_data[station_data['Year'] == 2023]
-    data_2024 = station_data[station_data['Year'] == 2024]
+    # ⭐ 只使用2023年的数据
+    province_data['Year'] = province_data['Date'].dt.year
+    data_2023 = province_data[province_data['Year'] == 2023].copy()
 
-    if len(data_2023) < MIN_SAMPLES or len(data_2024) < 5:
-        print(f"  ⚠️ {station_name}: 2023或2024数据不足，跳过")
+    # 检查指标的有效数据量
+    indicator_2023 = data_2023[indicator].dropna().values
+    dates_2023 = data_2023[data_2023[indicator].notna()]['Date'].values
+
+    # ⭐ SEQUENCE_LENGTH=5，至少需要20个数据点才能创建有意义的序列
+    if len(indicator_2023) < 20:
         return None
 
-    # 提取水质指数
-    wqi_2023 = data_2023['Water_Quality_Index'].values
-    wqi_2024 = data_2024['Water_Quality_Index'].values
-    dates_2024 = data_2024['Date'].values
-
-    # 合并数据用于归一化
-    all_wqi = np.concatenate([wqi_2023, wqi_2024])
+    # 数据归一化
     scaler = MinMaxScaler()
-    all_wqi_scaled = scaler.fit_transform(all_wqi.reshape(-1, 1)).flatten()
+    indicator_scaled = scaler.fit_transform(indicator_2023.reshape(-1, 1)).flatten()
 
-    wqi_2023_scaled = all_wqi_scaled[:len(wqi_2023)]
-    wqi_2024_scaled = all_wqi_scaled[len(wqi_2023):]
+    # 创建序列
+    X, y = create_sequences(indicator_scaled, SEQUENCE_LENGTH)
 
-    # ⭐ 仅用2023年数据创建训练序列
-    X_train, y_train = create_sequences(wqi_2023_scaled, SEQUENCE_LENGTH)
-
-    if len(X_train) < 10:
-        print(f"  ⚠️ {station_name}: 训练序列不足，跳过")
+    if len(X) < 10:  # 至少需要10个序列
         return None
 
-    # 使用一部分训练数据作为验证集
-    split_idx = int(len(X_train) * 0.8)
-    X_train_sub, X_val = X_train[:split_idx], X_train[split_idx:]
-    y_train_sub, y_val = y_train[:split_idx], y_train[split_idx:]
+    # ⭐ 按时间顺序80/20分割（前80%训练，后20%测试）
+    split_idx = int(len(X) * train_ratio)
+    if split_idx < 5:  # 至少5个训练样本
+        return None
 
-    # 训练模型
-    print(f"  训练 {station_name} LSTM模型（2023年数据）...")
-    model, history = train_lstm_model(X_train_sub, y_train_sub, X_val, y_val, device)
-
-    # ⭐ 预测2024年数据
-    # 需要使用2023年末尾的数据作为初始窗口
-    X_test, y_test = create_sequences(wqi_2024_scaled, SEQUENCE_LENGTH)
+    X_train_all, X_test = X[:split_idx], X[split_idx:]
+    y_train_all, y_test = y[:split_idx], y[split_idx:]
 
     if len(X_test) < 1:
-        print(f"  ⚠️ {station_name}: 2024年序列不足，跳过")
         return None
 
-    # 预测
+    # 从训练集中再分出验证集（用于早停）
+    val_split_idx = int(len(X_train_all) * 0.8)
+    if val_split_idx < 2:
+        val_split_idx = 2
+    X_train, X_val = X_train_all[:val_split_idx], X_train_all[val_split_idx:]
+    y_train, y_val = y_train_all[:val_split_idx], y_train_all[val_split_idx:]
+
+    if len(X_val) < 1:
+        X_val = X_train[-2:]
+        y_val = y_train[-2:]
+
+    # 训练模型
+    model, history = train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=100, patience=15)
+
+    # ⭐ 在测试集上预测
     model.eval()
     with torch.no_grad():
-        # ⭐ 将测试数据移到设备上
         X_test_tensor = torch.FloatTensor(X_test).to(device)
         y_test_pred = model(X_test_tensor).squeeze().cpu().numpy()
 
     # 反归一化
+    y_train_all_orig = scaler.inverse_transform(y_train_all.reshape(-1, 1)).flatten()
     y_test_orig = scaler.inverse_transform(y_test.reshape(-1, 1)).flatten()
     y_test_pred_orig = scaler.inverse_transform(y_test_pred.reshape(-1, 1)).flatten()
 
-    # 对应的日期（需要跳过前SEQUENCE_LENGTH个）
-    test_dates = dates_2024[SEQUENCE_LENGTH:]
+    # ⭐ 对应的日期（序列创建后需要跳过前SEQUENCE_LENGTH个）
+    # 训练集的日期：从 dates_2023[SEQUENCE_LENGTH] 到 dates_2023[SEQUENCE_LENGTH + len(y_train_all)]
+    train_dates = dates_2023[SEQUENCE_LENGTH:SEQUENCE_LENGTH + len(y_train_all)]
+    # 测试集的日期：从 dates_2023[SEQUENCE_LENGTH + len(y_train_all)] 开始
+    test_dates = dates_2023[SEQUENCE_LENGTH + len(y_train_all):]
 
     # 计算指标
     metrics = calculate_metrics(y_test_orig, y_test_pred_orig)
@@ -316,19 +321,61 @@ def predict_station(station_data, station_name, device):
 
     return {
         'metrics': metrics,
+        'y_train': y_train_all_orig,  # ⭐ 保存训练数据（用于可视化）
+        'train_dates': train_dates,
         'y_test': y_test_orig,
         'y_pred': y_test_pred_orig,
         'test_dates': test_dates,
         'history': history,
-        'train_size': len(wqi_2023),
+        'train_size': len(y_train_all_orig),
         'test_size': len(y_test_orig)
     }
+
+
+def predict_province(province_data, province_name, device):
+    """
+    ⭐ 修改：预测所有16个水质指标（⭐ 仅使用2023年数据）
+    """
+    province_data = province_data.copy()
+    province_data['Date'] = pd.to_datetime(province_data['Date'])
+
+    # ⭐ 只保留2023年数据
+    province_data = province_data[province_data['Date'].dt.year == 2023].copy()
+
+    if len(province_data) == 0:
+        print(f"  ⚠️ {province_name}: 无2023年数据，跳过")
+        return None
+
+    # 所有16个水质指标
+    indicators = [
+        'Water_Temperature_C', 'pH', 'Dissolved_Oxygen_mg_L',
+        'Conductivity_uS_cm', 'Turbidity_NTU', 'Nitrate_mg_L',
+        'Nitrite_mg_L', 'Ammonia_N_mg_L', 'Total_Phosphorus_mg_L',
+        'Total_Nitrogen_mg_L', 'COD_mg_L', 'BOD_mg_L',
+        'Heavy_Metals_Pb_ug_L', 'Heavy_Metals_Cd_ug_L',
+        'Heavy_Metals_Hg_ug_L', 'Coliform_Count_CFU_100mL'
+    ]
+
+    results = {}
+    print(f"  训练 {province_name} LSTM模型（⭐ 仅2023年数据，80/20分割）...")
+
+    for indicator in indicators:
+        result = predict_indicator(province_data, indicator, device)
+        if result:
+            results[indicator] = result
+
+    if not results:
+        print(f"  ⚠️ {province_name}: 所有指标均失败")
+        print(f"     请检查数据量：2023年需要>=20条有效数据")
+        return None
+
+    return results
 
 
 def process_all_provinces(df, device):
     """处理所有省份（按省份聚合）"""
     print("\n" + "="*80)
-    print("LSTM时间序列预测 - 2023训练/2024验证 + GPU加速 (Province级别)")
+    print("LSTM时间序列预测 - ⭐ 仅2023年数据（80/20分割）+ GPU加速 (Province级别)")
     print("="*80)
 
     provinces = df['Province'].unique()
@@ -343,53 +390,76 @@ def process_all_provinces(df, device):
 
         province_data = df[df["Province"] == province].copy()
 
-        result = predict_station(province_data, province, device)
+        results = predict_province(province_data, province, device)
 
-        if result:
+        if results:
             province_key = province
             all_results[province_key] = {
                 'province': province,
-                'result': result
+                'results': results
             }
             successful += 1
-            print(f"  ✓ R² = {result['metrics']['R2']:.4f}, RMSE = {result['metrics']['RMSE']:.2f}")
+            # 计算平均R²
+            r2_values = [r['metrics']['R2'] for r in results.values()]
+            avg_r2 = np.mean(r2_values)
+            print(f"  ✓ {len(results)} 指标成功，平均 R² = {avg_r2:.4f}")
 
     print(f"\n成功: {successful}/{len(provinces)}")
     return all_results
 
 
 def visualize_province(province_key, province_info, output_dir):
-    """可视化单个省份的预测结果（折线图）"""
-    result = province_info['result']
+    """可视化单个省份的预测结果（多指标折线图）"""
+    results = province_info['results']
 
-    fig, ax = plt.subplots(1, 1, figsize=(12, 6))
+    if not results:
+        return
 
-    y_test = result['y_test']
-    y_pred = result['y_pred']
-    test_dates = pd.to_datetime(result['test_dates'])
-    m = result['metrics']
+    n = len(results)
+    ncols = 4
+    nrows = (n + ncols - 1) // ncols
 
-    # ⭐ 折线图
-    ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
-            color='steelblue', label='Actual (2024)', alpha=0.8)
-    ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
-            color='orangered', label='Predicted (LSTM)', alpha=0.8, linestyle='--')
+    plt.figure(figsize=(20, 5*nrows))
 
-    textstr = f"R² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nMAE = {m['MAE']:.2f}\nSamples = {m['Sample_Size']}"
-    ax.text(0.02, 0.98, textstr, transform=ax.transAxes, fontsize=10,
-            va='top', bbox=dict(boxstyle='round', fc='wheat', alpha=0.8))
+    for idx, (indicator, result) in enumerate(results.items()):
+        ax = plt.subplot(nrows, ncols, idx + 1)
 
-    ax.set_title(f"{province_info['province']} Province\n" +
-                 f"LSTM Prediction (Train: 2023, Test: 2024)", fontsize=12, fontweight='bold')
-    ax.set_xlabel('Date (2024)', fontsize=10)
-    ax.set_ylabel('Water Quality Index', fontsize=10)
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    plt.xticks(rotation=45)
+        # ⭐ 画出2023年的训练集和测试集
+        y_train = result['y_train']
+        train_dates = pd.to_datetime(result['train_dates'])
+        y_test = result['y_test']
+        y_pred = result['y_pred']
+        test_dates = pd.to_datetime(result['test_dates'])
+        m = result['metrics']
+
+        # 训练数据（实际值） - 2023年前80%
+        ax.plot(train_dates, y_train, marker='o', linewidth=1.5, markersize=3,
+                color='green', label='Train Data', alpha=0.6)
+        # 测试数据（实际值） - 2023年后20%
+        ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
+                color='steelblue', label='Actual (Test)', alpha=0.8)
+        # 测试预测值 - 2023年后20%
+        ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
+                color='orangered', label='Predicted (LSTM)', alpha=0.8, linestyle='--')
+
+        textstr = f"R² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nMAE = {m['MAE']:.2f}\nN_test = {m['Sample_Size']}"
+        ax.text(0.05, 0.95, textstr, transform=ax.transAxes, fontsize=7,
+                va='top', bbox=dict(boxstyle='round', fc='wheat', alpha=0.8))
+
+        ax.set_title(indicator.replace('_', ' '), fontsize=9, fontweight='bold')
+        ax.set_xlabel('Date (2023 only, 80/20 split)', fontsize=8)
+        ax.set_ylabel('Value', fontsize=8)
+        ax.legend(fontsize=6, loc='best')
+        ax.grid(True, alpha=0.3)
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
+
+    title = f"{province_info['province']} Province\n" + \
+            f"LSTM Prediction (⭐ 2023 Only: 80% Train / 20% Test)"
+    plt.suptitle(title, fontsize=14, fontweight='bold')
     plt.tight_layout()
 
     filename = f'{output_dir}/Province_Plots/{province_key}.png'
-    plt.savefig(filename, dpi=200, bbox_inches='tight')
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
 
 
@@ -399,36 +469,42 @@ def generate_report(all_results, output_dir, device):
 
     with open(report_path, 'w', encoding='utf-8') as f:
         f.write("="*80 + "\n")
-        f.write("LSTM时间序列预测报告 - 2023训练/2024验证 + GPU加速\n")
+        f.write("LSTM时间序列预测报告 - ⭐ 仅2023年数据（80/20分割）+ GPU加速\n")
         f.write("="*80 + "\n\n")
         f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"计算设备: {device}\n\n")
 
         f.write("方法说明：\n")
         f.write("-" * 80 + "\n")
-        f.write("✓ 训练集：仅使用2023年的数据\n")
-        f.write("✓ 测试集：2024年的数据\n")
+        f.write("✓ ⭐ 仅使用2023年的数据\n")
+        f.write("✓ ⭐ 训练集：2023年数据的前80%（按时间顺序）\n")
+        f.write("✓ ⭐ 测试集：2023年数据的后20%（按时间顺序）\n")
         f.write("✓ 模型：3层LSTM (128 units) + 全连接层\n")
         f.write("✓ 自动GPU加速（CUDA/MPS/CPU）\n")
         f.write("✓ 可视化：折线图显示实际值vs预测值\n\n")
 
-        # 统计
+        # 统计（收集所有指标的指标）
         all_r2, all_rmse, all_mae = [], [], []
 
-        for station_info in all_results.values():
-            m = station_info['result']['metrics']
-            all_r2.append(m['R2'])
-            all_rmse.append(m['RMSE'])
-            all_mae.append(m['MAE'])
+        for province_info in all_results.values():
+            for indicator, result in province_info['results'].items():
+                m = result['metrics']
+                all_r2.append(m['R2'])
+                all_rmse.append(m['RMSE'])
+                all_mae.append(m['MAE'])
 
         f.write("="*80 + "\n")
         f.write("总体性能\n")
         f.write("="*80 + "\n")
-        f.write(f"监测站数量: {len(all_results)}\n")
-        f.write(f"R² 平均值: {np.mean(all_r2):.4f}\n")
-        f.write(f"R² 中位数: {np.median(all_r2):.4f}\n")
-        f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
-        f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        f.write(f"省份数量: {len(all_results)}\n")
+        f.write(f"总预测模型数: {len(all_r2)}\n")
+        if all_r2:
+            f.write(f"R² 平均值: {np.mean(all_r2):.4f}\n")
+            f.write(f"R² 中位数: {np.median(all_r2):.4f}\n")
+            f.write(f"RMSE 平均值: {np.mean(all_rmse):.4f}\n")
+            f.write(f"MAE 平均值: {np.mean(all_mae):.4f}\n\n")
+        else:
+            f.write("无有效数据\n\n")
 
         r2_ranges = {
             'R² > 0.7': sum(1 for r in all_r2 if r > 0.7),
@@ -442,7 +518,47 @@ def generate_report(all_results, output_dir, device):
             pct = count / len(all_r2) * 100 if all_r2 else 0
             f.write(f"  {range_name}: {count} ({pct:.1f}%)\n")
 
-        f.write("\n" + "="*80 + "\n")
+        f.write("\n" + "="*80 + "\n\n")
+
+        # 详细的省份结果
+        f.write("详细结果 - 按R²排序\n")
+        f.write("="*80 + "\n\n")
+
+        # 收集所有省份的平均R²
+        province_avg_r2 = []
+        for province_key, province_info in all_results.items():
+            r2_list = [result['metrics']['R2'] for result in province_info['results'].values()]
+            avg_r2 = np.mean(r2_list)
+            province_avg_r2.append((province_key, province_info, avg_r2))
+
+        # 按平均R²排序
+        province_avg_r2.sort(key=lambda x: x[2], reverse=True)
+
+        for province_key, province_info, avg_r2 in province_avg_r2:
+            f.write(f"省份: {province_info['province']}\n")
+            f.write(f"平均R²: {avg_r2:.4f}\n")
+            f.write("-" * 80 + "\n")
+
+            f.write(f"{'指标':<30} {'模型':<15} {'R²':>8} {'RMSE':>10} {'MAE':>10} {'样本':>8}\n")
+            f.write("-" * 80 + "\n")
+
+            # 按R²排序
+            sorted_results = sorted(province_info['results'].items(),
+                                   key=lambda x: x[1]['metrics']['R2'],
+                                   reverse=True)
+
+            for indicator, result in sorted_results:
+                m = result['metrics']
+                f.write(f"{indicator:<30} LSTM           "
+                       f"{m['R2']:>8.4f} {m['RMSE']:>10.4f} {m['MAE']:>10.4f} {m['Sample_Size']:>8d}\n")
+
+            f.write("\n" + "="*80 + "\n\n")
+
+        f.write("\n说明：\n")
+        f.write("- 每个省份的每个指标独立建立LSTM时间序列模型\n")
+        f.write("- R²越接近1表示预测效果越好\n")
+        f.write("- ⭐ 仅使用2023年数据，按时间顺序80/20分割\n")
+        f.write("="*80 + "\n")
 
     print(f"\n✓ 报告已保存: {report_path}")
 
@@ -450,7 +566,7 @@ def generate_report(all_results, output_dir, device):
 def main():
     """主函数"""
     print("="*80)
-    print("LSTM时间序列预测 - 2023训练/2024验证 + GPU加速 (Province级别)")
+    print("LSTM时间序列预测 - ⭐ 仅2023年数据（80/20分割）+ GPU加速 (Province级别)")
     print("="*80)
 
     print("\n[1/4] 加载数据...")
@@ -465,6 +581,7 @@ def main():
     count_2023 = (df['Date'].dt.year == 2023).sum()
     count_2024 = (df['Date'].dt.year == 2024).sum()
     print(f"✓ 2023年: {count_2023}, 2024年: {count_2024}")
+    print(f"⭐ 本次分析仅使用2023年数据")
 
     print("\n[2/4] 训练LSTM模型...")
     all_results = process_all_provinces(df, DEVICE)
@@ -485,7 +602,7 @@ def main():
     print("\n" + "="*80)
     print("完成！")
     print("="*80)
-    print(f"\n✓ 成功建模: {len(all_results)} 个监测站")
+    print(f"\n✓ 成功建模: {len(all_results)} 个省份")
     print(f"✓ 结果保存: {OUTPUT_DIR}/\n")
 
 
