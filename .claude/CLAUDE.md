@@ -1,4 +1,4 @@
-# 水质污染数据分析项目 - Gemini Agent 配置
+# 水质污染数据分析项目 - 项目配置文档
 
 ## 项目背景
 这是一个水质污染数据分析项目，包含数据预处理、探索性数据分析(EDA)和机器学习预测模型。项目涵盖了时间序列预测和横截面预测两大类方法。
@@ -7,51 +7,98 @@
 
 ```
 china-water-quality-dataset-analysis/
-├── preprocessed_data.csv                 # 预处理后的数据
-├── preprocessed_data_feature_eng.csv     # 带有新工程特征的数据
-├── preprocess.py                         # 数据预处理脚本
-├── eda.py                                # 探索性数据分析脚本
-├── eda_map.py                            # ⭐ 省级交互式地图可视化脚本
-├── eda_feature_engineering.py            # EDA及特征工程脚本
-├── timeseries_visualization_eda.py       # ⭐⭐ NEW: 时间序列可视化与EDA
-├── classification_random_forest.py       # 随机森林分类模型脚本
-├── classification_xgboost.py             # XGBoost分类模型脚本
-├── classification_svm.py                 # SVM分类模型脚本
-├── classification_logistic_regression.py # 逻辑回归分类模型脚本
-├── timeseries_station_prediction_revised.py  # ⭐⭐ NEW: 时间序列预测(改进版)
-├── requirements.txt                      # Python依赖包列表
 │
-├── timeseries_models_province/           # 时间序列模型 - 按省份建模 (不推荐)
-│   └── ...
+├── 📊 数据文件
+│   ├── 中国水污染监测数据集.csv          # 原始数据集
+│   ├── preprocessed_data.csv            # 预处理后的数据
+│   └── preprocessed_data_feature_eng.csv # 带有新工程特征的数据
 │
-├── timeseries_models_station/            # 时间序列模型 - 按监测站建模 (不推荐)
-│   └── ...
+├── 🔧 预处理模块 (preprocess/)
+│   ├── preprocess.py                    # 数据预处理脚本
+│   ├── preprocessed_data.csv            # 预处理后的数据（副本）
+│   └── preprocessed_data_feature_eng.csv # 特征工程数据（副本）
 │
-├── timeseries_models_station_revised/    # ⭐⭐ NEW: 改进版时间序列模型 - Station级别
-│   ├── README.md
-│   ├── arima_station_revised.py
-│   ├── lstm_station_revised_auto_gpu.py  # ⭐ 支持CUDA/MPS自动GPU加速
-│   └── ...
+├── 📈 探索性数据分析 (EDA/)
+│   ├── eda.py                           # 基础EDA脚本
+│   ├── eda_map.py                       # ⭐ 省级交互式地图可视化
+│   ├── eda_feature_engineering.py       # 特征工程分析
+│   ├── timeseries_visualization_eda.py  # 时间序列可视化EDA
+│   ├── determine_ranges.py              # 确定指标范围
+│   ├── Feature_Engineering_EDA/         # 特征工程输出
+│   ├── Timeseries_EDA/                  # 时间序列EDA输出
+│   └── traditional_eda/                 # 传统EDA输出
 │
-├── timeseries_models_province_revised/   # ⭐⭐ NEW: 改进版时间序列模型 - Province级别
-│   ├── README.md
-│   ├── arima_province_revised.py
-│   ├── lstm_province_revised_auto_gpu.py # ⭐ 支持CUDA/MPS自动GPU加速
-│   └── ...
+├── 🤖 机器学习模型 (models/)
+│   │
+│   ├── pollution_level_classification/  # ⭐ 污染等级分类模型（推荐）
+│   │   ├── classification_random_forest.py      # 随机森林
+│   │   ├── classification_xgboost.py            # XGBoost
+│   │   ├── classification_svm.py                # 支持向量机
+│   │   ├── classification_logistic_regression.py # 逻辑回归
+│   │   ├── classification_catboost.py           # CatBoost
+│   │   ├── classification_lightgbm.py           # LightGBM
+│   │   └── classification_knn.py                # K近邻
+│   │
+│   ├── timeseries_models_station/       # 时间序列模型 - 监测站级别（旧版）
+│   │   ├── arima_station_prediction_cpu.py
+│   │   ├── sarima_station_prediction_cpu.py
+│   │   ├── prophet_station_prediction_cpu.py
+│   │   ├── ar_station_prediction_cpu.py
+│   │   ├── lstm_station_prediction_*.py
+│   │   └── timeseries_station_prediction.py
+│   │
+│   ├── timeseries_models_province/      # 时间序列模型 - 省份级别（旧版）
+│   │   ├── arima_province_prediction.py
+│   │   ├── sarima_province_prediction.py
+│   │   ├── prophet_province_prediction.py
+│   │   ├── ar_province_prediction.py
+│   │   └── lstm_province_prediction*.py
+│   │
+│   ├── timeseries_models_station_revised/  # ⭐⭐ 改进版时间序列 - Station级别
+│   │   ├── arima_station_revised.py
+│   │   ├── sarima_station_revised.py
+│   │   ├── prophet_station_revised.py
+│   │   ├── lstm_station_revised_auto_gpu.py        # 自动GPU加速
+│   │   ├── lstm_station_optimized_auto_gpu.py      # 优化版LSTM
+│   │   ├── timeseries_station_prediction_revised.py
+│   │   └── run_all.py                              # 批量运行脚本
+│   │
+│   ├── timeseries_models_province_revised/ # ⭐⭐ 改进版时间序列 - Province级别
+│   │   ├── arima_province_revised.py
+│   │   ├── sarima_province_revised.py
+│   │   ├── prophet_province_revised.py
+│   │   ├── ar_province_revised.py
+│   │   ├── lstm_province_revised_auto_gpu.py       # 自动GPU加速
+│   │   ├── lstm_province_optimized_auto_gpu.py     # 优化版LSTM
+│   │   └── run_all.py                              # 批量运行脚本
+│   │
+│   └── backup_prediction_attempts_crosssectional/  # 横截面预测尝试（备份）
+│       └── ... (多个实验性脚本)
 │
-├── backup_prediction_attempts_crosssectional/  # 横截面预测尝试（备份）
-│   └── ...
+├── 🌟 季节性分析（NEW）
+│   └── seasonality_analysis_sarima.py   # ⭐⭐ 水质因子季节性特征分析
 │
-└── Outputs/                              # 所有模型的输出结果
-    ├── EDA/                              # 探索性数据分析结果
-    ├── EDA_Map/                          # 交互式地图输出
-    ├── Timeseries_EDA/                   # ⭐⭐ NEW: 时间序列EDA输出
-    ├── Feature_Engineering_EDA/          # 特征工程分析结果
-    ├── Classification_RandomForest/      # 随机森林模型输出
-    ├── Classification_XGBoost/           # XGBoost模型输出
-    ├── Classification_SVM/               # SVM模型输出
-    ├── Classification_LogisticRegression/  # 逻辑回归模型输出
-    └── ...                               # 其他模型输出
+├── 🔄 批量运行脚本
+│   └── run_all.py                       # 根目录批量运行脚本
+│
+├── 📁 模型输出 (models_outputs/)
+│   ├── outputs_pollution_level_classification/  # 分类模型输出
+│   ├── outputs_station_prediction/              # 监测站预测输出
+│   └── outputs_province_prediction/             # 省份预测输出
+│
+└── 📊 统一输出目录 (Outputs/)
+    ├── ARIMA_2023Train_2024Valid_Station/
+    ├── ARIMA_Province_2023Train_2024Valid_Province/
+    ├── SARIMA_Province_2023Train_2024Valid_Province/
+    ├── SARIMA_Revised_Station/
+    ├── Prophet_2023Train_2024Valid_Station/
+    ├── Prophet_Province_2023Train_2024Valid_Province/
+    ├── AR_Province_2023Train_2024Valid_Province/
+    ├── LSTM_2023Train_2024Valid_Station_GPU/
+    ├── LSTM_2023Train_2024Valid_Province_GPU/
+    ├── LSTM_2023Only_Province_GPU_Optimized/
+    ├── TimeSeries_2023Train_2024Valid/
+    └── Seasonality_Analysis_SARIMA/         # ⭐⭐ NEW: 季节性分析输出
 ```
 
 ## 🎯 核心数据集特点（重要！）
@@ -73,10 +120,13 @@ china-water-quality-dataset-analysis/
 ## ✅ 推荐方法（有效）
 
 ### 1. 横截面分类预测（最推荐）
-我们已经成功构建了以下模型，用于预测 `Pollution_Level`（污染等级）：
+我们已经成功构建了以下7个模型，用于预测 `Pollution_Level`（污染等级）：
 - **随机森林 (Random Forest)**: 效果强大且稳定，可解释性好。
 - **XGBoost**: 性能卓越，通常比随机森林更精准。
+- **CatBoost**: 专门处理分类特征的梯度提升算法，性能优异。
+- **LightGBM**: 高效的梯度提升框架，训练速度快。
 - **支持向量机 (SVM)**: 在高维空间中表现良好，提供了不同的决策边界思路。
+- **K近邻 (KNN)**: 基于实例的学习方法，适合局部模式识别。
 - **逻辑回归 (Logistic Regression)**: 作为性能基准，用于衡量复杂模型的提升程度。
 
 ### 2. 多指标回归
@@ -97,52 +147,81 @@ china-water-quality-dataset-analysis/
 
 ### 1. 运行探索性数据分析与特征工程
 ```bash
-# 此脚本会生成新的组合特征并进行初步分析
+# 基础EDA（在EDA目录下）
+cd EDA
+python eda.py
 python eda_feature_engineering.py
-# 输出: Outputs/Feature_Engineering_EDA/ 和 preprocessed_data_feature_eng.csv
+# 输出: Feature_Engineering_EDA/ 和 preprocessed_data_feature_eng.csv
 ```
 
-### 2. ⭐⭐ NEW: 运行时间序列可视化EDA
+### 2. 运行时间序列可视化EDA
 ```bash
 # 为所有180个监测站生成时间序列折线图，分析采样间隔
+cd EDA
 python timeseries_visualization_eda.py
-# 输出: Outputs/Timeseries_EDA/ (180个站点图表 + 汇总分析)
+# 输出: Timeseries_EDA/ (180个站点图表 + 汇总分析)
 ```
 
 ### 3. 生成交互式地图
 ```bash
 # 此脚本会生成一个多图层的省级水质地图
+cd EDA
 python eda_map.py
-# 输出: Outputs/EDA_Map/province_level_water_quality_map.html
+# 输出: province_level_water_quality_map.html
 ```
 
-### 4. 运行分类模型（推荐）
+### 4. ⭐⭐ NEW: 运行季节性特征分析
 ```bash
-# 运行随机森林模型
-python classification_random_forest.py
-
-# 运行XGBoost模型
-python classification_xgboost.py
-
-# 运行SVM模型
-python classification_svm.py
-
-# 运行逻辑回归模型
-python classification_logistic_regression.py
-
-# 所有模型的报告、混淆矩阵和特征重要性图表都会保存在Outputs/下的对应文件夹中。
+# 使用SARIMA方法分析各水质因子的季节性特征
+python seasonality_analysis_sarima.py
+# 输出: Outputs/Seasonality_Analysis_SARIMA/
+#   - seasonality_report.txt (综合报告)
+#   - seasonality_heatmap.png (季节性强度热力图)
+#   - decomposition/ (季节性分解图)
+#   - acf_pacf/ (自相关图)
+#   - seasonal_patterns/ (季节性模式对比)
 ```
 
-### 5. ⭐⭐ NEW: 运行改进版时间序列模型（实验性）
+### 5. 运行分类模型（推荐）
 ```bash
-# 传统机器学习时间序列预测（RandomForest/Ridge，自动GPU加速）
+cd models/pollution_level_classification
+
+# 运行所有分类模型
+python classification_random_forest.py     # 随机森林
+python classification_xgboost.py           # XGBoost
+python classification_catboost.py          # CatBoost
+python classification_lightgbm.py          # LightGBM
+python classification_svm.py               # SVM
+python classification_knn.py               # KNN
+python classification_logistic_regression.py # 逻辑回归
+
+# 所有模型的报告、混淆矩阵和特征重要性图表都会保存在models_outputs/下
+```
+
+### 6. 运行改进版时间序列模型（实验性）
+```bash
+# Station级别时间序列模型
+cd models/timeseries_models_station_revised
+
+python arima_station_revised.py
+python sarima_station_revised.py
+python prophet_station_revised.py
+python lstm_station_revised_auto_gpu.py        # 自动GPU加速
+python lstm_station_optimized_auto_gpu.py      # 优化版LSTM
 python timeseries_station_prediction_revised.py
 
-# ARIMA模型（改进版：2023训练，2024验证）
-python timeseries_models_station_revised/arima_station_revised.py
+# Province级别时间序列模型
+cd models/timeseries_models_province_revised
 
-# LSTM模型（改进版 + 自动GPU加速：CUDA/MPS/CPU）
-python timeseries_models_station_revised/lstm_station_revised_auto_gpu.py
+python arima_province_revised.py
+python sarima_province_revised.py
+python prophet_province_revised.py
+python ar_province_revised.py
+python lstm_province_revised_auto_gpu.py       # 自动GPU加速
+python lstm_province_optimized_auto_gpu.py     # 优化版LSTM
+
+# 批量运行（在各自目录下）
+python run_all.py
 
 # 注意：尽管进行了改进，时间序列方法仍然不如横截面分类方法
 ```
@@ -218,6 +297,12 @@ pip install xgboost
 
 ## 📝 版本历史
 
+- **v2.4** (2025-10-31) - Claude Code
+  - ⭐⭐ 新增季节性特征分析模块（SARIMA方法）
+  - 新增3个分类模型（CatBoost、LightGBM、KNN）
+  - 完善项目结构文档
+  - 更新CLAUDE.md配置文件
+
 - **v2.3** (2025-10-25) - Claude Code
   - ⭐⭐ 新增时间序列可视化EDA
   - ⭐⭐ 新增改进版时间序列模型（2023训练/2024验证）
@@ -234,6 +319,6 @@ pip install xgboost
 ---
 
 **创建日期**: 2025-01-05
-**最后更新**: 2025-10-25
-**维护者**: Claude Code (v2.3), Gemini Agent (v2.0-v2.2)
-**版本**: 2.3 (新增时间序列改进版 + GPU加速)
+**最后更新**: 2025-10-31
+**维护者**: Claude Code (v2.3-v2.4), Gemini Agent (v2.0-v2.2)
+**版本**: 2.4 (新增季节性分析 + 更多分类模型)
