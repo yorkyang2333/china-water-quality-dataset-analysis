@@ -1,0 +1,2902 @@
+================================================================================
+Prophet时间序列预测报告 - 按监测站建模 (CPU版)
+Prophet Time Series Prediction Report - Station-Based Modeling
+================================================================================
+
+生成时间: 2025-10-06 23:48:02
+
+方法说明：
+--------------------------------------------------------------------------------
+- 每个监测站独立建模
+- 使用Facebook Prophet自动时间序列预测
+- 自动检测趋势和季节性模式
+- 乘法季节性模型，适合幅度变化的数据
+- 数据按时间顺序分割：前80%训练，后20%测试
+- Prophet对异常值和缺失数据有较好的鲁棒性
+
+================================================================================
+总体性能
+================================================================================
+监测站数量: 172
+总预测模型数: 1409
+检测到趋势: 1409 (100.0%)
+
+R² 统计:
+  平均值: -23.3621
+  中位数: -11.4730
+  标准差: 27.0299
+  最大值: 0.6455
+  最小值: -99.9750
+
+R² 分布:
+  R² > 0.7 (优秀): 0 (0.0%)
+  R² 0.5-0.7 (良好): 1 (0.1%)
+  R² 0.3-0.5 (中等): 2 (0.1%)
+  R² < 0.3 (较差): 1406 (99.8%)
+
+RMSE 平均值: 33.2251
+MAE 平均值: 27.1288
+
+
+================================================================================
+
+按省份统计
+================================================================================
+
+Beijing:
+  监测站数: 10
+  模型数: 160
+  平均 R²: -1.5478
+  最佳 R²: 0.2040
+
+Guangdong:
+  监测站数: 19
+  模型数: 141
+  平均 R²: -29.9521
+  最佳 R²: -0.4031
+
+Henan:
+  监测站数: 19
+  模型数: 146
+  平均 R²: -31.7447
+  最佳 R²: -0.3343
+
+Hubei:
+  监测站数: 20
+  模型数: 140
+  平均 R²: -28.5299
+  最佳 R²: -0.0575
+
+Jiangsu:
+  监测站数: 19
+  模型数: 129
+  平均 R²: -29.3922
+  最佳 R²: 0.6455
+
+Shandong:
+  监测站数: 20
+  模型数: 135
+  平均 R²: -28.7232
+  最佳 R²: 0.3267
+
+Shanghai:
+  监测站数: 10
+  模型数: 160
+  平均 R²: -1.5352
+  最佳 R²: 0.1989
+
+Sichuan:
+  监测站数: 18
+  模型数: 118
+  平均 R²: -33.0220
+  最佳 R²: 0.0349
+
+Yunnan:
+  监测站数: 19
+  模型数: 153
+  平均 R²: -29.2452
+  最佳 R²: -0.2987
+
+Zhejiang:
+  监测站数: 18
+  模型数: 127
+  平均 R²: -27.8060
+  最佳 R²: 0.3167
+
+================================================================================
+
+详细结果 - 按R²排序
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_5
+样本数: 59 | 平均R²: -0.2442
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet           0.6455     2.1437     1.6691       12
+Total_Nitrogen_mg_L            Prophet           0.1319     0.4620     0.3392       12
+Heavy_Metals_Pb_ug_L           Prophet           0.0291     1.5961     1.4275       12
+BOD_mg_L                       Prophet          -0.0401     1.0889     0.8238       12
+Heavy_Metals_Hg_ug_L           Prophet          -0.1953     0.0517     0.0416       12
+Coliform_Count_CFU_100mL       Prophet          -0.2222     6.6238     4.8215       12
+Nitrate_mg_L                   Prophet          -0.2242     0.5753     0.5002       12
+pH                             Prophet          -0.2434     0.5758     0.4604       12
+Conductivity_uS_cm             Prophet          -0.3161    98.1532    77.9485       12
+Turbidity_NTU                  Prophet          -0.3666     5.8076     4.8624       12
+Total_Phosphorus_mg_L          Prophet          -0.3742     0.0507     0.0454       12
+Dissolved_Oxygen_mg_L          Prophet          -0.3767     2.2448     1.7567       12
+Water_Temperature_C            Prophet          -0.4813     3.9665     3.5221       12
+Ammonia_N_mg_L                 Prophet          -0.4959     0.2214     0.1835       12
+Nitrite_mg_L                   Prophet          -0.5120     0.0058     0.0049       12
+Heavy_Metals_Cd_ug_L           Prophet          -0.8660     0.1485     0.1195       12
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_3
+样本数: 56 | 平均R²: -0.2679
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet           0.3267    70.1373    59.3079       12
+Turbidity_NTU                  Prophet           0.1039     4.9267     4.0580       12
+Nitrate_mg_L                   Prophet           0.0444     0.5082     0.4092       12
+Dissolved_Oxygen_mg_L          Prophet           0.0407     2.0290     1.7580       12
+Heavy_Metals_Pb_ug_L           Prophet           0.0152     2.1925     1.8948       12
+BOD_mg_L                       Prophet          -0.0539     1.3308     1.0575       12
+Water_Temperature_C            Prophet          -0.0818     5.5210     4.6115       12
+COD_mg_L                       Prophet          -0.2314     5.4459     4.4728       12
+Heavy_Metals_Hg_ug_L           Prophet          -0.2460     0.0459     0.0325       12
+Heavy_Metals_Cd_ug_L           Prophet          -0.3679     0.1514     0.1290       12
+Total_Phosphorus_mg_L          Prophet          -0.3727     0.0616     0.0469       12
+pH                             Prophet          -0.4106     0.5705     0.4992       12
+Nitrite_mg_L                   Prophet          -0.4605     0.0114     0.0089       12
+Coliform_Count_CFU_100mL       Prophet          -0.4888    11.1271     8.2513       12
+Total_Nitrogen_mg_L            Prophet          -0.8345     0.7150     0.5365       12
+Ammonia_N_mg_L                 Prophet          -1.2695     0.2774     0.2488       12
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_2
+样本数: 58 | 平均R²: -0.5002
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet           0.0349     1.5157     1.0779       12
+pH                             Prophet           0.0158     0.4982     0.4109       12
+Water_Temperature_C            Prophet          -0.0050     4.1621     3.0410       12
+Conductivity_uS_cm             Prophet          -0.0615    95.9713    76.2589       12
+Coliform_Count_CFU_100mL       Prophet          -0.0944    13.9706    11.5179       12
+Turbidity_NTU                  Prophet          -0.1045     5.5472     3.4376       12
+COD_mg_L                       Prophet          -0.2123     5.9275     4.8463       12
+Nitrate_mg_L                   Prophet          -0.2303     0.4787     0.3652       12
+Heavy_Metals_Hg_ug_L           Prophet          -0.2832     0.0683     0.0569       12
+Total_Phosphorus_mg_L          Prophet          -0.5302     0.0658     0.0545       12
+Dissolved_Oxygen_mg_L          Prophet          -0.5804     3.0599     2.4868       12
+Nitrite_mg_L                   Prophet          -0.8258     0.0156     0.0123       12
+BOD_mg_L                       Prophet          -1.0507     1.4293     1.2132       12
+Total_Nitrogen_mg_L            Prophet          -1.0795     0.5082     0.3749       12
+Heavy_Metals_Cd_ug_L           Prophet          -1.4886     0.2589     0.2277       12
+Ammonia_N_mg_L                 Prophet          -1.5075     0.1939     0.1748       12
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_2
+样本数: 59 | 平均R²: -0.5548
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet           0.3167     0.1209     0.1084       12
+Nitrite_mg_L                   Prophet           0.1913     0.0118     0.0103       12
+Ammonia_N_mg_L                 Prophet           0.0962     0.1927     0.1594       12
+Nitrate_mg_L                   Prophet          -0.0068     0.5047     0.4285       12
+COD_mg_L                       Prophet          -0.0899     3.0070     2.7042       12
+Coliform_Count_CFU_100mL       Prophet          -0.1997     8.7727     7.3362       12
+Dissolved_Oxygen_mg_L          Prophet          -0.2362     2.1676     1.6583       12
+pH                             Prophet          -0.2546     0.7398     0.6444       12
+Heavy_Metals_Pb_ug_L           Prophet          -0.2655     2.5597     2.1652       12
+Conductivity_uS_cm             Prophet          -0.4277    84.5298    69.6432       12
+Water_Temperature_C            Prophet          -0.4317     4.6564     3.4862       12
+Total_Nitrogen_mg_L            Prophet          -0.4786     0.5635     0.4711       12
+Heavy_Metals_Hg_ug_L           Prophet          -1.2331     0.0831     0.0682       12
+Turbidity_NTU                  Prophet          -1.3331     6.0171     5.1545       12
+Total_Phosphorus_mg_L          Prophet          -1.4038     0.0487     0.0376       12
+BOD_mg_L                       Prophet          -3.1201     1.6926     1.5104       12
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_10
+样本数: 144 | 平均R²: -0.7367
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet          -0.0612     2.4713     2.1034       29
+Conductivity_uS_cm             Prophet          -0.2303   122.3146   100.5569       29
+Turbidity_NTU                  Prophet          -0.2368     4.6383     3.5692       29
+Ammonia_N_mg_L                 Prophet          -0.2490     0.2566     0.1986       29
+Total_Phosphorus_mg_L          Prophet          -0.4911     0.0565     0.0450       29
+Total_Nitrogen_mg_L            Prophet          -0.5447     0.5429     0.4679       29
+pH                             Prophet          -0.5750     0.5069     0.4212       29
+Heavy_Metals_Hg_ug_L           Prophet          -0.5790     0.0527     0.0448       29
+Nitrite_mg_L                   Prophet          -0.6917     0.0137     0.0109       29
+Nitrate_mg_L                   Prophet          -0.7609     0.6896     0.5343       29
+BOD_mg_L                       Prophet          -0.7762     1.3868     1.1174       29
+Water_Temperature_C            Prophet          -1.0728     8.4786     6.8566       29
+Heavy_Metals_Cd_ug_L           Prophet          -1.1485     0.2856     0.2374       29
+Coliform_Count_CFU_100mL       Prophet          -1.3077    15.0119    11.4517       29
+COD_mg_L                       Prophet          -1.3687     7.7448     5.7845       29
+Heavy_Metals_Pb_ug_L           Prophet          -1.6934     2.9992     2.4700       29
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_7
+样本数: 161 | 平均R²: -0.8325
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -0.1121     2.2513     1.7728       33
+BOD_mg_L                       Prophet          -0.1571     1.3910     1.1081       33
+Total_Phosphorus_mg_L          Prophet          -0.2514     0.0565     0.0496       33
+Turbidity_NTU                  Prophet          -0.2859     4.3368     3.5293       33
+pH                             Prophet          -0.3113     0.5241     0.4257       33
+Total_Nitrogen_mg_L            Prophet          -0.3954     0.5518     0.4328       33
+Dissolved_Oxygen_mg_L          Prophet          -0.4667     2.1154     1.7080       33
+Conductivity_uS_cm             Prophet          -0.4755   116.1537    86.5729       33
+Coliform_Count_CFU_100mL       Prophet          -0.5154    15.2043    12.5112       33
+Ammonia_N_mg_L                 Prophet          -0.5299     0.2295     0.1860       33
+Nitrite_mg_L                   Prophet          -0.7512     0.0103     0.0084       33
+Heavy_Metals_Hg_ug_L           Prophet          -1.0711     0.0742     0.0622       33
+Heavy_Metals_Cd_ug_L           Prophet          -1.2644     0.1983     0.1644       33
+COD_mg_L                       Prophet          -1.5473     7.2182     6.2464       33
+Water_Temperature_C            Prophet          -2.4825     7.2741     6.1784       33
+Nitrate_mg_L                   Prophet          -2.7029     1.0387     0.8780       33
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_3
+样本数: 139 | 平均R²: -0.8457
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet           0.0125     0.6653     0.5185       28
+COD_mg_L                       Prophet          -0.0397     3.8005     3.0596       28
+Heavy_Metals_Hg_ug_L           Prophet          -0.1728     0.0485     0.0369       28
+Nitrate_mg_L                   Prophet          -0.2527     0.5377     0.4261       28
+Water_Temperature_C            Prophet          -0.3296     5.3586     4.5886       28
+Turbidity_NTU                  Prophet          -0.3394     4.6687     3.6875       28
+Dissolved_Oxygen_mg_L          Prophet          -0.3554     2.2550     1.7962       28
+Heavy_Metals_Cd_ug_L           Prophet          -0.4259     0.2379     0.1868       28
+Total_Phosphorus_mg_L          Prophet          -0.5527     0.0526     0.0430       28
+pH                             Prophet          -0.5827     0.6264     0.5207       28
+Coliform_Count_CFU_100mL       Prophet          -0.7420    12.6308    10.0087       28
+Conductivity_uS_cm             Prophet          -1.0801   161.8312   132.8899       28
+BOD_mg_L                       Prophet          -1.2507     1.9308     1.4995       28
+Nitrite_mg_L                   Prophet          -1.7216     0.0209     0.0162       28
+Heavy_Metals_Pb_ug_L           Prophet          -2.2856     3.7750     3.1198       28
+Ammonia_N_mg_L                 Prophet          -3.4133     0.3243     0.2612       28
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_4
+样本数: 179 | 平均R²: -0.9778
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -0.0797     4.6648     3.7361       36
+Nitrite_mg_L                   Prophet          -0.1562     0.0111     0.0090       36
+pH                             Prophet          -0.3041     0.6453     0.5109       36
+Nitrate_mg_L                   Prophet          -0.3652     0.5254     0.4157       36
+Coliform_Count_CFU_100mL       Prophet          -0.3681    11.2503     9.1763       36
+Turbidity_NTU                  Prophet          -0.4547     4.8880     3.9827       36
+Conductivity_uS_cm             Prophet          -0.4703   110.5225    85.6833       36
+Total_Nitrogen_mg_L            Prophet          -0.5780     0.7815     0.6417       36
+BOD_mg_L                       Prophet          -0.8351     1.7593     1.3363       36
+Heavy_Metals_Pb_ug_L           Prophet          -0.9528     2.3857     1.9672       36
+Total_Phosphorus_mg_L          Prophet          -1.0515     0.0734     0.0609       36
+Heavy_Metals_Hg_ug_L           Prophet          -1.2012     0.0824     0.0673       36
+Heavy_Metals_Cd_ug_L           Prophet          -1.2946     0.2615     0.2105       36
+Dissolved_Oxygen_mg_L          Prophet          -1.5978     2.8906     2.3659       36
+Water_Temperature_C            Prophet          -2.5059     8.2548     7.0367       36
+Ammonia_N_mg_L                 Prophet          -3.4293     0.3709     0.3112       36
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_4
+样本数: 167 | 平均R²: -0.9899
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -0.1437     5.9498     4.9060       34
+Heavy_Metals_Hg_ug_L           Prophet          -0.1686     0.0509     0.0424       34
+Nitrate_mg_L                   Prophet          -0.2073     0.5978     0.4916       34
+Nitrite_mg_L                   Prophet          -0.2241     0.0103     0.0085       34
+Heavy_Metals_Pb_ug_L           Prophet          -0.3607     2.2284     1.8684       34
+BOD_mg_L                       Prophet          -0.3882     1.5162     1.1960       34
+Total_Nitrogen_mg_L            Prophet          -0.4413     0.6009     0.4851       34
+Conductivity_uS_cm             Prophet          -0.5124   131.6337   104.0809       34
+Turbidity_NTU                  Prophet          -0.5594     5.0277     4.2685       34
+Total_Phosphorus_mg_L          Prophet          -0.6342     0.0620     0.0505       34
+Coliform_Count_CFU_100mL       Prophet          -0.7728    13.7314    10.8373       34
+Heavy_Metals_Cd_ug_L           Prophet          -1.4424     0.3073     0.2393       34
+Water_Temperature_C            Prophet          -1.6303     8.6160     7.0280       34
+Dissolved_Oxygen_mg_L          Prophet          -2.2499     3.2794     2.8117       34
+Ammonia_N_mg_L                 Prophet          -2.3758     0.3362     0.2963       34
+pH                             Prophet          -3.7268     0.8852     0.7351       34
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_2
+样本数: 182 | 平均R²: -0.9929
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -0.0594     0.0102     0.0079       37
+Heavy_Metals_Pb_ug_L           Prophet          -0.0713     1.7118     1.3561       37
+Total_Phosphorus_mg_L          Prophet          -0.1146     0.0501     0.0384       37
+BOD_mg_L                       Prophet          -0.2361     1.4806     1.1395       37
+Turbidity_NTU                  Prophet          -0.3067     4.7416     3.9210       37
+Total_Nitrogen_mg_L            Prophet          -0.3671     0.6090     0.4916       37
+Water_Temperature_C            Prophet          -0.4583     6.0648     5.1006       37
+COD_mg_L                       Prophet          -0.5102     5.3670     4.4861       37
+Conductivity_uS_cm             Prophet          -0.6508   111.1231    94.5596       37
+Ammonia_N_mg_L                 Prophet          -0.7591     0.2190     0.1675       37
+Heavy_Metals_Cd_ug_L           Prophet          -0.8704     0.2571     0.1919       37
+Coliform_Count_CFU_100mL       Prophet          -1.4809    15.3800    12.7550       37
+pH                             Prophet          -1.5617     0.7543     0.5832       37
+Heavy_Metals_Hg_ug_L           Prophet          -2.0507     0.0822     0.0676       37
+Nitrate_mg_L                   Prophet          -3.0765     0.9525     0.7862       37
+Dissolved_Oxygen_mg_L          Prophet          -3.3119     3.5752     2.9803       37
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_1
+样本数: 162 | 平均R²: -1.0851
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -0.0870     0.2401     0.1937       33
+Turbidity_NTU                  Prophet          -0.1847     4.8724     3.8835       33
+Nitrite_mg_L                   Prophet          -0.2232     0.0102     0.0082       33
+Heavy_Metals_Pb_ug_L           Prophet          -0.2538     2.2651     1.7531       33
+Coliform_Count_CFU_100mL       Prophet          -0.2634    11.7911     8.9832       33
+Total_Nitrogen_mg_L            Prophet          -0.3658     0.6317     0.4754       33
+Nitrate_mg_L                   Prophet          -0.3755     0.4620     0.3695       33
+Total_Phosphorus_mg_L          Prophet          -0.3838     0.0608     0.0504       33
+BOD_mg_L                       Prophet          -0.6636     1.3293     1.0771       33
+Water_Temperature_C            Prophet          -0.8345     5.5474     4.3214       33
+Heavy_Metals_Hg_ug_L           Prophet          -0.8555     0.0616     0.0481       33
+Dissolved_Oxygen_mg_L          Prophet          -0.8724     2.6872     2.1141       33
+COD_mg_L                       Prophet          -1.7781     7.1792     5.6884       33
+Conductivity_uS_cm             Prophet          -2.0126   140.0451   124.9857       33
+Heavy_Metals_Cd_ug_L           Prophet          -3.6666     0.3578     0.2962       33
+pH                             Prophet          -4.5416     1.1540     0.9463       33
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_9
+样本数: 176 | 平均R²: -1.1533
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -0.1729     0.0110     0.0094       36
+BOD_mg_L                       Prophet          -0.2667     1.4640     1.1711       36
+Conductivity_uS_cm             Prophet          -0.3088   130.8343   102.2288       36
+Ammonia_N_mg_L                 Prophet          -0.3401     0.2442     0.1867       36
+Heavy_Metals_Cd_ug_L           Prophet          -0.3646     0.2030     0.1737       36
+Heavy_Metals_Hg_ug_L           Prophet          -0.4139     0.0541     0.0473       36
+Turbidity_NTU                  Prophet          -0.4273     5.3031     4.3340       36
+Heavy_Metals_Pb_ug_L           Prophet          -0.5264     1.9607     1.5318       36
+Total_Phosphorus_mg_L          Prophet          -0.6344     0.0580     0.0482       36
+Dissolved_Oxygen_mg_L          Prophet          -0.7359     2.1905     1.8015       36
+Water_Temperature_C            Prophet          -0.7713     6.8631     5.2567       36
+Nitrate_mg_L                   Prophet          -0.8906     0.5361     0.4691       36
+pH                             Prophet          -1.5874     0.7924     0.6177       36
+Coliform_Count_CFU_100mL       Prophet          -2.8890    14.6518    12.8531       36
+Total_Nitrogen_mg_L            Prophet          -3.7076     0.8917     0.7026       36
+COD_mg_L                       Prophet          -4.4161    11.7604     8.7876       36
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_1
+样本数: 155 | 平均R²: -1.1567
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -0.1040     1.6861     1.2759       31
+Dissolved_Oxygen_mg_L          Prophet          -0.1422     1.7601     1.3762       31
+Heavy_Metals_Cd_ug_L           Prophet          -0.1992     0.1814     0.1519       31
+Heavy_Metals_Hg_ug_L           Prophet          -0.2250     0.0523     0.0401       31
+Total_Nitrogen_mg_L            Prophet          -0.3533     0.4940     0.4012       31
+pH                             Prophet          -0.3597     0.6769     0.5549       31
+Turbidity_NTU                  Prophet          -0.4966     5.9018     4.5833       31
+Total_Phosphorus_mg_L          Prophet          -0.5369     0.0615     0.0502       31
+BOD_mg_L                       Prophet          -0.6469     1.7554     1.2944       31
+Conductivity_uS_cm             Prophet          -0.7882   148.9089   132.4312       31
+Water_Temperature_C            Prophet          -0.9609     6.3024     5.0819       31
+COD_mg_L                       Prophet          -1.5689     7.7646     6.1045       31
+Coliform_Count_CFU_100mL       Prophet          -2.0454    17.4149    13.7563       31
+Ammonia_N_mg_L                 Prophet          -2.7304     0.3889     0.3185       31
+Nitrite_mg_L                   Prophet          -2.8040     0.0188     0.0150       31
+Nitrate_mg_L                   Prophet          -4.5450     1.0333     0.9302       31
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_6
+样本数: 148 | 平均R²: -1.2080
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -0.1519     0.5785     0.4747       30
+Heavy_Metals_Cd_ug_L           Prophet          -0.1860     0.2078     0.1575       30
+COD_mg_L                       Prophet          -0.2533     6.1401     5.0936       30
+Nitrate_mg_L                   Prophet          -0.2717     0.5985     0.4660       30
+Nitrite_mg_L                   Prophet          -0.3903     0.0112     0.0095       30
+Coliform_Count_CFU_100mL       Prophet          -0.4627    12.8489    10.2083       30
+Heavy_Metals_Pb_ug_L           Prophet          -0.8173     2.1644     1.7222       30
+Water_Temperature_C            Prophet          -0.9269     6.3231     4.6535       30
+Dissolved_Oxygen_mg_L          Prophet          -1.1765     2.8264     2.2722       30
+Ammonia_N_mg_L                 Prophet          -1.4248     0.3121     0.2737       30
+Total_Phosphorus_mg_L          Prophet          -1.5429     0.0691     0.0569       30
+Turbidity_NTU                  Prophet          -1.7293     8.0821     6.6926       30
+Heavy_Metals_Hg_ug_L           Prophet          -2.0210     0.0857     0.0739       30
+pH                             Prophet          -2.5382     0.9265     0.8058       30
+Conductivity_uS_cm             Prophet          -2.5510   239.6661   198.3448       30
+BOD_mg_L                       Prophet          -2.8850     2.3618     1.9500       30
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_9
+样本数: 148 | 平均R²: -1.2693
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet          -0.0142     1.9739     1.6612       30
+Turbidity_NTU                  Prophet          -0.0806     4.1265     3.4380       30
+Coliform_Count_CFU_100mL       Prophet          -0.2377    11.1451     9.1558       30
+Total_Phosphorus_mg_L          Prophet          -0.2541     0.0586     0.0451       30
+Heavy_Metals_Hg_ug_L           Prophet          -0.3909     0.0547     0.0440       30
+Heavy_Metals_Pb_ug_L           Prophet          -0.3932     2.1453     1.7646       30
+Ammonia_N_mg_L                 Prophet          -0.5720     0.2594     0.1910       30
+pH                             Prophet          -0.7352     0.8755     0.7281       30
+COD_mg_L                       Prophet          -0.8886     6.5262     5.2238       30
+Nitrate_mg_L                   Prophet          -0.9805     0.7259     0.5878       30
+BOD_mg_L                       Prophet          -1.1337     2.0040     1.7863       30
+Nitrite_mg_L                   Prophet          -1.3601     0.0158     0.0132       30
+Conductivity_uS_cm             Prophet          -1.7295   137.8104   124.1115       30
+Total_Nitrogen_mg_L            Prophet          -2.4687     0.9018     0.7306       30
+Heavy_Metals_Cd_ug_L           Prophet          -3.8821     0.4895     0.3974       30
+Water_Temperature_C            Prophet          -5.1877    12.9526    11.2405       30
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_8
+样本数: 154 | 平均R²: -1.2914
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet           0.1989     1.1961     0.9172       31
+Heavy_Metals_Cd_ug_L           Prophet          -0.1093     0.2248     0.1794       31
+Water_Temperature_C            Prophet          -0.1620     5.3076     4.2550       31
+COD_mg_L                       Prophet          -0.2535     4.9005     4.1424       31
+Total_Phosphorus_mg_L          Prophet          -0.2743     0.0633     0.0521       31
+Coliform_Count_CFU_100mL       Prophet          -0.5243    13.0785    10.8799       31
+Ammonia_N_mg_L                 Prophet          -0.6423     0.2234     0.1824       31
+Nitrite_mg_L                   Prophet          -0.8960     0.0140     0.0103       31
+Turbidity_NTU                  Prophet          -0.8996     5.8576     5.0614       31
+Total_Nitrogen_mg_L            Prophet          -1.1513     0.5541     0.4483       31
+Conductivity_uS_cm             Prophet          -1.4016   137.7856   115.8706       31
+Heavy_Metals_Pb_ug_L           Prophet          -1.5250     2.9822     2.4609       31
+pH                             Prophet          -2.0235     0.7334     0.6116       31
+Heavy_Metals_Hg_ug_L           Prophet          -3.0411     0.0911     0.0785       31
+Nitrate_mg_L                   Prophet          -3.5840     0.9634     0.8579       31
+Dissolved_Oxygen_mg_L          Prophet          -4.3734     4.3557     3.5781       31
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_5
+样本数: 161 | 平均R²: -1.2931
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet          -0.1227    94.9786    80.2690       33
+BOD_mg_L                       Prophet          -0.1925     1.2714     0.9904       33
+Dissolved_Oxygen_mg_L          Prophet          -0.3167     2.1875     1.7122       33
+Nitrite_mg_L                   Prophet          -0.3390     0.0128     0.0101       33
+Total_Phosphorus_mg_L          Prophet          -0.4257     0.0504     0.0410       33
+Total_Nitrogen_mg_L            Prophet          -0.4576     0.7522     0.5999       33
+Nitrate_mg_L                   Prophet          -0.4586     0.6326     0.5267       33
+Heavy_Metals_Pb_ug_L           Prophet          -0.4831     2.0557     1.6415       33
+Heavy_Metals_Hg_ug_L           Prophet          -0.7643     0.0692     0.0568       33
+Coliform_Count_CFU_100mL       Prophet          -0.7948    13.6917    11.2203       33
+Water_Temperature_C            Prophet          -1.4678     8.5791     7.4285       33
+Heavy_Metals_Cd_ug_L           Prophet          -1.5113     0.2686     0.1936       33
+Ammonia_N_mg_L                 Prophet          -2.2437     0.3728     0.3209       33
+pH                             Prophet          -3.1823     1.1111     0.8907       33
+Turbidity_NTU                  Prophet          -3.6269    10.3236     8.1321       33
+COD_mg_L                       Prophet          -4.3021     8.3375     6.8067       33
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_5
+样本数: 161 | 平均R²: -1.4704
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -0.0860     0.2465     0.1985       33
+Total_Phosphorus_mg_L          Prophet          -0.1610     0.0487     0.0386       33
+Heavy_Metals_Pb_ug_L           Prophet          -0.2208     1.8640     1.4806       33
+Nitrite_mg_L                   Prophet          -0.2649     0.0088     0.0068       33
+Heavy_Metals_Hg_ug_L           Prophet          -0.2742     0.0603     0.0473       33
+Nitrate_mg_L                   Prophet          -0.3195     0.5464     0.4651       33
+Dissolved_Oxygen_mg_L          Prophet          -0.3390     2.1242     1.5971       33
+BOD_mg_L                       Prophet          -0.8389     1.9585     1.5679       33
+Coliform_Count_CFU_100mL       Prophet          -1.0019    12.7398    10.4977       33
+Total_Nitrogen_mg_L            Prophet          -1.1309     0.7421     0.5716       33
+COD_mg_L                       Prophet          -1.2088     8.2028     6.8831       33
+Water_Temperature_C            Prophet          -1.3241     6.8073     5.1673       33
+Conductivity_uS_cm             Prophet          -1.4479   172.1059   138.5663       33
+pH                             Prophet          -1.5238     0.7493     0.6008       33
+Turbidity_NTU                  Prophet          -1.9435     5.9248     4.6509       33
+Heavy_Metals_Cd_ug_L           Prophet         -11.4405     0.5961     0.5207       33
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_2
+样本数: 169 | 平均R²: -1.5705
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet          -0.2365   114.2093    91.2577       34
+Turbidity_NTU                  Prophet          -0.2471     4.9184     4.0790       34
+Total_Nitrogen_mg_L            Prophet          -0.4692     0.6177     0.5040       34
+Heavy_Metals_Hg_ug_L           Prophet          -0.5852     0.0664     0.0530       34
+Ammonia_N_mg_L                 Prophet          -0.6307     0.2451     0.2011       34
+pH                             Prophet          -0.6536     0.6187     0.4901       34
+BOD_mg_L                       Prophet          -0.7775     1.4324     1.2150       34
+Heavy_Metals_Cd_ug_L           Prophet          -0.8675     0.2261     0.1820       34
+COD_mg_L                       Prophet          -0.9743     6.9088     5.3379       34
+Nitrite_mg_L                   Prophet          -1.0809     0.0151     0.0130       34
+Dissolved_Oxygen_mg_L          Prophet          -1.6109     3.0335     2.4870       34
+Water_Temperature_C            Prophet          -2.3231     9.7670     8.7905       34
+Total_Phosphorus_mg_L          Prophet          -2.6637     0.0961     0.0810       34
+Nitrate_mg_L                   Prophet          -2.8049     1.0683     0.8975       34
+Coliform_Count_CFU_100mL       Prophet          -4.3089    19.3849    16.4508       34
+Heavy_Metals_Pb_ug_L           Prophet          -4.8933     3.4317     2.9292       34
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_8
+样本数: 156 | 平均R²: -1.7806
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -0.1245     0.0482     0.0369       32
+Total_Nitrogen_mg_L            Prophet          -0.1259     0.5218     0.4539       32
+Heavy_Metals_Pb_ug_L           Prophet          -0.1813     2.3651     1.8534       32
+Dissolved_Oxygen_mg_L          Prophet          -0.1824     1.8188     1.4191       32
+BOD_mg_L                       Prophet          -0.3121     1.5523     1.3061       32
+Turbidity_NTU                  Prophet          -0.3315     4.9632     4.2429       32
+Nitrate_mg_L                   Prophet          -0.5275     0.6934     0.5244       32
+Conductivity_uS_cm             Prophet          -0.6628   162.9329   132.7541       32
+Heavy_Metals_Cd_ug_L           Prophet          -1.3746     0.3033     0.2309       32
+Nitrite_mg_L                   Prophet          -1.6152     0.0173     0.0137       32
+Coliform_Count_CFU_100mL       Prophet          -2.0765    16.9341    13.1823       32
+Heavy_Metals_Hg_ug_L           Prophet          -2.1853     0.0865     0.0695       32
+Water_Temperature_C            Prophet          -2.2492     8.4544     7.1764       32
+Ammonia_N_mg_L                 Prophet          -4.7466     0.5225     0.4749       32
+pH                             Prophet          -5.3419     1.2850     1.0798       32
+COD_mg_L                       Prophet          -6.4515    11.0545     9.3332       32
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_6
+样本数: 149 | 平均R²: -2.1309
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.1801     5.3412     4.2918       30
+Total_Phosphorus_mg_L          Prophet          -0.2206     0.0553     0.0470       30
+Dissolved_Oxygen_mg_L          Prophet          -0.3133     2.2382     1.6562       30
+Ammonia_N_mg_L                 Prophet          -0.3467     0.2368     0.2029       30
+Nitrite_mg_L                   Prophet          -0.5839     0.0106     0.0089       30
+Coliform_Count_CFU_100mL       Prophet          -0.5917    12.4981    10.2616       30
+Heavy_Metals_Cd_ug_L           Prophet          -1.0519     0.2542     0.2156       30
+Nitrate_mg_L                   Prophet          -1.2287     0.7466     0.5958       30
+Total_Nitrogen_mg_L            Prophet          -1.3036     0.8024     0.6332       30
+BOD_mg_L                       Prophet          -1.6531     2.3614     1.9203       30
+Heavy_Metals_Hg_ug_L           Prophet          -2.0654     0.0887     0.0700       30
+Water_Temperature_C            Prophet          -2.7106     8.4743     7.1706       30
+Conductivity_uS_cm             Prophet          -3.4738   277.4550   235.4162       30
+COD_mg_L                       Prophet          -4.4812     7.9985     6.9627       30
+Heavy_Metals_Pb_ug_L           Prophet          -4.8338     4.6907     4.1292       30
+pH                             Prophet          -9.0562     1.3650     1.2353       30
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_2
+样本数: 85 | 平均R²: -2.7773
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -0.2987     0.0501     0.0437       17
+Turbidity_NTU                  Prophet          -0.3420     4.6443     3.6269       17
+BOD_mg_L                       Prophet          -0.5165     2.1479     1.6349       17
+Heavy_Metals_Pb_ug_L           Prophet          -0.5808     3.1249     2.6459       17
+COD_mg_L                       Prophet          -0.9271     6.7977     5.6671       17
+Nitrite_mg_L                   Prophet          -0.9804     0.0170     0.0141       17
+Total_Phosphorus_mg_L          Prophet          -1.1315     0.0545     0.0425       17
+Dissolved_Oxygen_mg_L          Prophet          -1.7267     3.5472     3.0535       17
+Nitrate_mg_L                   Prophet          -2.6415     0.8168     0.6749       17
+Water_Temperature_C            Prophet          -2.7458     6.6177     5.1279       17
+Ammonia_N_mg_L                 Prophet          -3.5969     0.5682     0.5144       17
+Coliform_Count_CFU_100mL       Prophet          -3.6600    18.9071    17.2418       17
+Total_Nitrogen_mg_L            Prophet          -4.3539     1.1482     0.9578       17
+Heavy_Metals_Cd_ug_L           Prophet          -5.4429     0.4563     0.3929       17
+Conductivity_uS_cm             Prophet          -7.1585   277.1769   259.8011       17
+pH                             Prophet          -8.3334     1.4219     1.3285       17
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_7
+样本数: 132 | 平均R²: -2.8401
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -0.0041     0.0395     0.0334       27
+Turbidity_NTU                  Prophet          -0.1577     4.7038     3.9686       27
+Ammonia_N_mg_L                 Prophet          -0.1642     0.1946     0.1556       27
+Heavy_Metals_Cd_ug_L           Prophet          -0.1999     0.2227     0.1872       27
+Dissolved_Oxygen_mg_L          Prophet          -0.2032     1.7304     1.1447       27
+Nitrate_mg_L                   Prophet          -0.2367     0.6111     0.4971       27
+BOD_mg_L                       Prophet          -0.4023     1.4418     1.1573       27
+Nitrite_mg_L                   Prophet          -0.5134     0.0095     0.0081       27
+Heavy_Metals_Pb_ug_L           Prophet          -0.9395     2.7367     2.2270       27
+COD_mg_L                       Prophet          -1.0722     6.1172     5.1660       27
+Water_Temperature_C            Prophet          -1.4434     6.0335     4.8761       27
+Coliform_Count_CFU_100mL       Prophet          -2.3470    13.6855    10.7350       27
+Heavy_Metals_Hg_ug_L           Prophet          -2.8920     0.0859     0.0690       27
+Total_Nitrogen_mg_L            Prophet          -6.7814     1.2808     1.0903       27
+pH                             Prophet         -13.1402     1.8940     1.6429       27
+Conductivity_uS_cm             Prophet         -14.9448   393.7528   330.8317       27
+
+================================================================================
+
+监测站: Shanghai - Shanghai - Shanghai_Station_10
+样本数: 144 | 平均R²: -3.3712
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -0.1923     2.1499     1.6809       29
+Heavy_Metals_Hg_ug_L           Prophet          -0.3491     0.0596     0.0503       29
+Coliform_Count_CFU_100mL       Prophet          -0.3764    10.4095     7.7834       29
+Total_Phosphorus_mg_L          Prophet          -0.5284     0.0616     0.0495       29
+Turbidity_NTU                  Prophet          -0.6435     6.1010     4.6177       29
+Nitrite_mg_L                   Prophet          -0.8960     0.0138     0.0115       29
+Ammonia_N_mg_L                 Prophet          -0.9812     0.2522     0.1969       29
+BOD_mg_L                       Prophet          -1.2091     2.0831     1.6844       29
+Heavy_Metals_Cd_ug_L           Prophet          -1.2637     0.2477     0.1920       29
+Nitrate_mg_L                   Prophet          -1.8309     0.7560     0.5795       29
+Total_Nitrogen_mg_L            Prophet          -2.9582     1.1243     0.9913       29
+COD_mg_L                       Prophet          -4.9270     8.8222     6.5686       29
+Dissolved_Oxygen_mg_L          Prophet          -7.0834     5.6567     4.8564       29
+pH                             Prophet          -9.2089     1.6423     1.4130       29
+Conductivity_uS_cm             Prophet          -9.7364   330.7808   271.1587       29
+Water_Temperature_C            Prophet         -11.7551    13.2099    12.0629       29
+
+================================================================================
+
+监测站: Beijing - Beijing - Beijing_Station_3
+样本数: 146 | 平均R²: -3.8344
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet           0.2040     0.0437     0.0365       30
+Heavy_Metals_Cd_ug_L           Prophet           0.0653     0.2223     0.1714       30
+Total_Nitrogen_mg_L            Prophet          -0.0981     0.4912     0.4201       30
+Total_Phosphorus_mg_L          Prophet          -0.1329     0.0541     0.0433       30
+Heavy_Metals_Pb_ug_L           Prophet          -0.1993     2.2369     1.7818       30
+Coliform_Count_CFU_100mL       Prophet          -0.9320    12.8905    10.1189       30
+Turbidity_NTU                  Prophet          -1.1221     4.7847     4.1859       30
+Nitrate_mg_L                   Prophet          -1.6178     0.8358     0.7337       30
+BOD_mg_L                       Prophet          -1.6368     2.0498     1.6012       30
+Ammonia_N_mg_L                 Prophet          -1.8045     0.3794     0.2841       30
+COD_mg_L                       Prophet          -1.8262     9.1599     7.6029       30
+Nitrite_mg_L                   Prophet          -1.9818     0.0170     0.0144       30
+Conductivity_uS_cm             Prophet          -2.6536   191.0200   144.5547       30
+Dissolved_Oxygen_mg_L          Prophet          -5.7675     4.0909     3.3601       30
+Water_Temperature_C            Prophet          -6.4933    14.8027    13.2490       30
+pH                             Prophet         -35.3541     3.1002     2.4874       30
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_9
+样本数: 76 | 平均R²: -7.7785
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.9725     1.4295     1.1804       16
+Heavy_Metals_Cd_ug_L           Prophet          -1.0837     0.2193     0.1772       16
+Nitrite_mg_L                   Prophet          -1.2011     0.0173     0.0151       16
+Total_Phosphorus_mg_L          Prophet          -1.6177     0.0817     0.0672       16
+Turbidity_NTU                  Prophet          -2.3027     9.1841     7.5912       16
+COD_mg_L                       Prophet          -3.1332     6.9545     5.8714       16
+Nitrate_mg_L                   Prophet          -3.9614     0.9995     0.8250       16
+Conductivity_uS_cm             Prophet          -3.9723   204.8551   175.7668       16
+Dissolved_Oxygen_mg_L          Prophet          -5.0416     4.5452     3.8807       16
+Heavy_Metals_Hg_ug_L           Prophet          -7.1298     0.1318     0.1220       16
+Water_Temperature_C            Prophet          -7.6057    17.2193    14.2539       16
+Ammonia_N_mg_L                 Prophet          -9.8932     0.4450     0.3959       16
+Coliform_Count_CFU_100mL       Prophet         -15.1506    40.4640    38.6928       16
+Heavy_Metals_Pb_ug_L           Prophet         -15.8238     5.6264     5.2270       16
+Total_Nitrogen_mg_L            Prophet         -19.2447     1.8895     1.7196       16
+pH                             Prophet         -26.3222     2.7793     2.6416       16
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_8
+样本数: 69 | 平均R²: -10.6562
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -0.3454     6.8005     5.9253       14
+Nitrite_mg_L                   Prophet          -1.5180     0.0134     0.0116       14
+Water_Temperature_C            Prophet          -1.8770     8.8622     6.8510       14
+Coliform_Count_CFU_100mL       Prophet          -1.8950    10.8110     9.3982       14
+Dissolved_Oxygen_mg_L          Prophet          -2.9689     4.4700     3.7668       14
+Nitrate_mg_L                   Prophet          -4.7972     1.3201     1.1014       14
+BOD_mg_L                       Prophet          -5.7847     2.2486     1.9047       14
+Ammonia_N_mg_L                 Prophet          -8.3630     0.5040     0.4390       14
+Heavy_Metals_Cd_ug_L           Prophet          -8.6233     0.6429     0.5829       14
+Heavy_Metals_Hg_ug_L           Prophet          -9.3548     0.1737     0.1406       14
+Conductivity_uS_cm             Prophet         -11.4730   349.6154   300.9307       14
+Heavy_Metals_Pb_ug_L           Prophet         -11.8396     6.4136     6.2091       14
+Total_Nitrogen_mg_L            Prophet         -12.8955     1.4076     1.2702       14
+pH                             Prophet         -18.7268     1.8956     1.7650       14
+Total_Phosphorus_mg_L          Prophet         -59.3813     0.4284     0.3654       14
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_4
+样本数: 85 | 平均R²: -11.3795
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -2.4308     0.0179     0.0154       17
+Dissolved_Oxygen_mg_L          Prophet          -7.7340     5.2737     4.6048       17
+Ammonia_N_mg_L                 Prophet         -17.4736     1.2183     0.9797       17
+Heavy_Metals_Cd_ug_L           Prophet         -17.8795     0.9338     0.7343       17
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_2
+样本数: 95 | 平均R²: -12.0317
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -1.2463     3.6874     2.9395       19
+Nitrate_mg_L                   Prophet          -1.6771     0.9976     0.8221       19
+Conductivity_uS_cm             Prophet          -2.0115   146.3907   115.4260       19
+BOD_mg_L                       Prophet          -2.6798     2.0150     1.7328       19
+Turbidity_NTU                  Prophet          -2.7827     7.9689     6.3031       19
+Dissolved_Oxygen_mg_L          Prophet          -3.3839     5.3962     4.4072       19
+Heavy_Metals_Cd_ug_L           Prophet          -4.3081     0.4643     0.3784       19
+Heavy_Metals_Hg_ug_L           Prophet          -4.9044     0.1609     0.1356       19
+COD_mg_L                       Prophet          -6.4808    14.5880    10.3008       19
+Total_Phosphorus_mg_L          Prophet          -7.5664     0.1735     0.1388       19
+Ammonia_N_mg_L                 Prophet         -18.3669     0.7859     0.6573       19
+Total_Nitrogen_mg_L            Prophet         -18.4798     2.1134     1.8810       19
+Nitrite_mg_L                   Prophet         -43.9013     0.0548     0.0368       19
+Coliform_Count_CFU_100mL       Prophet         -50.6552    53.0967    50.8515       19
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_2
+样本数: 87 | 平均R²: -12.4324
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -9.3062     0.1143     0.0921       18
+BOD_mg_L                       Prophet         -13.4197     5.6261     4.2928       18
+Turbidity_NTU                  Prophet         -14.5713    12.8286    10.9810       18
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_4
+样本数: 75 | 平均R²: -12.7850
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet         -12.7850     0.1597     0.1185       15
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_8
+样本数: 81 | 平均R²: -14.8535
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -0.5746     0.3743     0.2939       17
+Turbidity_NTU                  Prophet         -29.1323    29.3626    17.8200       17
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_6
+样本数: 95 | 平均R²: -15.2008
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.8172     1.8204     1.5775       19
+Nitrate_mg_L                   Prophet          -1.3383     0.7360     0.6465       19
+Heavy_Metals_Hg_ug_L           Prophet          -1.4476     0.0695     0.0518       19
+Conductivity_uS_cm             Prophet          -1.5631   200.2091   174.7924       19
+Ammonia_N_mg_L                 Prophet          -2.6882     0.4403     0.4051       19
+Nitrite_mg_L                   Prophet          -3.5297     0.0230     0.0198       19
+Heavy_Metals_Cd_ug_L           Prophet          -5.4721     0.4481     0.3999       19
+Total_Phosphorus_mg_L          Prophet          -6.1006     0.1293     0.1115       19
+Coliform_Count_CFU_100mL       Prophet         -11.4576    34.1174    30.6834       19
+Water_Temperature_C            Prophet         -12.7080    17.3540    15.0761       19
+pH                             Prophet         -13.8506     1.2634     1.1294       19
+Turbidity_NTU                  Prophet         -17.2696    22.4467    17.5595       19
+Total_Nitrogen_mg_L            Prophet         -29.4008     3.1101     2.5049       19
+Heavy_Metals_Pb_ug_L           Prophet         -33.9962     9.4079     8.0767       19
+Dissolved_Oxygen_mg_L          Prophet         -45.7861    13.1289    10.2336       19
+COD_mg_L                       Prophet         -55.7864    33.3100    29.2301       19
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_6
+样本数: 71 | 平均R²: -15.3864
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -4.0505     1.1017     0.9223       15
+Conductivity_uS_cm             Prophet         -11.3208   390.4034   330.2717       15
+BOD_mg_L                       Prophet         -12.3973     5.9207     4.9386       15
+Total_Phosphorus_mg_L          Prophet         -33.7770     0.2077     0.1511       15
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_5
+样本数: 78 | 平均R²: -15.7097
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -2.2755     0.2799     0.2295       16
+Total_Phosphorus_mg_L          Prophet          -2.3482     0.0739     0.0624       16
+Coliform_Count_CFU_100mL       Prophet          -2.7547    22.9077    19.5952       16
+pH                             Prophet          -3.1929     0.7212     0.6089       16
+COD_mg_L                       Prophet          -4.2107    10.1228     9.0967       16
+Heavy_Metals_Pb_ug_L           Prophet          -4.4188     6.1100     4.8885       16
+Dissolved_Oxygen_mg_L          Prophet          -5.1515     4.9320     4.0011       16
+Nitrite_mg_L                   Prophet         -17.2361     0.0377     0.0305       16
+Nitrate_mg_L                   Prophet         -18.4007     2.3904     2.2193       16
+BOD_mg_L                       Prophet         -19.3708     8.2750     6.9111       16
+Ammonia_N_mg_L                 Prophet         -19.3838     0.9305     0.6861       16
+Heavy_Metals_Hg_ug_L           Prophet         -23.4378     0.1464     0.1124       16
+Water_Temperature_C            Prophet         -41.3243    40.1489    33.7233       16
+Turbidity_NTU                  Prophet         -56.4300    29.2868    19.2063       16
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_7
+样本数: 72 | 平均R²: -17.0559
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet          -0.6498     0.6805     0.5042       15
+Heavy_Metals_Cd_ug_L           Prophet          -3.0010     0.3553     0.2685       15
+Turbidity_NTU                  Prophet          -3.9627     7.6340     6.1282       15
+BOD_mg_L                       Prophet          -6.5274     4.3083     3.4146       15
+Heavy_Metals_Hg_ug_L           Prophet          -7.3848     0.1684     0.1119       15
+Nitrite_mg_L                   Prophet          -8.6787     0.0298     0.0247       15
+Coliform_Count_CFU_100mL       Prophet          -9.5423    30.4951    23.5929       15
+Total_Phosphorus_mg_L          Prophet         -10.0158     0.1936     0.1663       15
+COD_mg_L                       Prophet         -14.9025    13.7573     8.7024       15
+Heavy_Metals_Pb_ug_L           Prophet         -25.4084    10.9745     9.3551       15
+Ammonia_N_mg_L                 Prophet         -97.5418     2.3747     1.1638       15
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_7
+样本数: 77 | 平均R²: -17.1787
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet          -3.9900   248.2349   201.9759       16
+Heavy_Metals_Pb_ug_L           Prophet          -4.7201     4.8815     3.9134       16
+Heavy_Metals_Cd_ug_L           Prophet          -9.2804     0.5856     0.5335       16
+Total_Phosphorus_mg_L          Prophet         -27.5717     0.2621     0.2095       16
+Nitrate_mg_L                   Prophet         -40.3315     3.5221     3.2058       16
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_8
+样本数: 68 | 平均R²: -17.7882
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -6.1069     0.0274     0.0215       14
+Heavy_Metals_Cd_ug_L           Prophet         -29.4694     0.8392     0.7254       14
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_7
+样本数: 80 | 平均R²: -18.1189
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+pH                             Prophet          -2.1237     0.9060     0.7141       16
+Water_Temperature_C            Prophet          -2.2211     9.9613     7.9594       16
+Heavy_Metals_Pb_ug_L           Prophet          -3.3143     5.6347     4.7464       16
+Total_Phosphorus_mg_L          Prophet          -5.1044     0.1273     0.1043       16
+Conductivity_uS_cm             Prophet          -5.5773   240.5833   189.8986       16
+Turbidity_NTU                  Prophet          -6.6178    11.5506     9.0714       16
+Nitrite_mg_L                   Prophet          -6.6513     0.0273     0.0225       16
+BOD_mg_L                       Prophet          -9.6394     4.2715     3.3841       16
+COD_mg_L                       Prophet         -13.1317    17.1532    15.8812       16
+Heavy_Metals_Cd_ug_L           Prophet         -25.4110     0.8174     0.5353       16
+Total_Nitrogen_mg_L            Prophet         -28.2736     2.6722     2.1056       16
+Dissolved_Oxygen_mg_L          Prophet         -30.2157    11.2129    10.5771       16
+Heavy_Metals_Hg_ug_L           Prophet         -30.5716     0.2659     0.2005       16
+Nitrate_mg_L                   Prophet         -48.2145     2.2693     2.1000       16
+Ammonia_N_mg_L                 Prophet         -54.7155     1.1876     0.9280       16
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_5
+样本数: 87 | 平均R²: -19.9060
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -1.2631     5.8720     4.9387       18
+BOD_mg_L                       Prophet          -3.1994     2.5232     2.1959       18
+Total_Nitrogen_mg_L            Prophet          -4.8225     1.6612     1.3537       18
+Nitrite_mg_L                   Prophet         -10.7812     0.0283     0.0236       18
+Heavy_Metals_Hg_ug_L           Prophet         -15.3217     0.1696     0.1351       18
+Coliform_Count_CFU_100mL       Prophet         -22.9551    46.1527    42.6060       18
+Heavy_Metals_Pb_ug_L           Prophet         -30.1488     7.5677     5.6825       18
+Water_Temperature_C            Prophet         -43.8130    33.7343    27.4734       18
+COD_mg_L                       Prophet         -46.8494    34.3537    26.3711       18
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_1
+样本数: 75 | 平均R²: -20.9033
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -2.2528     1.1756     0.9532       15
+BOD_mg_L                       Prophet          -3.5409     2.5636     1.9810       15
+Heavy_Metals_Cd_ug_L           Prophet          -4.8229     0.4673     0.3768       15
+Dissolved_Oxygen_mg_L          Prophet         -17.0476     8.1216     6.8504       15
+Total_Phosphorus_mg_L          Prophet         -21.2323     0.2246     0.1629       15
+pH                             Prophet         -31.0975     2.8250     2.6801       15
+Coliform_Count_CFU_100mL       Prophet         -66.3290    90.6321    79.9921       15
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_8
+样本数: 87 | 平均R²: -20.9320
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -7.8089     6.4192     5.5063       18
+Turbidity_NTU                  Prophet          -8.8414    12.6157     9.7640       18
+Total_Phosphorus_mg_L          Prophet          -9.6276     0.1449     0.1240       18
+Heavy_Metals_Cd_ug_L           Prophet         -11.1665     0.6108     0.5259       18
+Heavy_Metals_Hg_ug_L           Prophet         -13.1784     0.1683     0.1396       18
+Dissolved_Oxygen_mg_L          Prophet         -37.9225    11.6433    10.1874       18
+COD_mg_L                       Prophet         -57.9789    42.4459    29.3350       18
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_7
+样本数: 91 | 平均R²: -21.0132
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -0.1997     4.6817     3.5634       19
+Total_Phosphorus_mg_L          Prophet          -0.5564     0.0548     0.0431       19
+Coliform_Count_CFU_100mL       Prophet          -1.3670    18.8974    15.4199       19
+Conductivity_uS_cm             Prophet          -1.5071   134.7657   103.9856       19
+Total_Nitrogen_mg_L            Prophet          -2.3800     0.7669     0.6686       19
+Turbidity_NTU                  Prophet          -8.4026    10.2399     8.5804       19
+Nitrate_mg_L                   Prophet          -8.5695     1.5247     1.3730       19
+Heavy_Metals_Cd_ug_L           Prophet         -10.9469     0.7531     0.6579       19
+BOD_mg_L                       Prophet         -15.6438     4.8716     4.4256       19
+Nitrite_mg_L                   Prophet         -15.8580     0.0384     0.0323       19
+Ammonia_N_mg_L                 Prophet         -25.3756     0.9994     0.8134       19
+Dissolved_Oxygen_mg_L          Prophet         -29.8351     8.8256     7.0002       19
+Water_Temperature_C            Prophet         -46.0873    30.0244    27.0262       19
+Heavy_Metals_Pb_ug_L           Prophet         -51.1095    15.6179    12.2743       19
+Heavy_Metals_Hg_ug_L           Prophet         -51.1489     0.3895     0.3159       19
+pH                             Prophet         -67.2242     2.5196     2.4182       19
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_4
+样本数: 79 | 平均R²: -21.3636
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -2.4635    10.1176     8.0025       16
+Heavy_Metals_Pb_ug_L           Prophet          -9.1200     5.6042     4.1893       16
+pH                             Prophet          -9.8026     1.4793     1.2956       16
+Total_Phosphorus_mg_L          Prophet         -24.6254     0.2053     0.1647       16
+BOD_mg_L                       Prophet         -33.5242     9.5014     6.8465       16
+Coliform_Count_CFU_100mL       Prophet         -33.8049    69.2681    62.9881       16
+Heavy_Metals_Cd_ug_L           Prophet         -36.2047     1.1746     0.8884       16
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_1
+样本数: 68 | 平均R²: -21.4683
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet          -2.2271   110.5486    95.8947       14
+BOD_mg_L                       Prophet          -3.4220     3.3036     2.9135       14
+Nitrite_mg_L                   Prophet         -14.1476     0.0360     0.0303       14
+Nitrate_mg_L                   Prophet         -28.8071     2.1397     1.8113       14
+Heavy_Metals_Pb_ug_L           Prophet         -58.7375    11.6166     8.4521       14
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_7
+样本数: 91 | 平均R²: -21.9946
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -0.4963     4.8473     4.0037       19
+Heavy_Metals_Cd_ug_L           Prophet          -5.7890     0.4372     0.3565       19
+Total_Phosphorus_mg_L          Prophet         -10.9522     0.1407     0.1321       19
+Heavy_Metals_Hg_ug_L           Prophet         -22.5593     0.2697     0.1876       19
+Nitrite_mg_L                   Prophet         -31.5135     0.0566     0.0360       19
+Water_Temperature_C            Prophet         -37.3067    30.1244    25.3399       19
+BOD_mg_L                       Prophet         -45.3451     8.4946     6.2517       19
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_4
+样本数: 89 | 平均R²: -22.2371
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -0.4933     0.0508     0.0385       18
+Ammonia_N_mg_L                 Prophet          -2.7424     0.4151     0.3595       18
+Total_Nitrogen_mg_L            Prophet          -4.4103     1.1088     0.9035       18
+pH                             Prophet          -8.1978     1.6686     1.3335       18
+Dissolved_Oxygen_mg_L          Prophet         -41.1679    13.8257    12.5258       18
+Heavy_Metals_Hg_ug_L           Prophet         -47.6297     0.2714     0.2202       18
+Heavy_Metals_Pb_ug_L           Prophet         -51.0183    19.9696    12.5347       18
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_10
+样本数: 76 | 平均R²: -22.4089
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet          -1.4548     0.8823     0.8090       16
+Conductivity_uS_cm             Prophet          -5.7871   251.8833   192.2949       16
+Total_Phosphorus_mg_L          Prophet          -6.0552     0.0958     0.0816       16
+Heavy_Metals_Hg_ug_L           Prophet         -15.9471     0.1892     0.1612       16
+Water_Temperature_C            Prophet         -21.0428    20.5630    18.3664       16
+Total_Nitrogen_mg_L            Prophet         -43.1241     3.0313     2.4310       16
+Nitrite_mg_L                   Prophet         -63.4513     0.0814     0.0501       16
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_5
+样本数: 85 | 平均R²: -22.9174
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -5.9798     0.0304     0.0244       17
+Heavy_Metals_Pb_ug_L           Prophet          -7.5786     5.7534     4.2798       17
+Heavy_Metals_Cd_ug_L           Prophet         -16.6276     0.8832     0.6957       17
+Ammonia_N_mg_L                 Prophet         -21.1606     1.0373     0.9244       17
+Conductivity_uS_cm             Prophet         -29.7252   665.7619   600.9314       17
+Coliform_Count_CFU_100mL       Prophet         -56.4329    97.1033    72.8305       17
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_6
+样本数: 79 | 平均R²: -23.0107
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet         -15.2338    20.8268    18.0279       16
+Water_Temperature_C            Prophet         -23.1382    20.0177    17.8274       16
+Heavy_Metals_Hg_ug_L           Prophet         -30.6600     0.2667     0.1977       16
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_1
+样本数: 83 | 平均R²: -23.0822
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -4.4149     0.5355     0.4260       17
+Turbidity_NTU                  Prophet          -6.2979    13.4987    11.0639       17
+Ammonia_N_mg_L                 Prophet         -13.5014     0.8733     0.6235       17
+BOD_mg_L                       Prophet         -14.7150     4.4052     3.8093       17
+Nitrate_mg_L                   Prophet         -19.1244     1.8589     1.5282       17
+Nitrite_mg_L                   Prophet         -21.3473     0.0409     0.0374       17
+Heavy_Metals_Hg_ug_L           Prophet         -21.7135     0.2843     0.1745       17
+Water_Temperature_C            Prophet         -35.9011    38.5371    34.8704       17
+Conductivity_uS_cm             Prophet         -37.4461   773.5919   703.5190       17
+Total_Phosphorus_mg_L          Prophet         -56.3601     0.3588     0.3296       17
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_3
+样本数: 70 | 平均R²: -23.1201
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.0575     1.4058     1.0601       14
+COD_mg_L                       Prophet          -3.1777     9.4961     8.2892       14
+Total_Nitrogen_mg_L            Prophet          -6.1688     1.2112     1.0465       14
+Nitrite_mg_L                   Prophet          -6.3030     0.0216     0.0173       14
+Total_Phosphorus_mg_L          Prophet          -9.0820     0.1817     0.1523       14
+Water_Temperature_C            Prophet         -10.6518    22.1702    20.0725       14
+Turbidity_NTU                  Prophet         -23.8641    20.5998    12.7805       14
+Heavy_Metals_Hg_ug_L           Prophet         -30.5047     0.2543     0.1964       14
+Heavy_Metals_Pb_ug_L           Prophet         -44.9454    11.8451     9.4074       14
+Conductivity_uS_cm             Prophet         -96.4454  1113.0268   844.5888       14
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_7
+样本数: 84 | 平均R²: -23.1909
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.2621     1.3340     1.0680       17
+Water_Temperature_C            Prophet          -2.3007     7.6766     6.3405       17
+pH                             Prophet          -5.6082     1.1338     0.9956       17
+Heavy_Metals_Cd_ug_L           Prophet          -7.8565     0.5860     0.4155       17
+Total_Nitrogen_mg_L            Prophet          -8.5321     1.3014     1.1767       17
+Total_Phosphorus_mg_L          Prophet         -12.0379     0.1867     0.1552       17
+Heavy_Metals_Hg_ug_L           Prophet         -12.5998     0.1776     0.1544       17
+Coliform_Count_CFU_100mL       Prophet         -24.0789    56.5086    50.8808       17
+COD_mg_L                       Prophet         -25.2225    27.2183    24.5839       17
+Nitrate_mg_L                   Prophet         -32.3146     2.5562     2.3080       17
+Ammonia_N_mg_L                 Prophet         -40.6770     1.0080     0.7971       17
+Heavy_Metals_Pb_ug_L           Prophet         -45.9561    11.1966     9.6312       17
+Turbidity_NTU                  Prophet         -84.0355    42.9469    37.8464       17
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_2
+样本数: 81 | 平均R²: -23.8148
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -1.3728     5.6455     5.1499       17
+Nitrate_mg_L                   Prophet          -4.8076     1.1575     1.0216       17
+COD_mg_L                       Prophet          -5.9737    13.4615    10.8952       17
+BOD_mg_L                       Prophet         -10.5184     4.1259     3.4162       17
+Nitrite_mg_L                   Prophet         -19.7664     0.0347     0.0299       17
+Ammonia_N_mg_L                 Prophet         -31.4707     1.0103     0.7207       17
+Heavy_Metals_Hg_ug_L           Prophet         -92.7937     0.3930     0.2552       17
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_2
+样本数: 77 | 平均R²: -23.8497
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -6.4997     3.6955     3.1564       16
+Dissolved_Oxygen_mg_L          Prophet         -27.1481    12.9862    11.0609       16
+Heavy_Metals_Hg_ug_L           Prophet         -29.2519     0.2103     0.1792       16
+Water_Temperature_C            Prophet         -32.4991    35.8978    29.7685       16
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_7
+样本数: 72 | 平均R²: -24.0026
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -0.4430     0.8197     0.6688       15
+Heavy_Metals_Hg_ug_L           Prophet          -2.0589     0.0860     0.0720       15
+Total_Phosphorus_mg_L          Prophet          -2.1725     0.0692     0.0516       15
+Heavy_Metals_Cd_ug_L           Prophet          -6.6346     0.5498     0.4206       15
+Nitrite_mg_L                   Prophet          -6.7890     0.0276     0.0195       15
+Ammonia_N_mg_L                 Prophet          -7.7818     0.4803     0.3454       15
+Coliform_Count_CFU_100mL       Prophet         -15.7297    44.9931    41.2956       15
+Dissolved_Oxygen_mg_L          Prophet         -16.1216     5.2917     4.2568       15
+Nitrate_mg_L                   Prophet         -32.3267     3.1191     2.3095       15
+Turbidity_NTU                  Prophet         -58.3515    44.4238    28.4756       15
+Heavy_Metals_Pb_ug_L           Prophet         -66.0668    17.1613    13.6650       15
+BOD_mg_L                       Prophet         -73.5550    13.2133    10.5077       15
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_7
+样本数: 64 | 平均R²: -24.1391
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -2.5891     2.5872     2.1474       13
+pH                             Prophet          -5.4486     1.1790     0.8945       13
+COD_mg_L                       Prophet          -7.0585    11.2475     9.0672       13
+Ammonia_N_mg_L                 Prophet          -8.4597     0.7810     0.4384       13
+Total_Phosphorus_mg_L          Prophet         -13.6392     0.2248     0.1722       13
+Total_Nitrogen_mg_L            Prophet         -20.1256     1.9619     1.6597       13
+Turbidity_NTU                  Prophet         -44.9690    27.4763    14.7700       13
+Conductivity_uS_cm             Prophet         -90.8228  1276.2845   902.9286       13
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_9
+样本数: 77 | 平均R²: -24.1407
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.6854     6.2117     4.9934       16
+Dissolved_Oxygen_mg_L          Prophet          -1.0386     2.9008     2.5867       16
+Heavy_Metals_Hg_ug_L           Prophet         -10.6644     0.1544     0.1413       16
+COD_mg_L                       Prophet         -11.5151    12.2033    10.1573       16
+BOD_mg_L                       Prophet         -11.9764     2.7277     2.2645       16
+Water_Temperature_C            Prophet         -17.8117    17.6948    16.0872       16
+Heavy_Metals_Cd_ug_L           Prophet         -22.0340     0.8884     0.7193       16
+Heavy_Metals_Pb_ug_L           Prophet         -22.4550     9.0041     7.2670       16
+Total_Nitrogen_mg_L            Prophet         -31.9303     2.5377     2.1072       16
+Ammonia_N_mg_L                 Prophet         -34.1663     1.0807     0.8928       16
+Nitrate_mg_L                   Prophet         -36.4560     2.5420     2.1520       16
+pH                             Prophet         -42.1370     3.3876     3.2425       16
+Nitrite_mg_L                   Prophet         -46.4253     0.0469     0.0316       16
+Total_Phosphorus_mg_L          Prophet         -48.6749     0.2659     0.1738       16
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_2
+样本数: 76 | 平均R²: -24.1434
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -9.3066     0.7397     0.5940       16
+Total_Nitrogen_mg_L            Prophet         -10.8187     1.8380     1.7527       16
+Turbidity_NTU                  Prophet         -11.3528    13.6234    10.7547       16
+Ammonia_N_mg_L                 Prophet         -11.7442     0.8827     0.7627       16
+Dissolved_Oxygen_mg_L          Prophet         -16.1068     8.3134     7.6013       16
+Heavy_Metals_Hg_ug_L           Prophet         -17.3644     0.2191     0.1796       16
+COD_mg_L                       Prophet         -29.6418    25.0044    22.0660       16
+Water_Temperature_C            Prophet         -35.9110    33.8514    30.1562       16
+Conductivity_uS_cm             Prophet         -42.1425   643.2420   564.3953       16
+Coliform_Count_CFU_100mL       Prophet         -57.0450    70.5060    64.9423       16
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_6
+样本数: 90 | 平均R²: -24.3350
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.4133     5.9892     4.7080       18
+Heavy_Metals_Pb_ug_L           Prophet         -13.8923    10.2491     8.8706       18
+Nitrite_mg_L                   Prophet         -14.1327     0.0413     0.0330       18
+Coliform_Count_CFU_100mL       Prophet         -16.8040    45.7686    42.7609       18
+Heavy_Metals_Hg_ug_L           Prophet         -20.4048     0.3021     0.2569       18
+Total_Phosphorus_mg_L          Prophet         -33.7133     0.2508     0.2110       18
+Dissolved_Oxygen_mg_L          Prophet         -39.0249    12.1800    10.1708       18
+COD_mg_L                       Prophet         -56.2948    32.8890    29.5634       18
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_9
+样本数: 68 | 平均R²: -24.3357
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet          -0.3533     2.0120     1.7098       14
+Heavy_Metals_Hg_ug_L           Prophet          -1.1019     0.0718     0.0601       14
+COD_mg_L                       Prophet          -1.2183     6.7411     5.9410       14
+pH                             Prophet          -1.4382     0.7799     0.6606       14
+BOD_mg_L                       Prophet          -3.0514     2.7614     1.9435       14
+Total_Nitrogen_mg_L            Prophet          -4.0410     1.0671     0.8596       14
+Conductivity_uS_cm             Prophet          -4.2794   267.0788   218.2463       14
+Ammonia_N_mg_L                 Prophet         -10.4738     0.5501     0.4726       14
+Coliform_Count_CFU_100mL       Prophet         -11.1263    27.1090    23.7115       14
+Water_Temperature_C            Prophet         -19.9762    19.1723    14.8117       14
+Nitrite_mg_L                   Prophet         -20.6793     0.0496     0.0394       14
+Nitrate_mg_L                   Prophet         -24.8532     2.0231     1.8240       14
+Heavy_Metals_Pb_ug_L           Prophet         -34.6962     9.5966     8.6505       14
+Total_Phosphorus_mg_L          Prophet         -71.1648     0.3843     0.3049       14
+Heavy_Metals_Cd_ug_L           Prophet         -83.8386     2.1628     1.5683       14
+Turbidity_NTU                  Prophet         -97.0785    28.6118    20.0283       14
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_8
+样本数: 71 | 平均R²: -24.3752
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -7.9004     0.0339     0.0227       15
+BOD_mg_L                       Prophet          -8.3217     3.4960     2.9523       15
+Heavy_Metals_Hg_ug_L           Prophet         -11.8931     0.1699     0.1481       15
+Total_Phosphorus_mg_L          Prophet         -14.1400     0.1640     0.1495       15
+Heavy_Metals_Pb_ug_L           Prophet         -16.5155    11.5061     9.5913       15
+Water_Temperature_C            Prophet         -32.9576    30.8278    24.3567       15
+Conductivity_uS_cm             Prophet         -46.4047   748.1400   626.7531       15
+Coliform_Count_CFU_100mL       Prophet         -56.8686   120.8577    99.4614       15
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_10
+样本数: 71 | 平均R²: -24.5927
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -1.1687     0.0626     0.0466       15
+Conductivity_uS_cm             Prophet          -6.5673   318.7204   297.1472       15
+Nitrite_mg_L                   Prophet          -6.8838     0.0258     0.0222       15
+Water_Temperature_C            Prophet         -15.7871    13.5107    12.0488       15
+Nitrate_mg_L                   Prophet         -18.7684     2.4327     2.2112       15
+Turbidity_NTU                  Prophet         -32.8694    31.9535    22.3741       15
+Heavy_Metals_Cd_ug_L           Prophet         -36.1347     1.3210     1.0666       15
+Total_Phosphorus_mg_L          Prophet         -42.5409     0.3397     0.2627       15
+Total_Nitrogen_mg_L            Prophet         -60.6142     3.6207     2.9676       15
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_8
+样本数: 77 | 平均R²: -24.6509
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.4361     7.1912     5.3896       16
+pH                             Prophet          -2.0698     0.7367     0.5496       16
+Nitrite_mg_L                   Prophet          -3.7578     0.0187     0.0157       16
+Water_Temperature_C            Prophet          -6.3495    14.9293    13.0622       16
+Ammonia_N_mg_L                 Prophet         -11.2329     0.6141     0.5098       16
+Total_Phosphorus_mg_L          Prophet         -13.4731     0.1778     0.1216       16
+Heavy_Metals_Cd_ug_L           Prophet         -43.0653     1.1695     1.0187       16
+Nitrate_mg_L                   Prophet         -64.6965     3.9586     3.4735       16
+Dissolved_Oxygen_mg_L          Prophet         -76.7773    16.4666    12.5653       16
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_9
+样本数: 63 | 平均R²: -25.4340
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+pH                             Prophet          -2.8089     1.0398     0.8196       13
+Conductivity_uS_cm             Prophet          -7.2913   313.0944   269.3775       13
+Turbidity_NTU                  Prophet          -8.9142    13.2746     9.0262       13
+BOD_mg_L                       Prophet         -17.0913     2.7617     2.1187       13
+Coliform_Count_CFU_100mL       Prophet         -20.1568    69.5048    59.1859       13
+Heavy_Metals_Hg_ug_L           Prophet         -26.6029     0.3236     0.2076       13
+Nitrate_mg_L                   Prophet         -37.0502     2.2724     1.8808       13
+Heavy_Metals_Pb_ug_L           Prophet         -50.8378    16.8036    12.2616       13
+Nitrite_mg_L                   Prophet         -58.1530     0.0710     0.0596       13
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_7
+样本数: 66 | 平均R²: -25.6337
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet         -10.5012    21.2533    20.0479       14
+Heavy_Metals_Cd_ug_L           Prophet         -12.3803     0.9874     0.7876       14
+BOD_mg_L                       Prophet         -22.8258     4.6131     3.7256       14
+COD_mg_L                       Prophet         -24.8078    30.0811    25.2160       14
+Dissolved_Oxygen_mg_L          Prophet         -28.2958    12.7113    10.2184       14
+Nitrate_mg_L                   Prophet         -32.3471     2.2717     2.1308       14
+Heavy_Metals_Pb_ug_L           Prophet         -48.2782    10.4581     8.1418       14
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_2
+样本数: 84 | 平均R²: -25.8465
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -1.7280     3.3015     2.4294       17
+pH                             Prophet          -2.1944     0.8678     0.7489       17
+Ammonia_N_mg_L                 Prophet          -5.2507     0.4722     0.4104       17
+BOD_mg_L                       Prophet         -10.9662     4.7256     3.9538       17
+Water_Temperature_C            Prophet         -12.3571    20.2225    18.4844       17
+Dissolved_Oxygen_mg_L          Prophet         -16.7056     9.1414     8.2198       17
+Heavy_Metals_Cd_ug_L           Prophet         -22.6072     0.8229     0.7231       17
+Total_Phosphorus_mg_L          Prophet         -27.3358     0.1706     0.1481       17
+Nitrite_mg_L                   Prophet         -34.8834     0.0528     0.0394       17
+Heavy_Metals_Hg_ug_L           Prophet         -35.0698     0.2779     0.2262       17
+Coliform_Count_CFU_100mL       Prophet         -59.9278    55.8793    52.8310       17
+Turbidity_NTU                  Prophet         -81.1315    36.8416    19.7152       17
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_9
+样本数: 71 | 平均R²: -25.8709
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -2.6920     3.8569     3.1993       15
+COD_mg_L                       Prophet         -15.8346    17.3958    14.7966       15
+Total_Phosphorus_mg_L          Prophet         -19.3982     0.2359     0.1841       15
+Water_Temperature_C            Prophet         -19.8382    28.6877    24.7345       15
+Nitrite_mg_L                   Prophet         -38.2226     0.0650     0.0469       15
+Dissolved_Oxygen_mg_L          Prophet         -40.9748    14.4534    12.4627       15
+BOD_mg_L                       Prophet         -44.1359    10.3252     9.4757       15
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_10
+样本数: 97 | 平均R²: -25.8818
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -7.0342     9.1992     8.0937       20
+Heavy_Metals_Pb_ug_L           Prophet          -9.2118     5.7113     5.1685       20
+Conductivity_uS_cm             Prophet         -13.0001   379.3246   292.5554       20
+Heavy_Metals_Hg_ug_L           Prophet         -17.0859     0.2194     0.1607       20
+Nitrate_mg_L                   Prophet         -40.4599     3.1935     2.7588       20
+Dissolved_Oxygen_mg_L          Prophet         -68.4990    11.1175     9.1708       20
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_6
+样本数: 76 | 平均R²: -26.0534
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.9053     1.9083     1.5791       16
+Heavy_Metals_Hg_ug_L           Prophet         -11.4551     0.2032     0.1873       16
+Dissolved_Oxygen_mg_L          Prophet         -17.8460     8.0180     7.4627       16
+Ammonia_N_mg_L                 Prophet         -20.4931     1.0534     0.7189       16
+Turbidity_NTU                  Prophet         -34.9312    29.9119    20.7207       16
+Heavy_Metals_Pb_ug_L           Prophet         -46.7615    11.7785     8.0462       16
+pH                             Prophet         -49.9814     3.8114     3.1431       16
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_5
+样本数: 74 | 平均R²: -26.2675
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -1.7279     1.7784     1.4316       15
+Nitrite_mg_L                   Prophet          -3.9267     0.0244     0.0207       15
+Turbidity_NTU                  Prophet          -9.2070     9.9740     7.7542       15
+Total_Nitrogen_mg_L            Prophet         -10.0474     1.5899     1.4749       15
+Nitrate_mg_L                   Prophet         -12.8946     1.8438     1.4912       15
+Total_Phosphorus_mg_L          Prophet         -16.5760     0.1053     0.0805       15
+Heavy_Metals_Pb_ug_L           Prophet         -22.7545    10.3361     7.1638       15
+COD_mg_L                       Prophet         -23.2974    30.7557    23.7100       15
+Water_Temperature_C            Prophet         -45.1158    41.3743    34.9818       15
+pH                             Prophet         -64.2735     3.9100     3.5466       15
+Conductivity_uS_cm             Prophet         -79.1222  1030.4817   775.7015       15
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_10
+样本数: 86 | 平均R²: -26.3872
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -0.6745     2.6502     2.2301       18
+Nitrite_mg_L                   Prophet          -1.0298     0.0154     0.0126       18
+Turbidity_NTU                  Prophet          -3.1602     9.7395     8.1745       18
+Heavy_Metals_Hg_ug_L           Prophet         -10.1728     0.1726     0.1439       18
+pH                             Prophet         -20.0519     2.2218     1.9351       18
+BOD_mg_L                       Prophet         -31.5932     7.0005     6.0671       18
+Dissolved_Oxygen_mg_L          Prophet         -40.1787    15.0104    13.2550       18
+Coliform_Count_CFU_100mL       Prophet         -60.1879    63.5812    60.3359       18
+Ammonia_N_mg_L                 Prophet         -70.4362     1.8135     1.4617       18
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_5
+样本数: 89 | 平均R²: -26.7959
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -0.3343     1.5841     1.3459       18
+Turbidity_NTU                  Prophet          -1.3048     7.6272     5.9543       18
+Heavy_Metals_Pb_ug_L           Prophet          -1.4657     3.5627     2.8922       18
+Nitrate_mg_L                   Prophet          -5.0704     0.9115     0.7929       18
+Nitrite_mg_L                   Prophet          -6.1721     0.0333     0.0234       18
+Heavy_Metals_Hg_ug_L           Prophet         -44.0739     0.3890     0.2746       18
+Dissolved_Oxygen_mg_L          Prophet         -62.9926    12.0819     9.7651       18
+Ammonia_N_mg_L                 Prophet         -92.9537     2.3377     1.4002       18
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_10
+样本数: 67 | 平均R²: -26.8459
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -4.6783     0.4263     0.3717       14
+Total_Phosphorus_mg_L          Prophet          -6.1199     0.1467     0.1205       14
+Turbidity_NTU                  Prophet         -17.3444    11.3224     7.2274       14
+pH                             Prophet         -29.1744     2.5927     2.1311       14
+BOD_mg_L                       Prophet         -43.4023     6.5889     4.9760       14
+Water_Temperature_C            Prophet         -60.3559    36.4668    21.4362       14
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_4
+样本数: 90 | 平均R²: -26.9113
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -4.0997    10.3821     7.6669       18
+Total_Phosphorus_mg_L          Prophet          -9.5643     0.1901     0.1467       18
+Nitrite_mg_L                   Prophet          -9.7162     0.0251     0.0202       18
+Nitrate_mg_L                   Prophet         -12.9619     1.6673     1.2416       18
+Total_Nitrogen_mg_L            Prophet         -59.1201     3.4322     2.8599       18
+COD_mg_L                       Prophet         -66.0055    38.4889    30.7427       18
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_3
+样本数: 66 | 平均R²: -27.0073
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -4.6508     4.3368     3.8019       14
+Nitrate_mg_L                   Prophet          -4.7619     1.1533     0.8744       14
+pH                             Prophet          -7.7536     1.9491     1.5424       14
+BOD_mg_L                       Prophet          -7.9560     4.5410     3.9311       14
+Ammonia_N_mg_L                 Prophet         -14.5360     0.9440     0.7606       14
+Heavy_Metals_Hg_ug_L           Prophet         -17.4278     0.2439     0.1710       14
+Turbidity_NTU                  Prophet         -25.9114    23.4930    18.4222       14
+Heavy_Metals_Cd_ug_L           Prophet         -27.2056     0.7054     0.5955       14
+Conductivity_uS_cm             Prophet         -36.3976   571.5083   544.2876       14
+Dissolved_Oxygen_mg_L          Prophet         -70.7640    12.8073    10.5954       14
+Nitrite_mg_L                   Prophet         -79.7158     0.0861     0.0748       14
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_2
+样本数: 69 | 平均R²: -27.2717
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -4.0316     0.0992     0.0789       14
+pH                             Prophet         -13.0739     1.3400     1.1702       14
+Dissolved_Oxygen_mg_L          Prophet         -17.9789    10.1708     7.1569       14
+Turbidity_NTU                  Prophet         -33.7416    19.3669    16.3182       14
+BOD_mg_L                       Prophet         -35.6083     9.5319     7.2648       14
+Nitrite_mg_L                   Prophet         -36.5635     0.0567     0.0521       14
+COD_mg_L                       Prophet         -49.9043    27.2255    22.3513       14
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_2
+样本数: 76 | 平均R²: -27.5017
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet         -21.6471     0.9985     0.8321       16
+Dissolved_Oxygen_mg_L          Prophet         -33.3562    12.0254     8.9984       16
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_1
+样本数: 74 | 平均R²: -27.6108
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -2.6444     4.4381     3.7553       15
+BOD_mg_L                       Prophet          -4.7273     2.3456     2.1496       15
+Nitrite_mg_L                   Prophet         -18.3730     0.0343     0.0240       15
+Total_Phosphorus_mg_L          Prophet         -32.4948     0.2139     0.1921       15
+Heavy_Metals_Cd_ug_L           Prophet         -34.1791     1.1374     0.9949       15
+Dissolved_Oxygen_mg_L          Prophet         -73.2461    15.5945    12.4619       15
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_7
+样本数: 72 | 平均R²: -27.7350
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -7.9524    14.0207     9.9417       15
+Dissolved_Oxygen_mg_L          Prophet         -13.6710     8.1826     7.4482       15
+BOD_mg_L                       Prophet         -24.8436     6.3503     4.6436       15
+Ammonia_N_mg_L                 Prophet         -31.6648     1.3858     1.0532       15
+Heavy_Metals_Hg_ug_L           Prophet         -60.5432     0.4013     0.2854       15
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_3
+样本数: 75 | 平均R²: -28.2217
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -3.1039     7.9069     6.1875       15
+Heavy_Metals_Pb_ug_L           Prophet          -6.4386     4.7164     3.9658       15
+Heavy_Metals_Cd_ug_L           Prophet          -9.8243     0.6145     0.4814       15
+Conductivity_uS_cm             Prophet         -11.0407   396.7638   322.9720       15
+Total_Phosphorus_mg_L          Prophet         -13.5902     0.2325     0.1791       15
+BOD_mg_L                       Prophet         -63.6038     7.8654     5.7597       15
+Nitrate_mg_L                   Prophet         -89.9502     3.9291     3.3967       15
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_10
+样本数: 75 | 平均R²: -28.2294
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet         -12.3759     0.8761     0.7546       15
+Heavy_Metals_Pb_ug_L           Prophet         -16.6900     5.6441     3.8691       15
+Total_Phosphorus_mg_L          Prophet         -18.1597     0.1524     0.1403       15
+Conductivity_uS_cm             Prophet         -20.2928   405.2306   341.5099       15
+Turbidity_NTU                  Prophet         -29.8787    24.2467    15.6190       15
+Heavy_Metals_Hg_ug_L           Prophet         -34.7094     0.2320     0.1726       15
+Ammonia_N_mg_L                 Prophet         -35.0118     1.1170     0.7061       15
+Dissolved_Oxygen_mg_L          Prophet         -58.7168    16.7319    11.4493       15
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_3
+样本数: 64 | 平均R²: -28.2526
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -8.5521     6.2121     4.9251       13
+Turbidity_NTU                  Prophet         -12.0749    15.4038    12.8758       13
+Water_Temperature_C            Prophet         -12.2547    18.8609    14.8898       13
+Ammonia_N_mg_L                 Prophet         -23.0600     0.9331     0.8220       13
+Total_Nitrogen_mg_L            Prophet         -51.1852     3.5586     2.7806       13
+Conductivity_uS_cm             Prophet         -62.3888   539.6226   479.7453       13
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_1
+样本数: 83 | 平均R²: -28.3254
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.6931     6.8467     5.2223       17
+Nitrate_mg_L                   Prophet          -1.6433     0.8122     0.6910       17
+Coliform_Count_CFU_100mL       Prophet          -5.7347    29.0750    23.8686       17
+Heavy_Metals_Pb_ug_L           Prophet          -8.5078     8.6267     7.0443       17
+Heavy_Metals_Hg_ug_L           Prophet         -15.8124     0.1362     0.1186       17
+Ammonia_N_mg_L                 Prophet         -19.1352     0.8598     0.7508       17
+Total_Nitrogen_mg_L            Prophet         -22.1327     1.6884     1.5803       17
+pH                             Prophet         -33.4262     2.8090     2.2566       17
+Water_Temperature_C            Prophet         -48.0385    24.5893    21.5892       17
+BOD_mg_L                       Prophet         -65.7192     8.4083     6.7465       17
+COD_mg_L                       Prophet         -90.7366    42.7742    30.3332       17
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_8
+样本数: 83 | 平均R²: -28.3929
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -3.6401     0.1153     0.0848       17
+Ammonia_N_mg_L                 Prophet          -3.7525     0.6460     0.4826       17
+pH                             Prophet          -5.0002     1.1821     1.0415       17
+Conductivity_uS_cm             Prophet          -8.9740   328.4784   254.0829       17
+COD_mg_L                       Prophet         -20.6153    18.9842    14.8482       17
+Heavy_Metals_Pb_ug_L           Prophet         -37.6096    13.7929    10.5535       17
+BOD_mg_L                       Prophet         -45.4130     9.6781     7.1421       17
+Nitrite_mg_L                   Prophet         -54.3922     0.0610     0.0413       17
+Water_Temperature_C            Prophet         -76.1391    41.2298    31.1214       17
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_3
+样本数: 86 | 平均R²: -28.5678
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -4.6218     8.4045     6.1239       18
+Heavy_Metals_Pb_ug_L           Prophet         -14.5485     7.9952     6.9562       18
+Nitrite_mg_L                   Prophet         -17.9738     0.0341     0.0299       18
+Heavy_Metals_Hg_ug_L           Prophet         -18.9724     0.2236     0.1981       18
+Total_Phosphorus_mg_L          Prophet         -20.7614     0.1499     0.1257       18
+COD_mg_L                       Prophet         -34.1549    27.2020    19.6897       18
+Water_Temperature_C            Prophet         -35.0363    23.3468    17.8770       18
+Nitrate_mg_L                   Prophet         -35.5417     3.5317     2.8458       18
+Total_Nitrogen_mg_L            Prophet         -43.8549     2.9913     2.7275       18
+Dissolved_Oxygen_mg_L          Prophet         -60.2128    15.7276    13.5120       18
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_8
+样本数: 72 | 平均R²: -28.6551
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -0.4031     5.9495     4.6873       15
+Heavy_Metals_Pb_ug_L           Prophet          -2.4910     3.9056     3.5587       15
+Nitrite_mg_L                   Prophet          -5.0496     0.0250     0.0177       15
+COD_mg_L                       Prophet         -23.8015    25.0422    21.5825       15
+BOD_mg_L                       Prophet         -25.2894     6.5958     5.1864       15
+Total_Phosphorus_mg_L          Prophet         -29.2550     0.2860     0.2581       15
+Heavy_Metals_Cd_ug_L           Prophet         -33.6919     1.4260     1.1571       15
+Ammonia_N_mg_L                 Prophet         -49.9610     1.4871     1.1784       15
+Heavy_Metals_Hg_ug_L           Prophet         -87.9537     0.3559     0.2873       15
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_4
+样本数: 93 | 平均R²: -28.7616
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -4.1128     2.4764     2.0173       19
+Ammonia_N_mg_L                 Prophet          -5.4797     0.4367     0.3881       19
+Water_Temperature_C            Prophet         -15.5220    23.2575    18.1587       19
+Heavy_Metals_Hg_ug_L           Prophet         -20.1905     0.2172     0.1917       19
+Nitrite_mg_L                   Prophet         -22.8203     0.0330     0.0233       19
+Total_Phosphorus_mg_L          Prophet         -35.3539     0.2731     0.2341       19
+Turbidity_NTU                  Prophet         -50.0823    33.5065    18.7558       19
+Conductivity_uS_cm             Prophet         -76.5314   872.5104   706.3889       19
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_5
+样本数: 81 | 平均R²: -29.0854
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -6.9575    10.6017     8.4477       17
+Heavy_Metals_Cd_ug_L           Prophet         -13.3931     0.7445     0.5548       17
+COD_mg_L                       Prophet         -66.9055    45.4431    35.7076       17
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_1
+样本数: 63 | 平均R²: -29.1261
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Coliform_Count_CFU_100mL       Prophet         -14.9234    25.2981    23.3789       13
+Total_Phosphorus_mg_L          Prophet         -17.5166     0.2494     0.1899       13
+Nitrate_mg_L                   Prophet         -25.5800     2.9976     2.7110       13
+Water_Temperature_C            Prophet         -35.9787    32.1860    30.3598       13
+BOD_mg_L                       Prophet         -51.6319    10.9845     7.6871       13
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_6
+样本数: 75 | 平均R²: -29.1387
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -1.2427     5.6252     3.7103       15
+Total_Phosphorus_mg_L          Prophet          -1.8704     0.0950     0.0819       15
+Ammonia_N_mg_L                 Prophet          -2.8044     0.3761     0.2908       15
+Heavy_Metals_Cd_ug_L           Prophet          -8.2212     0.6620     0.5472       15
+Nitrate_mg_L                   Prophet         -36.3890     3.7939     2.5006       15
+pH                             Prophet         -41.3250     3.2892     2.1619       15
+BOD_mg_L                       Prophet         -47.5899     4.7313     3.2650       15
+Heavy_Metals_Hg_ug_L           Prophet         -50.7711     0.3379     0.1817       15
+Nitrite_mg_L                   Prophet         -72.0342     0.0787     0.0389       15
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_4
+样本数: 72 | 平均R²: -29.6249
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -1.5801     0.0664     0.0553       15
+Turbidity_NTU                  Prophet          -4.3800     7.3951     6.1622       15
+Nitrite_mg_L                   Prophet          -7.0703     0.0272     0.0169       15
+Nitrate_mg_L                   Prophet         -18.7936     2.1795     1.8173       15
+Coliform_Count_CFU_100mL       Prophet         -20.3391    39.8961    36.4010       15
+Heavy_Metals_Pb_ug_L           Prophet         -26.3298     7.8620     5.6216       15
+Heavy_Metals_Hg_ug_L           Prophet         -48.2586     0.3039     0.1942       15
+Conductivity_uS_cm             Prophet         -57.9155   766.6802   652.8422       15
+COD_mg_L                       Prophet         -81.9574    43.6942    35.7348       15
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_2
+样本数: 81 | 平均R²: -30.0475
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -6.5057     3.2674     2.9323       17
+Water_Temperature_C            Prophet          -8.1388    14.8577    12.9227       17
+Nitrite_mg_L                   Prophet          -9.2179     0.0306     0.0270       17
+pH                             Prophet         -15.0065     2.0368     1.8512       17
+Total_Phosphorus_mg_L          Prophet         -16.1602     0.1443     0.1161       17
+Dissolved_Oxygen_mg_L          Prophet         -16.8380     7.8056     7.0627       17
+Heavy_Metals_Cd_ug_L           Prophet         -24.1674     0.7850     0.6629       17
+Nitrate_mg_L                   Prophet         -24.9544     2.4809     2.0063       17
+Heavy_Metals_Hg_ug_L           Prophet         -25.0333     0.2203     0.1784       17
+Turbidity_NTU                  Prophet         -27.1797    20.8077    14.6678       17
+Coliform_Count_CFU_100mL       Prophet         -27.8118    65.7881    58.3549       17
+COD_mg_L                       Prophet         -43.9555    27.6890    24.8425       17
+BOD_mg_L                       Prophet         -54.8942    11.4851     9.1712       17
+Conductivity_uS_cm             Prophet         -66.9629  1035.2869   808.6687       17
+Ammonia_N_mg_L                 Prophet         -83.8859     1.5948     1.2887       17
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_2
+样本数: 71 | 平均R²: -30.1569
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -7.5881     0.7525     0.6279       15
+Total_Phosphorus_mg_L          Prophet         -23.7924     0.2023     0.1527       15
+Nitrite_mg_L                   Prophet         -27.7631     0.0491     0.0408       15
+Dissolved_Oxygen_mg_L          Prophet         -34.9866    12.4810    11.4481       15
+Heavy_Metals_Hg_ug_L           Prophet         -56.6543     0.3840     0.3435       15
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_7
+样本数: 86 | 平均R²: -30.2579
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet         -11.3365    16.7110    11.7702       18
+Conductivity_uS_cm             Prophet         -17.1212   405.1806   298.6563       18
+Nitrate_mg_L                   Prophet         -24.2946     2.0622     1.6521       18
+Coliform_Count_CFU_100mL       Prophet         -28.1147    43.1722    37.3055       18
+Water_Temperature_C            Prophet         -31.5663    32.1227    29.1172       18
+Total_Phosphorus_mg_L          Prophet         -48.7154     0.3501     0.2027       18
+Heavy_Metals_Pb_ug_L           Prophet         -50.6564    11.1439     8.1307       18
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_8
+样本数: 100 | 平均R²: -30.4467
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -3.9672    12.7160    10.5223       20
+Heavy_Metals_Hg_ug_L           Prophet          -6.0308     0.1309     0.1200       20
+Heavy_Metals_Cd_ug_L           Prophet          -9.0061     0.6343     0.5211       20
+Turbidity_NTU                  Prophet          -9.3002    13.1777     9.9331       20
+Total_Nitrogen_mg_L            Prophet         -11.2041     1.3870     1.0201       20
+Heavy_Metals_Pb_ug_L           Prophet         -11.7330     8.1826     7.1090       20
+Total_Phosphorus_mg_L          Prophet         -33.9171     0.2400     0.1752       20
+Coliform_Count_CFU_100mL       Prophet         -36.6104    73.1493    59.4048       20
+Ammonia_N_mg_L                 Prophet         -88.6557     1.8903     1.4379       20
+Water_Temperature_C            Prophet         -94.0422    42.2931    35.2278       20
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_9
+样本数: 88 | 平均R²: -30.8245
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -0.6952     0.2654     0.1978       18
+COD_mg_L                       Prophet         -18.6752    20.6711    18.1756       18
+Heavy_Metals_Pb_ug_L           Prophet         -19.9679    10.6731     8.1660       18
+Nitrate_mg_L                   Prophet         -24.7389     2.7103     2.2236       18
+Heavy_Metals_Hg_ug_L           Prophet         -29.4439     0.2964     0.2424       18
+BOD_mg_L                       Prophet         -91.4257     9.0966     8.1160       18
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_3
+样本数: 77 | 平均R²: -30.9719
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet          -1.0478     2.0716     1.6170       16
+Ammonia_N_mg_L                 Prophet          -2.3690     0.3570     0.2897       16
+Heavy_Metals_Cd_ug_L           Prophet         -12.6824     0.7199     0.6521       16
+Heavy_Metals_Pb_ug_L           Prophet         -17.8243     9.1446     6.6062       16
+Conductivity_uS_cm             Prophet         -32.5289   734.2510   637.7449       16
+Nitrite_mg_L                   Prophet         -45.5635     0.0611     0.0403       16
+Dissolved_Oxygen_mg_L          Prophet         -48.9311    14.9130    12.7721       16
+Water_Temperature_C            Prophet         -86.8283    40.9747    33.5831       16
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_3
+样本数: 85 | 平均R²: -31.0472
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet          -1.4858     8.5897     7.5024       17
+Total_Phosphorus_mg_L          Prophet          -1.9466     0.0684     0.0576       17
+Total_Nitrogen_mg_L            Prophet          -3.3259     1.1287     0.7436       17
+Coliform_Count_CFU_100mL       Prophet         -11.2933    27.3617    25.9153       17
+Heavy_Metals_Hg_ug_L           Prophet         -16.2206     0.1621     0.1452       17
+COD_mg_L                       Prophet         -33.5222    25.0459    22.2566       17
+Nitrate_mg_L                   Prophet         -39.7006     3.3090     2.9079       17
+Conductivity_uS_cm             Prophet         -42.4463   568.4764   510.4357       17
+Nitrite_mg_L                   Prophet         -52.5103     0.0676     0.0539       17
+BOD_mg_L                       Prophet         -68.9137    11.1564     7.8538       17
+Ammonia_N_mg_L                 Prophet         -70.1536     2.1835     1.6927       17
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_10
+样本数: 78 | 平均R²: -31.6606
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -1.6911     8.1772     7.2308       16
+Total_Phosphorus_mg_L          Prophet          -4.8468     0.1226     0.0963       16
+Heavy_Metals_Cd_ug_L           Prophet          -7.7234     0.5339     0.4546       16
+Total_Nitrogen_mg_L            Prophet          -8.5593     1.4580     1.2426       16
+Dissolved_Oxygen_mg_L          Prophet         -53.6826    17.3373    14.2955       16
+Coliform_Count_CFU_100mL       Prophet         -58.1960    77.3948    70.2133       16
+BOD_mg_L                       Prophet         -86.9249    12.8332    10.1087       16
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_9
+样本数: 71 | 平均R²: -31.8559
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -1.4765     0.2552     0.2107       15
+Nitrate_mg_L                   Prophet          -2.8992     0.7047     0.5698       15
+pH                             Prophet          -3.6794     1.0712     0.8869       15
+Heavy_Metals_Pb_ug_L           Prophet         -26.1471    10.6186     7.0689       15
+Conductivity_uS_cm             Prophet         -47.1562   803.4275   675.5445       15
+Water_Temperature_C            Prophet         -67.9165    38.2464    30.6192       15
+BOD_mg_L                       Prophet         -73.7167    11.7863     8.2259       15
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_6
+样本数: 83 | 平均R²: -32.2605
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet          -2.0595     3.4787     2.8022       17
+Dissolved_Oxygen_mg_L          Prophet         -15.8083    11.7065    10.3483       17
+BOD_mg_L                       Prophet         -22.8415     5.2709     3.8469       17
+Total_Phosphorus_mg_L          Prophet         -24.1418     0.2217     0.1708       17
+Conductivity_uS_cm             Prophet         -54.2368   762.2622   677.5784       17
+Turbidity_NTU                  Prophet         -74.4753    23.6050    16.4532       17
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_5
+样本数: 83 | 平均R²: -32.7231
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -2.1613     0.0157     0.0134       17
+Total_Phosphorus_mg_L          Prophet          -3.1048     0.0965     0.0861       17
+Dissolved_Oxygen_mg_L          Prophet         -20.5071     9.3689     7.4808       17
+Nitrate_mg_L                   Prophet         -26.4987     2.4285     1.8076       17
+Turbidity_NTU                  Prophet         -29.0855    22.3134    18.6597       17
+BOD_mg_L                       Prophet         -64.0246    10.3652     9.0371       17
+Total_Nitrogen_mg_L            Prophet         -83.6796     4.3561     3.8341       17
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_3
+样本数: 68 | 平均R²: -33.2527
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet         -11.9931    18.7600    11.2791       14
+Dissolved_Oxygen_mg_L          Prophet         -21.6426    12.2276     8.9275       14
+Ammonia_N_mg_L                 Prophet         -23.6685     1.2222     0.6949       14
+Total_Nitrogen_mg_L            Prophet         -75.7067     4.9459     2.9332       14
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_3
+样本数: 73 | 平均R²: -33.8103
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -0.6135     0.3016     0.2308       15
+Heavy_Metals_Pb_ug_L           Prophet         -16.0294     6.0097     4.2521       15
+Conductivity_uS_cm             Prophet         -21.5111   371.7145   355.2639       15
+Turbidity_NTU                  Prophet         -38.8371    30.2209    21.9337       15
+BOD_mg_L                       Prophet         -39.3381     7.3115     6.0868       15
+COD_mg_L                       Prophet         -86.5322    49.7574    41.0439       15
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_9
+样本数: 74 | 平均R²: -34.0078
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet         -25.1588   661.6282   495.6260       15
+Dissolved_Oxygen_mg_L          Prophet         -31.5754    14.5303    10.4791       15
+Nitrate_mg_L                   Prophet         -45.2891     2.8525     2.4985       15
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_4
+样本数: 70 | 平均R²: -34.1369
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet         -32.0576    13.4757    12.6181       14
+Heavy_Metals_Hg_ug_L           Prophet         -34.5423     0.2642     0.1681       14
+Turbidity_NTU                  Prophet         -35.8108    23.7821    15.9623       14
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_1
+样本数: 76 | 平均R²: -34.4081
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -4.1105     1.1222     0.8731       16
+Water_Temperature_C            Prophet         -15.6994    23.2651    20.3948       16
+BOD_mg_L                       Prophet         -20.2745     5.4197     4.2714       16
+Conductivity_uS_cm             Prophet         -24.9386   522.1350   417.8338       16
+Turbidity_NTU                  Prophet         -26.9859    19.8778    13.6487       16
+Nitrite_mg_L                   Prophet         -28.7495     0.0463     0.0331       16
+Total_Phosphorus_mg_L          Prophet         -31.8622     0.3199     0.2236       16
+Nitrate_mg_L                   Prophet         -34.7275     3.2631     2.7628       16
+Coliform_Count_CFU_100mL       Prophet         -73.4997    67.7950    53.9894       16
+Heavy_Metals_Pb_ug_L           Prophet         -83.2335    18.4067    14.5222       16
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_4
+样本数: 81 | 平均R²: -35.3051
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -4.0749     0.0953     0.0742       17
+Total_Phosphorus_mg_L          Prophet          -4.1595     0.1197     0.0974       17
+BOD_mg_L                       Prophet         -10.2493     4.6248     4.1570       17
+Conductivity_uS_cm             Prophet         -17.4567   274.0853   240.9591       17
+Turbidity_NTU                  Prophet         -30.7994    17.0930    11.3417       17
+Ammonia_N_mg_L                 Prophet         -51.2277     1.7442     1.3093       17
+Heavy_Metals_Cd_ug_L           Prophet         -52.6231     1.4110     0.9686       17
+Heavy_Metals_Pb_ug_L           Prophet         -72.5019    17.2279    11.5010       17
+Total_Nitrogen_mg_L            Prophet         -74.6533     3.4146     3.1816       17
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_6
+样本数: 101 | 平均R²: -35.4264
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -1.5527     0.3936     0.3421       21
+Total_Phosphorus_mg_L          Prophet          -2.3666     0.0866     0.0736       21
+Heavy_Metals_Hg_ug_L           Prophet         -12.7275     0.2254     0.1875       21
+Total_Nitrogen_mg_L            Prophet         -13.8561     1.7841     1.5788       21
+Heavy_Metals_Cd_ug_L           Prophet         -15.5342     0.9145     0.7870       21
+Heavy_Metals_Pb_ug_L           Prophet         -17.6040    10.0573     8.0061       21
+Nitrite_mg_L                   Prophet         -19.3483     0.0393     0.0279       21
+Turbidity_NTU                  Prophet         -29.2522    21.9524    16.9017       21
+COD_mg_L                       Prophet         -45.1242    33.5468    25.7912       21
+BOD_mg_L                       Prophet         -45.2324     8.4007     6.3746       21
+Dissolved_Oxygen_mg_L          Prophet         -80.5027    14.4348    12.2275       21
+Water_Temperature_C            Prophet         -86.6833    39.0873    34.5937       21
+Coliform_Count_CFU_100mL       Prophet         -90.7593   109.0833    89.9420       21
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_5
+样本数: 75 | 平均R²: -35.4943
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -2.6801    10.1830     7.1538       15
+pH                             Prophet          -8.0263     1.8603     1.6598       15
+Heavy_Metals_Hg_ug_L           Prophet         -17.7117     0.1356     0.1000       15
+Nitrite_mg_L                   Prophet         -23.0738     0.0338     0.0267       15
+Coliform_Count_CFU_100mL       Prophet         -28.2973    47.4641    43.0164       15
+Heavy_Metals_Pb_ug_L           Prophet         -34.4064    11.2199     9.9065       15
+Total_Nitrogen_mg_L            Prophet         -54.5167     3.9760     3.4296       15
+Ammonia_N_mg_L                 Prophet         -58.0907     1.9981     1.8505       15
+Conductivity_uS_cm             Prophet         -92.6456  1046.9290   893.2571       15
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_10
+样本数: 81 | 平均R²: -35.5822
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -3.7675    10.7886     8.1241       17
+Nitrate_mg_L                   Prophet         -15.1633     1.3761     1.1644       17
+Water_Temperature_C            Prophet         -21.0264    30.1123    24.7370       17
+Nitrite_mg_L                   Prophet         -30.1387     0.0588     0.0390       17
+Dissolved_Oxygen_mg_L          Prophet         -71.4615    13.1850    10.3723       17
+Coliform_Count_CFU_100mL       Prophet         -71.9357   100.4892    94.2750       17
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_3
+样本数: 83 | 平均R²: -35.6378
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet          -3.3155    11.4371     9.0796       17
+Turbidity_NTU                  Prophet         -11.8582    13.5617    11.7552       17
+Heavy_Metals_Cd_ug_L           Prophet         -18.7172     0.6879     0.6008       17
+Heavy_Metals_Hg_ug_L           Prophet         -26.0488     0.2073     0.1851       17
+Heavy_Metals_Pb_ug_L           Prophet         -29.8787     7.9773     6.7869       17
+Total_Phosphorus_mg_L          Prophet         -40.7499     0.3382     0.2185       17
+BOD_mg_L                       Prophet         -48.0018     8.9414     7.0709       17
+Nitrite_mg_L                   Prophet         -49.1823     0.0711     0.0416       17
+Nitrate_mg_L                   Prophet         -92.9874     5.4418     4.1499       17
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_6
+样本数: 86 | 平均R²: -35.7844
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -2.5418     0.0806     0.0691       18
+Turbidity_NTU                  Prophet          -8.2663    15.7863    14.1472       18
+pH                             Prophet         -18.5013     1.7420     1.3445       18
+Conductivity_uS_cm             Prophet         -22.0606   477.9075   368.1344       18
+Nitrate_mg_L                   Prophet         -28.4596     2.7795     2.4030       18
+Water_Temperature_C            Prophet         -48.4181    32.6252    24.4539       18
+Dissolved_Oxygen_mg_L          Prophet         -72.4452    12.2057    10.2598       18
+Heavy_Metals_Pb_ug_L           Prophet         -85.5823    14.3661    11.2551       18
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_3
+样本数: 90 | 平均R²: -35.8061
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -7.8456     1.9167     1.6783       18
+Dissolved_Oxygen_mg_L          Prophet         -10.4828     6.9008     6.1760       18
+Conductivity_uS_cm             Prophet         -19.0610   417.9436   282.2721       18
+Ammonia_N_mg_L                 Prophet         -19.8085     1.0190     0.8963       18
+Nitrite_mg_L                   Prophet         -58.8255     0.0700     0.0446       18
+Coliform_Count_CFU_100mL       Prophet         -98.8129    93.3186    73.6424       18
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_10
+样本数: 77 | 平均R²: -35.9179
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -6.1097     0.5981     0.4262       16
+Heavy_Metals_Pb_ug_L           Prophet         -19.1434     8.0421     7.0488       16
+Turbidity_NTU                  Prophet         -30.1513    21.2963    18.2541       16
+Total_Phosphorus_mg_L          Prophet         -32.6671     0.2971     0.2240       16
+Dissolved_Oxygen_mg_L          Prophet         -38.1131    12.5844    10.7796       16
+COD_mg_L                       Prophet         -39.0129    29.5299    24.4399       16
+Total_Nitrogen_mg_L            Prophet         -42.2890     4.0443     3.1237       16
+Heavy_Metals_Hg_ug_L           Prophet         -79.8572     0.4888     0.4222       16
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_9
+样本数: 91 | 平均R²: -36.1236
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -2.4893     8.8353     7.5088       19
+Coliform_Count_CFU_100mL       Prophet         -11.3316    33.6974    27.5087       19
+Nitrate_mg_L                   Prophet         -17.7853     1.8617     1.5547       19
+Heavy_Metals_Cd_ug_L           Prophet         -24.9261     1.2436     1.0121       19
+Ammonia_N_mg_L                 Prophet         -51.6428     1.5215     1.1146       19
+Dissolved_Oxygen_mg_L          Prophet         -60.9302    13.5823    10.7094       19
+Heavy_Metals_Hg_ug_L           Prophet         -83.7602     0.4587     0.2761       19
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_6
+样本数: 71 | 平均R²: -36.6096
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet          -0.8414     1.0183     0.9017       15
+Turbidity_NTU                  Prophet         -23.3368    17.8214    14.0865       15
+Dissolved_Oxygen_mg_L          Prophet         -31.8703    11.2496    10.3734       15
+Ammonia_N_mg_L                 Prophet         -90.3901     1.5887     1.0415       15
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_10
+样本数: 69 | 平均R²: -37.2464
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet         -13.3827     3.7185     3.2176       14
+Dissolved_Oxygen_mg_L          Prophet         -14.6142     7.3352     6.6413       14
+Total_Nitrogen_mg_L            Prophet         -15.2062     2.2280     1.9195       14
+Ammonia_N_mg_L                 Prophet         -19.7085     0.8633     0.6733       14
+Turbidity_NTU                  Prophet         -42.0869    35.7233    23.7743       14
+Heavy_Metals_Cd_ug_L           Prophet         -48.3858     1.1758     0.8623       14
+Nitrate_mg_L                   Prophet         -53.2050     2.7714     2.3343       14
+Conductivity_uS_cm             Prophet         -63.4646   791.7390   611.0851       14
+Heavy_Metals_Hg_ug_L           Prophet         -65.1632     0.4429     0.3009       14
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_10
+样本数: 63 | 平均R²: -37.2713
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -6.5151     0.5432     0.4432       13
+Total_Phosphorus_mg_L          Prophet         -11.4540     0.1440     0.1191       13
+Nitrite_mg_L                   Prophet         -17.3818     0.0514     0.0380       13
+Heavy_Metals_Hg_ug_L           Prophet         -37.2096     0.2046     0.1610       13
+Heavy_Metals_Pb_ug_L           Prophet         -75.4662    18.1442    12.5151       13
+COD_mg_L                       Prophet         -75.6010    37.4090    27.5062       13
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_3
+样本数: 65 | 平均R²: -38.0017
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet         -19.6266    22.1477    19.7542       13
+Conductivity_uS_cm             Prophet         -56.3768   958.3710   827.7525       13
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_7
+样本数: 92 | 平均R²: -38.3636
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -0.5191     0.0152     0.0115       19
+Turbidity_NTU                  Prophet          -7.1574    10.1394     7.5840       19
+Heavy_Metals_Pb_ug_L           Prophet          -7.2137     6.3937     5.1045       19
+COD_mg_L                       Prophet         -21.9849    17.5887    14.8912       19
+Nitrate_mg_L                   Prophet         -44.2798     1.4763     1.1393       19
+Total_Phosphorus_mg_L          Prophet         -54.6093     0.3069     0.2281       19
+Ammonia_N_mg_L                 Prophet         -73.7585     1.5316     1.0741       19
+Coliform_Count_CFU_100mL       Prophet         -97.3862    97.3167    87.3442       19
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_10
+样本数: 76 | 平均R²: -38.5291
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -9.5721    10.0483     7.5984       16
+Nitrite_mg_L                   Prophet         -12.4000     0.0312     0.0248       16
+Heavy_Metals_Hg_ug_L           Prophet         -32.3990     0.2813     0.1913       16
+Ammonia_N_mg_L                 Prophet         -43.9582     1.6509     1.1762       16
+Conductivity_uS_cm             Prophet         -94.3163   848.2133   739.8767       16
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_6
+样本数: 78 | 平均R²: -39.4638
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -8.4602     0.7493     0.5676       16
+BOD_mg_L                       Prophet          -9.7075     5.2561     4.2295       16
+Nitrite_mg_L                   Prophet         -10.8264     0.0264     0.0194       16
+Total_Phosphorus_mg_L          Prophet         -18.5498     0.1963     0.1528       16
+Dissolved_Oxygen_mg_L          Prophet         -20.9720    10.6089     9.6323       16
+Heavy_Metals_Pb_ug_L           Prophet         -23.8941     8.5206     6.6676       16
+Water_Temperature_C            Prophet         -29.5053    26.2877    22.4345       16
+Nitrate_mg_L                   Prophet         -87.3035     2.8501     2.3221       16
+Total_Nitrogen_mg_L            Prophet         -87.5148     4.6111     3.7486       16
+pH                             Prophet         -97.9046     3.4460     2.6870       16
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_6
+样本数: 70 | 平均R²: -41.4473
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet         -40.7244     1.3738     1.1055       14
+Heavy_Metals_Pb_ug_L           Prophet         -42.1703    16.5291    14.5173       14
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_9
+样本数: 78 | 平均R²: -41.6790
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet         -19.8701     0.0397     0.0322       16
+Heavy_Metals_Hg_ug_L           Prophet         -63.4879     0.3799     0.3328       16
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_1
+样本数: 89 | 平均R²: -42.4522
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet         -10.0856     3.4107     2.7001       18
+COD_mg_L                       Prophet         -36.6746    28.3327    23.3850       18
+Ammonia_N_mg_L                 Prophet         -42.9629     1.4393     0.8283       18
+Heavy_Metals_Hg_ug_L           Prophet         -45.4001     0.3474     0.2797       18
+Heavy_Metals_Cd_ug_L           Prophet         -77.1378     1.6812     1.1667       18
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_10
+样本数: 70 | 平均R²: -43.1824
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -18.9818     2.1324     1.6908       14
+BOD_mg_L                       Prophet         -31.1518     5.0103     4.1581       14
+Conductivity_uS_cm             Prophet         -39.8580   783.8869   654.6561       14
+Ammonia_N_mg_L                 Prophet         -50.8386     1.3593     0.9104       14
+Dissolved_Oxygen_mg_L          Prophet         -56.7139    11.7194     9.1285       14
+Nitrite_mg_L                   Prophet         -61.5501     0.0875     0.0579       14
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_1
+样本数: 80 | 平均R²: -43.7234
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet          -7.0758    14.0608    11.0047       16
+Coliform_Count_CFU_100mL       Prophet         -48.4496    89.1076    73.2168       16
+Dissolved_Oxygen_mg_L          Prophet         -55.5738    14.2944    12.6612       16
+pH                             Prophet         -63.7945     3.3725     3.0068       16
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_1
+样本数: 68 | 平均R²: -43.9320
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -7.5325    10.8669     8.9701       14
+Heavy_Metals_Pb_ug_L           Prophet         -35.0991    11.6964     8.5665       14
+Heavy_Metals_Hg_ug_L           Prophet         -53.4352     0.3569     0.2647       14
+Total_Phosphorus_mg_L          Prophet         -79.6615     0.5191     0.3041       14
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_6
+样本数: 78 | 平均R²: -44.1293
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -2.0738     7.4794     6.4268       16
+Total_Phosphorus_mg_L          Prophet          -9.6540     0.2194     0.1717       16
+Nitrate_mg_L                   Prophet         -32.5796     3.4223     2.6153       16
+Heavy_Metals_Cd_ug_L           Prophet         -42.4148     1.2422     0.8190       16
+Water_Temperature_C            Prophet         -59.4475    35.6272    29.7098       16
+Nitrite_mg_L                   Prophet         -62.7606     0.0817     0.0566       16
+Total_Nitrogen_mg_L            Prophet         -99.9750     5.5562     3.7633       16
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_8
+样本数: 77 | 平均R²: -44.6235
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet          -0.5213     3.2603     2.6689       16
+Ammonia_N_mg_L                 Prophet          -1.3354     0.3008     0.2507       16
+Turbidity_NTU                  Prophet          -5.4084     9.1742     7.7394       16
+pH                             Prophet         -15.3265     2.1070     2.0309       16
+BOD_mg_L                       Prophet         -66.8833    12.8675     9.9517       16
+Nitrite_mg_L                   Prophet         -83.4896     0.0968     0.0652       16
+Water_Temperature_C            Prophet         -87.6019    46.7784    36.6410       16
+Total_Nitrogen_mg_L            Prophet         -96.4219     5.8058     4.8569       16
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_5
+样本数: 88 | 平均R²: -44.6818
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Dissolved_Oxygen_mg_L          Prophet         -23.2051    10.7115     8.8630       18
+Coliform_Count_CFU_100mL       Prophet         -25.3001    27.7977    25.1653       18
+Nitrate_mg_L                   Prophet         -27.4036     3.1247     2.7448       18
+Heavy_Metals_Cd_ug_L           Prophet         -27.9085     1.0018     0.8473       18
+Water_Temperature_C            Prophet         -44.6755    30.4292    23.4036       18
+BOD_mg_L                       Prophet         -50.8030     8.2654     6.2639       18
+Heavy_Metals_Hg_ug_L           Prophet         -63.0257     0.3358     0.2146       18
+Ammonia_N_mg_L                 Prophet         -95.1326     1.7399     1.3557       18
+
+================================================================================
+
+监测站: Hubei - Yichang - Yichang_Station_9
+样本数: 72 | 平均R²: -45.0258
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -3.3023     9.2794     7.0373       15
+Heavy_Metals_Hg_ug_L           Prophet         -17.1854     0.2342     0.1903       15
+Total_Phosphorus_mg_L          Prophet         -40.7850     0.3864     0.3044       15
+Nitrite_mg_L                   Prophet         -44.9450     0.0783     0.0534       15
+Heavy_Metals_Pb_ug_L           Prophet         -60.2259    15.7606    11.2686       15
+Total_Nitrogen_mg_L            Prophet         -66.6919     3.8821     3.0460       15
+Nitrate_mg_L                   Prophet         -82.0454     4.0735     2.2387       15
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_8
+样本数: 63 | 平均R²: -45.3276
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet         -25.2824     0.3287     0.2690       13
+Heavy_Metals_Pb_ug_L           Prophet         -65.3729    13.8011    11.5930       13
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_9
+样本数: 71 | 平均R²: -45.8504
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Coliform_Count_CFU_100mL       Prophet         -12.4127    32.3765    29.2763       15
+Total_Nitrogen_mg_L            Prophet         -12.7755     1.6940     1.4712       15
+Nitrite_mg_L                   Prophet         -21.4440     0.0520     0.0355       15
+BOD_mg_L                       Prophet         -52.3377     8.0416     7.0370       15
+Heavy_Metals_Hg_ug_L           Prophet         -61.4310     0.4653     0.3684       15
+Turbidity_NTU                  Prophet         -72.6965    32.4519    26.0520       15
+Dissolved_Oxygen_mg_L          Prophet         -87.8554    15.8978    13.8084       15
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_8
+样本数: 84 | 平均R²: -46.2142
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -18.4561     1.5411     1.0468       17
+Total_Phosphorus_mg_L          Prophet         -31.8532     0.2636     0.2107       17
+Heavy_Metals_Cd_ug_L           Prophet         -38.0407     1.2757     1.1041       17
+Turbidity_NTU                  Prophet         -39.2203    31.9714    18.9705       17
+BOD_mg_L                       Prophet         -39.3910     6.5039     5.6741       17
+Heavy_Metals_Hg_ug_L           Prophet         -66.2289     0.2819     0.2101       17
+COD_mg_L                       Prophet         -66.8715    36.0367    31.1628       17
+Ammonia_N_mg_L                 Prophet         -69.6521     1.3137     1.0527       17
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_4
+样本数: 69 | 平均R²: -46.3871
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet          -7.9139    10.4970     8.8175       14
+Heavy_Metals_Cd_ug_L           Prophet         -10.4954     0.6807     0.6051       14
+Conductivity_uS_cm             Prophet         -51.2189   918.6639   742.0697       14
+Turbidity_NTU                  Prophet         -51.2873    24.0127    16.5144       14
+Nitrite_mg_L                   Prophet         -60.3760     0.0869     0.0686       14
+Ammonia_N_mg_L                 Prophet         -68.4748     2.0615     1.3093       14
+BOD_mg_L                       Prophet         -74.9434     9.3976     8.1816       14
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_1
+样本数: 82 | 平均R²: -47.2544
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet         -27.1382     9.7608     7.6166       17
+Dissolved_Oxygen_mg_L          Prophet         -45.8307    15.9592    13.4064       17
+Total_Phosphorus_mg_L          Prophet         -68.7943     0.4132     0.3004       17
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_5
+样本数: 75 | 平均R²: -48.3165
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -3.9830     0.0936     0.0773       15
+Total_Phosphorus_mg_L          Prophet         -40.5438     0.3556     0.2782       15
+Total_Nitrogen_mg_L            Prophet         -64.7080     2.9206     2.1515       15
+Coliform_Count_CFU_100mL       Prophet         -84.0312   166.4182   112.3357       15
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_6
+样本数: 74 | 平均R²: -49.8129
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet          -8.5755     0.1558     0.1156       15
+COD_mg_L                       Prophet         -10.9363    18.0048    14.5378       15
+Ammonia_N_mg_L                 Prophet         -24.4364     0.8748     0.6699       15
+Dissolved_Oxygen_mg_L          Prophet         -59.4272    16.8493    13.8842       15
+BOD_mg_L                       Prophet         -66.7276    11.0189     7.7187       15
+Total_Nitrogen_mg_L            Prophet         -88.1669     5.3832     4.9318       15
+Coliform_Count_CFU_100mL       Prophet         -90.4205   111.6384    99.3770       15
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_10
+样本数: 78 | 平均R²: -50.3945
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Water_Temperature_C            Prophet         -10.2647    16.6005    12.4844       16
+Nitrate_mg_L                   Prophet         -17.7835     2.4944     2.1106       16
+Conductivity_uS_cm             Prophet         -41.3665   620.6984   463.5470       16
+Coliform_Count_CFU_100mL       Prophet         -52.0746    48.5308    39.6107       16
+COD_mg_L                       Prophet         -88.2392    43.3392    40.3647       16
+Heavy_Metals_Hg_ug_L           Prophet         -92.6387     0.3535     0.2761       16
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_1
+样本数: 88 | 平均R²: -50.6333
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -9.1940     0.0347     0.0268       18
+Total_Phosphorus_mg_L          Prophet          -9.5172     0.0997     0.0869       18
+Nitrate_mg_L                   Prophet         -34.5810     2.8942     2.0761       18
+Heavy_Metals_Hg_ug_L           Prophet         -66.3063     0.3537     0.2698       18
+COD_mg_L                       Prophet         -67.4876    43.1651    33.6535       18
+BOD_mg_L                       Prophet         -73.5903    13.7072     9.9862       18
+Dissolved_Oxygen_mg_L          Prophet         -93.7569    13.6312    11.6759       18
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_1
+样本数: 90 | 平均R²: -50.9265
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet          -9.1041     0.5014     0.4703       18
+Nitrite_mg_L                   Prophet         -58.7412     0.0694     0.0438       18
+Turbidity_NTU                  Prophet         -84.9341    38.0886    32.2316       18
+
+================================================================================
+
+监测站: Zhejiang - Hangzhou - Hangzhou_Station_8
+样本数: 71 | 平均R²: -51.2658
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet         -51.2658     0.3390     0.2538       15
+
+================================================================================
+
+监测站: Guangdong - Guangzhou - Guangzhou_Station_1
+样本数: 76 | 平均R²: -51.6720
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -19.7996     1.7656     1.4556       16
+BOD_mg_L                       Prophet         -26.5205     6.4372     5.1151       16
+COD_mg_L                       Prophet         -31.0473    26.3737    20.1797       16
+Water_Temperature_C            Prophet         -36.4838    29.0699    23.7166       16
+Heavy_Metals_Cd_ug_L           Prophet         -37.2004     1.0904     0.7890       16
+Nitrite_mg_L                   Prophet         -84.5274     0.1050     0.0784       16
+Dissolved_Oxygen_mg_L          Prophet         -84.7503    16.1129    14.5176       16
+Turbidity_NTU                  Prophet         -93.0468    36.1042    27.9422       16
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_3
+样本数: 73 | 平均R²: -53.0125
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Cd_ug_L           Prophet         -21.7495     0.9950     0.6744       15
+COD_mg_L                       Prophet         -22.1489    21.8889    18.0069       15
+Heavy_Metals_Pb_ug_L           Prophet         -38.4951    12.9849     9.9648       15
+BOD_mg_L                       Prophet         -58.9693    10.0840     6.7301       15
+Heavy_Metals_Hg_ug_L           Prophet         -80.3940     0.3789     0.2251       15
+Ammonia_N_mg_L                 Prophet         -96.3181     1.8188     1.4640       15
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_3
+样本数: 73 | 平均R²: -53.0765
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet          -4.6966     0.6214     0.5663       15
+Total_Nitrogen_mg_L            Prophet         -56.8015     4.7737     4.1680       15
+Conductivity_uS_cm             Prophet         -61.4741   428.1890   387.5336       15
+Total_Phosphorus_mg_L          Prophet         -89.3337     0.4319     0.2868       15
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_5
+样本数: 81 | 平均R²: -54.2240
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet         -12.2674     0.2322     0.1838       17
+Heavy_Metals_Cd_ug_L           Prophet         -20.5815     0.6474     0.4945       17
+BOD_mg_L                       Prophet         -47.0372     9.1361     6.0662       17
+Ammonia_N_mg_L                 Prophet         -77.9164     2.2585     1.5449       17
+Water_Temperature_C            Prophet         -80.8065    43.0902    35.0706       17
+Nitrite_mg_L                   Prophet         -86.7352     0.0783     0.0582       17
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_4
+样本数: 65 | 平均R²: -54.6763
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet         -14.4232     6.5870     4.8501       13
+Total_Phosphorus_mg_L          Prophet         -27.0431     0.3195     0.1916       13
+Nitrite_mg_L                   Prophet         -38.4906     0.0550     0.0376       13
+Water_Temperature_C            Prophet         -55.7376    27.4931    24.7828       13
+Conductivity_uS_cm             Prophet         -80.2101  1119.1544   830.2053       13
+Nitrate_mg_L                   Prophet         -80.6905     3.3663     2.5519       13
+Total_Nitrogen_mg_L            Prophet         -86.1393     5.9175     4.8052       13
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_3
+样本数: 84 | 平均R²: -54.9043
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Conductivity_uS_cm             Prophet         -25.7784   436.8305   371.3705       17
+Ammonia_N_mg_L                 Prophet         -54.8933     1.1442     0.9793       17
+Heavy_Metals_Cd_ug_L           Prophet         -62.3837     1.5439     1.1757       17
+Heavy_Metals_Hg_ug_L           Prophet         -76.5619     0.4284     0.3020       17
+
+================================================================================
+
+监测站: Yunnan - Kunming - Kunming_Station_5
+样本数: 69 | 平均R²: -55.2860
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet          -1.3225     0.0880     0.0746       14
+Conductivity_uS_cm             Prophet         -24.6223   447.4504   270.8925       14
+Heavy_Metals_Cd_ug_L           Prophet         -59.0422     1.6959     1.4157       14
+Nitrite_mg_L                   Prophet         -92.8545     0.0858     0.0614       14
+Water_Temperature_C            Prophet         -98.5887    42.9182    36.2766       14
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_7
+样本数: 61 | 平均R²: -55.3050
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet         -20.2871     0.2504     0.1829       13
+Total_Phosphorus_mg_L          Prophet         -36.2916     0.2492     0.2066       13
+Water_Temperature_C            Prophet         -45.5898    33.2477    27.6501       13
+Heavy_Metals_Cd_ug_L           Prophet         -85.9278     1.9246     1.3984       13
+Dissolved_Oxygen_mg_L          Prophet         -88.4284    11.4960    10.2889       13
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_9
+样本数: 79 | 平均R²: -55.6026
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet         -25.7294     0.2083     0.1436       16
+Conductivity_uS_cm             Prophet         -85.4758  1006.4914   732.6829       16
+
+================================================================================
+
+监测站: Zhejiang - Ningbo - Ningbo_Station_1
+样本数: 76 | 平均R²: -56.6103
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Nitrogen_mg_L            Prophet         -20.7426     2.5615     2.2347       16
+Turbidity_NTU                  Prophet         -92.4779    54.7191    35.2795       16
+
+================================================================================
+
+监测站: Guangdong - Shenzhen - Shenzhen_Station_6
+样本数: 87 | 平均R²: -57.1962
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Ammonia_N_mg_L                 Prophet         -11.0820     0.8909     0.7754       18
+Heavy_Metals_Hg_ug_L           Prophet         -12.5119     0.2184     0.1781       18
+Heavy_Metals_Cd_ug_L           Prophet         -32.1950     1.2844     0.9209       18
+Dissolved_Oxygen_mg_L          Prophet         -55.9825    14.6118     9.6677       18
+Water_Temperature_C            Prophet         -94.8759    49.0691    40.5846       18
+COD_mg_L                       Prophet         -96.5965    47.4832    32.6638       18
+Nitrite_mg_L                   Prophet         -97.1299     0.0740     0.0539       18
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_2
+样本数: 99 | 平均R²: -58.2089
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet         -21.9650    20.1434    16.7180       20
+Total_Phosphorus_mg_L          Prophet         -57.5337     0.4414     0.2186       20
+Nitrate_mg_L                   Prophet         -95.1281     4.5868     3.6013       20
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_2
+样本数: 82 | 平均R²: -59.7154
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet          -8.9952     0.0301     0.0206       17
+Heavy_Metals_Pb_ug_L           Prophet         -64.9326    13.6767    10.9474       17
+Water_Temperature_C            Prophet         -79.6536    46.8675    37.7933       17
+COD_mg_L                       Prophet         -85.2800    44.5377    30.8631       17
+
+================================================================================
+
+监测站: Yunnan - Dali - Dali_Station_4
+样本数: 69 | 平均R²: -60.2539
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet          -4.4656    10.2484     8.1981       14
+Water_Temperature_C            Prophet         -36.9671    23.1370    19.1254       14
+Dissolved_Oxygen_mg_L          Prophet         -43.9013    12.9622    10.7759       14
+pH                             Prophet         -74.8568     3.5437     3.3843       14
+Total_Phosphorus_mg_L          Prophet         -82.9235     0.5587     0.2909       14
+Heavy_Metals_Pb_ug_L           Prophet         -83.2098    18.8344    13.4600       14
+Heavy_Metals_Cd_ug_L           Prophet         -95.4532     1.6662     1.3346       14
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_7
+样本数: 84 | 平均R²: -60.3206
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Pb_ug_L           Prophet         -13.8680     8.0169     6.5185       17
+Turbidity_NTU                  Prophet         -22.9479    23.5382    14.0827       17
+Nitrite_mg_L                   Prophet         -56.4853     0.0714     0.0560       17
+Heavy_Metals_Hg_ug_L           Prophet         -84.6911     0.4664     0.2723       17
+Conductivity_uS_cm             Prophet         -85.4174   953.0865   748.1874       17
+Nitrate_mg_L                   Prophet         -98.5137     5.1349     3.0672       17
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_9
+样本数: 86 | 平均R²: -60.9470
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet         -23.2391    16.5597    11.7088       18
+Heavy_Metals_Pb_ug_L           Prophet         -49.2441    15.2813    10.0605       18
+Conductivity_uS_cm             Prophet         -52.2284   997.2681   876.0001       18
+Total_Nitrogen_mg_L            Prophet         -54.2358     3.5797     2.7242       18
+COD_mg_L                       Prophet         -67.8703    43.5684    33.3671       18
+Ammonia_N_mg_L                 Prophet         -70.0546     1.7901     1.1696       18
+Total_Phosphorus_mg_L          Prophet         -80.3810     0.3607     0.2385       18
+Heavy_Metals_Hg_ug_L           Prophet         -90.3225     0.4894     0.4057       18
+
+================================================================================
+
+监测站: Shandong - Qingdao - Qingdao_Station_7
+样本数: 70 | 平均R²: -60.9626
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrite_mg_L                   Prophet         -39.6653     0.0516     0.0372       14
+BOD_mg_L                       Prophet         -82.2600     9.5247     5.9785       14
+
+================================================================================
+
+监测站: Jiangsu - Nanjing - Nanjing_Station_5
+样本数: 94 | 平均R²: -64.0683
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -19.5030     2.3670     1.4981       19
+Coliform_Count_CFU_100mL       Prophet         -54.3677    76.4197    65.4027       19
+Turbidity_NTU                  Prophet         -66.7034    37.3742    18.5879       19
+Nitrite_mg_L                   Prophet         -77.3440     0.0616     0.0533       19
+Water_Temperature_C            Prophet         -82.5143    46.6906    38.6083       19
+Dissolved_Oxygen_mg_L          Prophet         -83.9776    16.6863    11.0919       19
+
+================================================================================
+
+监测站: Jiangsu - Suzhou - Suzhou_Station_4
+样本数: 66 | 平均R²: -65.3878
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Turbidity_NTU                  Prophet         -47.3041    39.1584    25.3613       14
+Heavy_Metals_Cd_ug_L           Prophet         -47.6502     1.8053     0.9013       14
+Total_Nitrogen_mg_L            Prophet         -70.3396     3.7282     2.1822       14
+Heavy_Metals_Hg_ug_L           Prophet         -96.2573     0.3917     0.2301       14
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_1
+样本数: 81 | 平均R²: -65.8566
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -28.2477     2.2770     1.7429       17
+Nitrite_mg_L                   Prophet         -61.4459     0.0704     0.0530       17
+Heavy_Metals_Pb_ug_L           Prophet         -74.5470    16.2161    12.4623       17
+BOD_mg_L                       Prophet         -99.1857    11.9863     8.5539       17
+
+================================================================================
+
+监测站: Hubei - Wuhan - Wuhan_Station_5
+样本数: 70 | 平均R²: -72.6666
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet         -46.9025     6.7814     5.5091       14
+Ammonia_N_mg_L                 Prophet         -98.4307     1.6037     0.9819       14
+
+================================================================================
+
+监测站: Sichuan - Chengdu - Chengdu_Station_5
+样本数: 84 | 平均R²: -73.2908
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet         -67.3977     0.3991     0.3096       17
+Heavy_Metals_Cd_ug_L           Prophet         -72.2934     1.4165     0.9536       17
+Heavy_Metals_Pb_ug_L           Prophet         -80.1812    21.5116    17.5139       17
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_10
+样本数: 74 | 平均R²: -75.9494
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+COD_mg_L                       Prophet         -62.3770    42.7142    38.7213       15
+Ammonia_N_mg_L                 Prophet         -77.4353     2.5317     1.4288       15
+BOD_mg_L                       Prophet         -88.0360    15.3776    10.6949       15
+
+================================================================================
+
+监测站: Henan - Zhengzhou - Zhengzhou_Station_2
+样本数: 72 | 平均R²: -88.4346
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Heavy_Metals_Hg_ug_L           Prophet         -85.8978     0.4400     0.3141       15
+Coliform_Count_CFU_100mL       Prophet         -90.9714   102.7833    82.0921       15
+
+================================================================================
+
+监测站: Henan - Luoyang - Luoyang_Station_4
+样本数: 65 | 平均R²: -88.8299
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Nitrate_mg_L                   Prophet         -88.8299     5.6852     4.2911       13
+
+================================================================================
+
+监测站: Shandong - Jinan - Jinan_Station_9
+样本数: 82 | 平均R²: -89.4838
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+Total_Phosphorus_mg_L          Prophet         -89.4838     0.4238     0.2922       17
+
+================================================================================
+
+监测站: Sichuan - Mianyang - Mianyang_Station_4
+样本数: 77 | 平均R²: -97.5548
+--------------------------------------------------------------------------------
+指标                             模型                    R²       RMSE        MAE       样本
+--------------------------------------------------------------------------------
+BOD_mg_L                       Prophet         -97.5548    14.1283     8.9944       16
+
+================================================================================
+
+
+说明：
+- 每个监测站独立建立Prophet时间序列模型
+- R²越接近1表示预测效果越好
+- Prophet自动检测趋势和季节性，对异常值鲁棒
+- 适合有明显趋势或季节性的时间序列数据
+================================================================================
