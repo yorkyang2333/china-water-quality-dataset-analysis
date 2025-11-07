@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>水质监测可视化平台 | Water Quality Monitoring Platform</title>
+    <title>水质监测智能平台 | Water Quality Intelligence Platform</title>
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,252 +13,832 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modern-design.css">
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <h1 class="header-title">
-                <span class="icon">💧</span>
-                水质监测可视化平台
-            </h1>
-            <p class="header-subtitle">Water Quality Monitoring & Analysis Platform</p>
+<body class="modern-body">
+    <!-- Modern Navigation -->
+    <nav class="modern-nav">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>水质监测智能平台</h1>
+                    <span>Water Quality Intelligence Platform</span>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a href="#monitoring" class="nav-item" data-page="monitoring">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>实时监测</span>
+                </a>
+                <a href="#prediction" class="nav-item" data-page="prediction">
+                    <i class="fas fa-brain"></i>
+                    <span>智能预测</span>
+                </a>
+                <a href="#analysis" class="nav-item" data-page="analysis">
+                    <i class="fas fa-chart-line"></i>
+                    <span>数据分析</span>
+                </a>
+                <a href="#quality" class="nav-item" data-page="quality">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>质量报告</span>
+                </a>
+                <a href="#spatial" class="nav-item" data-page="spatial">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>空间分析</span>
+                </a>
+            </div>
+
+            <div class="nav-actions">
+                <div class="notification-bell">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </div>
+                <div class="user-profile">
+                    <img src="https://picsum.photos/seed/user123/40/40.jpg" alt="User">
+                    <span>管理员</span>
+                </div>
+            </div>
         </div>
-        <div class="header-stats" id="headerStats">
-            <div class="stat-card">
-                <div class="stat-value" id="totalStations">-</div>
-                <div class="stat-label">监测站点</div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="modern-main">
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" class="page-content active">
+            <!-- Hero Section -->
+            <section class="hero-section" data-aos="fade-down">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">智能化水质监测解决方案</h1>
+                        <p class="hero-subtitle">基于AI的实时水质监测、预测分析与可视化平台</p>
+                        <div class="hero-stats">
+                            <div class="stat-item">
+                                <span class="stat-number" data-count="180">0</span>
+                                <span class="stat-label">监测站点</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" data-count="15524">0</span>
+                                <span class="stat-label">数据记录</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" data-count="99.5">0</span>
+                                <span class="stat-label">预测准确率%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="floating-card">
+                            <div class="card-header">
+                                <i class="fas fa-chart-area"></i>
+                                <span>实时水质指数</span>
+                            </div>
+                            <div class="card-value">42.3</div>
+                            <div class="card-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>12.5%</span>
+                            </div>
+                        </div>
+                        <div class="floating-card" style="animation-delay: 0.2s;">
+                            <div class="card-header">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span>活跃告警</span>
+                            </div>
+                            <div class="card-value">7</div>
+                            <div class="card-change negative">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>3个</span>
+                            </div>
+                        </div>
+                        <div class="floating-card" style="animation-delay: 0.4s;">
+                            <div class="card-header">
+                                <i class="fas fa-check-circle"></i>
+                                <span>数据完整性</span>
+                            </div>
+                            <div class="card-value">94.2%</div>
+                            <div class="card-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>2.1%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions" data-aos="fade-up">
+                <h2 class="section-title">快速操作</h2>
+                <div class="actions-grid">
+                    <div class="action-card" data-page="monitoring">
+                        <div class="action-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h3>实时监控</h3>
+                        <p>查看全国水质监测站点实时数据</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="action-card" data-page="prediction">
+                        <div class="action-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>智能预测</h3>
+                        <p>基于机器学习的水质趋势预测</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="action-card" data-page="analysis">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h3>数据分析</h3>
+                        <p>深度分析水质变化趋势和模式</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="action-card" data-page="quality">
+                        <div class="action-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <h3>质量报告</h3>
+                        <p>生成专业的水质监测报告</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="action-card" data-page="spatial">
+                        <div class="action-icon">
+                            <i class="fas fa-globe-asia"></i>
+                        </div>
+                        <h3>空间分析</h3>
+                        <p>地理信息系统可视化分析</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h3>系统设置</h3>
+                        <p>配置监测参数和预警阈值</p>
+                        <div class="action-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Overview Cards -->
+            <section class="overview-section">
+                <div class="overview-grid">
+                    <div class="overview-card" data-aos="fade-right">
+                        <div class="card-header-section">
+                            <h3>水质状况概览</h3>
+                            <div class="card-badge good">良好</div>
+                        </div>
+                        <div class="water-level-chart">
+                            <canvas id="waterLevelChart" height="120"></canvas>
+                        </div>
+                        <div class="card-footer">
+                            <span class="footer-text">平均水质指数: 42.3</span>
+                            <span class="footer-change positive">↑ 8.2%</span>
+                        </div>
+                    </div>
+
+                    <div class="overview-card" data-aos="fade-right" data-aos-delay="100">
+                        <div class="card-header-section">
+                            <h3>污染等级分布</h3>
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="pollution-chart">
+                            <canvas id="pollutionDistChart" height="120"></canvas>
+                        </div>
+                        <div class="card-footer">
+                            <span class="footer-text">优秀站点: 67%</span>
+                            <span class="footer-change positive">↑ 5.3%</span>
+                        </div>
+                    </div>
+
+                    <div class="overview-card" data-aos="fade-right" data-aos-delay="200">
+                        <div class="card-header-section">
+                            <h3>省份排名</h3>
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="province-ranking">
+                            <div class="ranking-item">
+                                <span class="rank">1</span>
+                                <span class="province">北京</span>
+                                <span class="score">38.2</span>
+                            </div>
+                            <div class="ranking-item">
+                                <span class="rank">2</span>
+                                <span class="province">上海</span>
+                                <span class="score">41.5</span>
+                            </div>
+                            <div class="ranking-item">
+                                <span class="rank">3</span>
+                                <span class="province">广州</span>
+                                <span class="score">43.1</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="footer-text">查看完整排名</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <div class="overview-card" data-aos="fade-right" data-aos-delay="300">
+                        <div class="card-header-section">
+                            <h3>最新告警</h3>
+                            <div class="alert-indicator active"></div>
+                        </div>
+                        <div class="latest-alerts">
+                            <div class="alert-item critical">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div class="alert-content">
+                                    <div class="alert-title">COD严重超标</div>
+                                    <div class="alert-location">上海站001</div>
+                                </div>
+                                <span class="alert-time">2分钟前</span>
+                            </div>
+                            <div class="alert-item warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div class="alert-content">
+                                    <div class="alert-title">pH值异常</div>
+                                    <div class="alert-location">北京站003</div>
+                                </div>
+                                <span class="alert-time">15分钟前</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span class="footer-text">查看所有告警</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Monitoring Page -->
+        <div id="monitoring-page" class="page-content">
+            <div class="page-header">
+                <h1>实时监测中心</h1>
+                <p>全国水质监测站点实时数据监控</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalRecords">-</div>
-                <div class="stat-label">数据记录</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgWQI">-</div>
-                <div class="stat-label">平均水质指数</div>
+            
+            <div class="monitoring-layout">
+                <div class="monitoring-sidebar">
+                    <div class="control-panel-modern">
+                        <h3>监测控制</h3>
+                        <div class="control-section">
+                            <label>时间范围</label>
+                            <div class="date-range-picker">
+                                <input type="date" id="startDate" class="modern-input">
+                                <span>至</span>
+                                <input type="date" id="endDate" class="modern-input">
+                            </div>
+                        </div>
+                        <div class="control-section">
+                            <label>省份筛选</label>
+                            <select id="provinceFilter" class="modern-select">
+                                <option value="">全部省份</option>
+                            </select>
+                        </div>
+                        <div class="control-section">
+                            <label>监测指标</label>
+                            <select id="indicatorSelect" class="modern-select">
+                                <option value="Water_Quality_Index">水质指数 (WQI)</option>
+                                <option value="COD_mg_L">化学需氧量 (COD)</option>
+                                <option value="pH">pH值</option>
+                                <option value="Total_Nitrogen_mg_L">总氮</option>
+                                <option value="Total_Phosphorus_mg_L">总磷</option>
+                                <option value="Dissolved_Oxygen_mg_L">溶解氧</option>
+                            </select>
+                        </div>
+                        <button class="modern-btn primary" onclick="applyMonitoringFilter()">
+                            <i class="fas fa-filter"></i>
+                            应用筛选
+                        </button>
+                    </div>
+
+                    <div class="real-time-indicators">
+                        <h3>实时指标</h3>
+                        <div id="realtimeIndicators">
+                            <!-- Dynamic indicators will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="monitoring-main">
+                    <div class="map-container-modern">
+                        <div id="monitoringMap"></div>
+                        <div class="map-controls">
+                            <button class="map-control-btn" onclick="toggleMapView()">
+                                <i class="fas fa-layer-group"></i>
+                            </button>
+                            <button class="map-control-btn" onclick="toggleFullscreen()">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                            <button class="map-control-btn" onclick="exportMap()">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="monitoring-charts">
+                        <div class="chart-card">
+                            <h3>趋势分析</h3>
+                            <canvas id="trendChart" height="200"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h3>分布统计</h3>
+                            <canvas id="distributionChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
 
-    <!-- Main Container -->
-    <div class="main-container">
-        <!-- Left Sidebar -->
-        <aside class="sidebar left-sidebar">
-            <!-- Control Panel -->
-            <div class="panel control-panel">
-                <h3 class="panel-title">🎛️ 控制面板</h3>
+        <!-- Prediction Page -->
+        <div id="prediction-page" class="page-content">
+            <div class="page-header">
+                <h1>智能预测中心</h1>
+                <p>基于机器学习的水质预测分析</p>
+            </div>
 
-                <!-- Time Range -->
-                <div class="control-group">
-                    <label>时间范围</label>
-                    <div class="date-inputs">
-                        <input type="date" id="startDate" class="date-input">
-                        <span>至</span>
-                        <input type="date" id="endDate" class="date-input">
+            <div class="prediction-layout">
+                <div class="prediction-forms">
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h3>污染等级预测</h3>
+                            <div class="ai-badge">
+                                <i class="fas fa-brain"></i>
+                                <span>AI驱动</span>
+                            </div>
+                        </div>
+                        <form id="pollutionLevelForm" class="modern-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>水质指数 (WQI)</label>
+                                    <input type="number" id="input_wqi" class="modern-input" placeholder="35.0" step="0.1">
+                                    <span class="input-unit">指数</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>COD (mg/L)</label>
+                                    <input type="number" id="input_cod" class="modern-input" placeholder="20.0" step="0.1">
+                                    <span class="input-unit">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>pH值</label>
+                                    <input type="number" id="input_ph" class="modern-input" placeholder="7.0" step="0.1" min="0" max="14">
+                                    <span class="input-unit">pH</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>总氮 (mg/L)</label>
+                                    <input type="number" id="input_tn" class="modern-input" placeholder="3.0" step="0.1">
+                                    <span class="input-unit">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>总磷 (mg/L)</label>
+                                    <input type="number" id="input_tp" class="modern-input" placeholder="0.1" step="0.01">
+                                    <span class="input-unit">mg/L</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>溶解氧 (mg/L)</label>
+                                    <input type="number" id="input_do" class="modern-input" placeholder="8.0" step="0.1">
+                                    <span class="input-unit">mg/L</span>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>氨氮 (mg/L)</label>
+                                    <input type="number" id="input_ammonia" class="modern-input" placeholder="0.5" step="0.1">
+                                    <span class="input-unit">mg/L</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>浊度 (NTU)</label>
+                                    <input type="number" id="input_turbidity" class="modern-input" placeholder="5.0" step="0.1">
+                                    <span class="input-unit">NTU</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="modern-btn primary full-width">
+                                <i class="fas fa-magic"></i>
+                                开始预测
+                            </button>
+                        </form>
                     </div>
-                    <button class="btn btn-primary btn-sm" onclick="app.applyTimeFilter()">应用</button>
+
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h3>水质指标预测</h3>
+                            <div class="ai-badge">
+                                <i class="fas fa-chart-line"></i>
+                                <span>时序预测</span>
+                            </div>
+                        </div>
+                        <form id="waterQualityForm" class="modern-form">
+                            <div class="form-group">
+                                <label>选择省份</label>
+                                <select id="predict_province" class="modern-select">
+                                    <option value="Beijing">北京</option>
+                                    <option value="Shanghai">上海</option>
+                                    <option value="Guangdong">广东</option>
+                                    <option value="Jiangsu">江苏</option>
+                                    <option value="Zhejiang">浙江</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>预测日期</label>
+                                <input type="date" id="predict_date" class="modern-input">
+                            </div>
+                            <div class="form-group">
+                                <label>预测天数</label>
+                                <div class="day-selector">
+                                    <button type="button" class="day-btn" data-days="7">7天</button>
+                                    <button type="button" class="day-btn active" data-days="30">30天</button>
+                                    <button type="button" class="day-btn" data-days="90">90天</button>
+                                </div>
+                            </div>
+                            <button type="submit" class="modern-btn primary full-width">
+                                <i class="fas fa-crystal-ball"></i>
+                                生成预测
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- Province Filter -->
-                <div class="control-group">
-                    <label>省份筛选</label>
-                    <select id="provinceFilter" class="select-input" onchange="app.filterByProvince()">
-                        <option value="">全部省份</option>
-                    </select>
-                </div>
+                <div class="prediction-results">
+                    <div class="result-card">
+                        <h3>预测结果</h3>
+                        <div id="predictionResult" class="result-content">
+                            <div class="empty-state">
+                                <i class="fas fa-robot"></i>
+                                <p>输入数据开始AI预测分析</p>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Indicator Selection -->
-                <div class="control-group">
-                    <label>显示指标</label>
-                    <select id="indicatorSelect" class="select-input" onchange="app.changeIndicator()">
-                        <option value="Water_Quality_Index">水质指数 (WQI)</option>
-                        <option value="COD_mg_L">化学需氧量 (COD)</option>
-                        <option value="pH">pH值</option>
-                        <option value="Total_Nitrogen_mg_L">总氮</option>
-                        <option value="Total_Phosphorus_mg_L">总磷</option>
-                        <option value="Dissolved_Oxygen_mg_L">溶解氧</option>
-                    </select>
-                </div>
+                    <div class="result-card">
+                        <h3>置信度分析</h3>
+                        <div id="confidenceAnalysis" class="confidence-content">
+                            <canvas id="confidenceChart" height="200"></canvas>
+                        </div>
+                    </div>
 
-                <!-- Spatial Query Tools -->
-                <div class="control-group">
-                    <label>空间查询工具</label>
-                    <div class="button-group">
-                        <button class="btn btn-tool" onclick="app.enableRectangleSelect()" title="矩形选择">
-                            <span>📐</span> 矩形
-                        </button>
-                        <button class="btn btn-tool" onclick="app.enableCircleSelect()" title="圆形选择">
-                            <span>⭕</span> 圆形
-                        </button>
-                        <button class="btn btn-tool" onclick="app.clearSelection()" title="清除选择">
-                            <span>🗑️</span> 清除
-                        </button>
+                    <div class="result-card">
+                        <h3>历史对比</h3>
+                        <div id="historicalComparison" class="comparison-content">
+                            <canvas id="comparisonChart" height="200"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Statistics Panel -->
-            <div class="panel stats-panel">
-                <h3 class="panel-title">📊 数据统计</h3>
-                <div id="statisticsContent">
-                    <p class="loading-text">加载中...</p>
-                </div>
+        <!-- Analysis Page -->
+        <div id="analysis-page" class="page-content">
+            <div class="page-header">
+                <h1>数据分析中心</h1>
+                <p>深度分析水质变化趋势和模式</p>
             </div>
 
-            <!-- Trend Chart Panel -->
-            <div class="panel chart-panel">
-                <h3 class="panel-title">📈 趋势图表</h3>
-                <canvas id="trendChart" width="400" height="200"></canvas>
-            </div>
-        </aside>
-
-        <!-- Map Container -->
-        <main class="map-container">
-            <div id="map"></div>
-
-            <!-- Timeline Control -->
-            <div class="timeline-control">
-                <div class="timeline-header">
-                    <span class="timeline-icon">🕐</span>
-                    <span class="timeline-title">时间轴控制</span>
-                </div>
-                <div class="timeline-body">
-                    <input type="range" id="timelineSlider" class="timeline-slider" min="0" max="100" value="100">
-                    <div class="timeline-labels">
-                        <span id="timelineStart">2020-01-01</span>
-                        <span id="timelineCurrent">当前</span>
-                        <span id="timelineEnd">2024-12-31</span>
+            <div class="analysis-layout">
+                <div class="analysis-controls">
+                    <div class="control-card">
+                        <h3>分析配置</h3>
+                        <div class="control-group">
+                            <label>分析类型</label>
+                            <select class="modern-select">
+                                <option>趋势分析</option>
+                                <option>相关性分析</option>
+                                <option>异常检测</option>
+                                <option>聚类分析</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>时间维度</label>
+                            <div class="time-dimension">
+                                <button class="dim-btn active">日</button>
+                                <button class="dim-btn">周</button>
+                                <button class="dim-btn">月</button>
+                                <button class="dim-btn">年</button>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>指标选择</label>
+                            <div class="indicator-chips">
+                                <button class="chip active">WQI</button>
+                                <button class="chip">COD</button>
+                                <button class="chip">pH</button>
+                                <button class="chip">总氮</button>
+                                <button class="chip">总磷</button>
+                                <button class="chip">溶解氧</button>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Map Legend -->
-            <div class="map-legend">
-                <h4>图例</h4>
-                <div class="legend-item">
-                    <span class="legend-marker excellent"></span>
-                    <span>优秀 (WQI &lt; 20)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-marker good"></span>
-                    <span>良好 (20-40)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-marker fair"></span>
-                    <span>一般 (40-60)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-marker poor"></span>
-                    <span>较差 (60-80)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-marker very-poor"></span>
-                    <span>很差 (&gt; 80)</span>
-                </div>
-            </div>
-        </main>
-
-        <!-- Right Sidebar -->
-        <aside class="sidebar right-sidebar">
-            <!-- Prediction Panel -->
-            <div class="panel prediction-panel">
-                <h3 class="panel-title">🔮 水质预测</h3>
-
-                <div class="prediction-tabs">
-                    <button class="tab-btn active" onclick="app.switchPredictionTab('level')">
-                        污染等级预测
-                    </button>
-                    <button class="tab-btn" onclick="app.switchPredictionTab('quality')">
-                        水质指标预测
-                    </button>
                 </div>
 
-                <!-- Pollution Level Prediction Form -->
-                <div id="predictionFormLevel" class="prediction-form active">
-                    <div class="form-group">
-                        <label>水质指数 (WQI)</label>
-                        <input type="number" id="input_wqi" class="form-input" placeholder="35.0" step="0.1">
+                <div class="analysis-content">
+                    <div class="chart-grid">
+                        <div class="chart-container-large">
+                            <h3>多维度趋势分析</h3>
+                            <canvas id="multiTrendChart" height="300"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>指标相关性</h3>
+                            <canvas id="correlationChart" height="250"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>分布分析</h3>
+                            <canvas id="distributionAnalysisChart" height="250"></canvas>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>COD (mg/L)</label>
-                        <input type="number" id="input_cod" class="form-input" placeholder="20.0" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>pH</label>
-                        <input type="number" id="input_ph" class="form-input" placeholder="7.0" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>总氮 (mg/L)</label>
-                        <input type="number" id="input_tn" class="form-input" placeholder="3.0" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>总磷 (mg/L)</label>
-                        <input type="number" id="input_tp" class="form-input" placeholder="0.1" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label>溶解氧 (mg/L)</label>
-                        <input type="number" id="input_do" class="form-input" placeholder="8.0" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>氨氮 (mg/L)</label>
-                        <input type="number" id="input_ammonia" class="form-input" placeholder="0.5" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>浊度 (NTU)</label>
-                        <input type="number" id="input_turbidity" class="form-input" placeholder="5.0" step="0.1">
-                    </div>
-                    <button class="btn btn-primary btn-block" onclick="app.predictPollutionLevel()">
-                        预测污染等级
-                    </button>
-                </div>
-
-                <!-- Water Quality Prediction Form -->
-                <div id="predictionFormQuality" class="prediction-form">
-                    <div class="form-group">
-                        <label>选择省份</label>
-                        <select id="predict_province" class="form-input">
-                            <option value="Beijing">北京</option>
-                            <option value="Shanghai">上海</option>
-                            <option value="Guangdong">广东</option>
-                            <option value="Jiangsu">江苏</option>
-                            <option value="Zhejiang">浙江</option>
-                            <option value="Shandong">山东</option>
-                            <option value="Henan">河南</option>
-                            <option value="Hubei">湖北</option>
-                            <option value="Sichuan">四川</option>
-                            <option value="Yunnan">云南</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>预测日期</label>
-                        <input type="date" id="predict_date" class="form-input">
-                    </div>
-                    <button class="btn btn-primary btn-block" onclick="app.predictWaterQuality()">
-                        预测水质指标
-                    </button>
-                </div>
-
-                <!-- Prediction Result -->
-                <div id="predictionResult" class="prediction-result"></div>
-            </div>
-
-            <!-- Selected Area Info -->
-            <div class="panel selected-info-panel">
-                <h3 class="panel-title">📍 选中区域信息</h3>
-                <div id="selectedAreaInfo">
-                    <p class="info-text">请使用空间查询工具选择区域</p>
                 </div>
             </div>
-        </aside>
-    </div>
+        </div>
+
+        <!-- Quality Page -->
+        <div id="quality-page" class="page-content">
+            <div class="page-header">
+                <h1>质量报告中心</h1>
+                <p>数据质量监控与专业报告生成</p>
+            </div>
+
+            <div class="quality-layout">
+                <div class="quality-overview">
+                    <div class="quality-score-card">
+                        <div class="score-ring">
+                            <canvas id="scoreRing" width="150" height="150"></canvas>
+                            <div class="score-text">
+                                <span class="score-number">94.2</span>
+                                <span class="score-label">质量分</span>
+                            </div>
+                        </div>
+                        <div class="score-details">
+                            <h3>数据质量评估</h3>
+                            <div class="quality-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">完整性</span>
+                                    <span class="metric-value">96.8%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">准确性</span>
+                                    <span class="metric-value">92.3%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">时效性</span>
+                                    <span class="metric-value">93.5%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">一致性</span>
+                                    <span class="metric-value">94.1%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quality-details">
+                    <div class="quality-card">
+                        <h3>数据完整性分析</h3>
+                        <div class="completeness-bars">
+                            <div class="completeness-item">
+                                <span class="indicator-name">WQI</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 98%"></div>
+                                </div>
+                                <span class="percentage">98%</span>
+                            </div>
+                            <div class="completeness-item">
+                                <span class="indicator-name">COD</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 95%"></div>
+                                </div>
+                                <span class="percentage">95%</span>
+                            </div>
+                            <div class="completeness-item">
+                                <span class="indicator-name">pH</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 92%"></div>
+                                </div>
+                                <span class="percentage">92%</span>
+                            </div>
+                            <div class="completeness-item">
+                                <span class="indicator-name">总氮</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 88%"></div>
+                                </div>
+                                <span class="percentage">88%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quality-card">
+                        <h3>报告生成</h3>
+                        <div class="report-options">
+                            <div class="report-option">
+                                <i class="fas fa-file-pdf"></i>
+                                <div class="option-content">
+                                    <h4>月度报告</h4>
+                                    <p>生成当月水质监测综合报告</p>
+                                </div>
+                                <button class="modern-btn secondary">生成</button>
+                            </div>
+                            <div class="report-option">
+                                <i class="fas fa-file-excel"></i>
+                                <div class="option-content">
+                                    <h4>数据导出</h4>
+                                    <p>导出原始数据到Excel格式</p>
+                                </div>
+                                <button class="modern-btn secondary">导出</button>
+                            </div>
+                            <div class="report-option">
+                                <i class="fas fa-chart-bar"></i>
+                                <div class="option-content">
+                                    <h4>可视化报告</h4>
+                                    <p>生成包含图表的分析报告</p>
+                                </div>
+                                <button class="modern-btn secondary">生成</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spatial Page -->
+        <div id="spatial-page" class="page-content">
+            <div class="page-header">
+                <h1>空间分析中心</h1>
+                <p>地理信息系统可视化与分析</p>
+            </div>
+
+            <div class="spatial-layout">
+                <div class="spatial-sidebar">
+                    <div class="spatial-controls">
+                        <h3>空间分析工具</h3>
+                        <div class="tool-group">
+                            <label>分析模式</label>
+                            <div class="tool-buttons">
+                                <button class="tool-btn active" data-tool="marker">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    标记
+                                </button>
+                                <button class="tool-btn" data-tool="rectangle">
+                                    <i class="fas fa-vector-square"></i>
+                                    矩形
+                                </button>
+                                <button class="tool-btn" data-tool="circle">
+                                    <i class="fas fa-circle"></i>
+                                    圆形
+                                </button>
+                                <button class="tool-btn" data-tool="polygon">
+                                    <i class="fas fa-draw-polygon"></i>
+                                    多边形
+                                </button>
+                            </div>
+                        </div>
+                        <div class="tool-group">
+                            <label>图层控制</label>
+                            <div class="layer-toggles">
+                                <label class="toggle-item">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">监测站点</span>
+                                </label>
+                                <label class="toggle-item">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">污染等级</span>
+                                </label>
+                                <label class="toggle-item">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">热力图</span>
+                                </label>
+                                <label class="toggle-item">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">流域边界</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="tool-group">
+                            <label>分析参数</label>
+                            <div class="parameter-controls">
+                                <div class="param-item">
+                                    <label>缓冲区半径</label>
+                                    <input type="range" min="1" max="50" value="10" class="param-slider">
+                                    <span class="param-value">10 km</span>
+                                </div>
+                                <div class="param-item">
+                                    <label>密度阈值</label>
+                                    <input type="range" min="1" max="100" value="50" class="param-slider">
+                                    <span class="param-value">50%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spatial-results">
+                        <h3>分析结果</h3>
+                        <div id="spatialAnalysisResults">
+                            <div class="result-summary">
+                                <div class="summary-item">
+                                    <span class="summary-label">选中站点</span>
+                                    <span class="summary-value">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">覆盖面积</span>
+                                    <span class="summary-value">0 km²</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">平均WQI</span>
+                                    <span class="summary-value">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="spatial-main">
+                    <div class="map-container-full">
+                        <div id="spatialMap"></div>
+                        <div class="map-toolbar">
+                            <button class="toolbar-btn" onclick="resetMapView()">
+                                <i class="fas fa-home"></i>
+                            </button>
+                            <button class="toolbar-btn" onclick="zoomIn()">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="toolbar-btn" onclick="zoomOut()">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button class="toolbar-btn" onclick="toggleMeasure()">
+                                <i class="fas fa-ruler"></i>
+                            </button>
+                            <button class="toolbar-btn" onclick="exportSpatialData()">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modern Footer -->
+    <footer class="modern-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>平台信息</h4>
+                <p>水质监测智能平台 v2.0</p>
+                <p>© 2024 Water Quality Intelligence Platform</p>
+            </div>
+            <div class="footer-section">
+                <h4>快速链接</h4>
+                <a href="#dashboard">仪表盘</a>
+                <a href="#monitoring">实时监测</a>
+                <a href="#prediction">智能预测</a>
+            </div>
+            <div class="footer-section">
+                <h4>技术支持</h4>
+                <a href="#">文档中心</a>
+                <a href="#">API接口</a>
+                <a href="#">帮助中心</a>
+            </div>
+        </div>
+    </footer>
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="spinner"></div>
-        <p>加载中...</p>
+        <div class="loading-spinner"></div>
+        <p>正在加载...</p>
     </div>
 
     <!-- Scripts -->
@@ -266,20 +846,40 @@
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
     <!-- Custom Scripts -->
     <script src="js/map.js"></script>
     <script src="js/timeline.js"></script>
     <script src="js/prediction.js"></script>
+    <script src="js/monitoring.js"></script>
+    <script src="js/modern-app.js"></script>
 
     <script>
-        // Initialize app when page loads
-        window.addEventListener('load', () => {
-            console.log('🚀 Water Quality Platform initializing...');
-            if (typeof WaterQualityApp !== 'undefined') {
-                window.app = new WaterQualityApp();
-                window.app.init();
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // Initialize modern app
+        window.addEventListener('load', async () => {
+            console.log('🚀 Modern Water Quality Platform initializing...');
+            
+            // Initialize the modern application
+            if (typeof ModernWaterQualityApp !== 'undefined') {
+                window.modernApp = new ModernWaterQualityApp();
+                await window.modernApp.init();
+                
+                // Initialize legacy compatibility
+                if (typeof WaterQualityApp !== 'undefined') {
+                    window.app = new WaterQualityApp();
+                    await window.app.init();
+                }
             }
+
+            console.log('✅ Modern application initialized successfully');
         });
     </script>
 </body>

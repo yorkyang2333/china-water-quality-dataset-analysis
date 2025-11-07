@@ -326,3 +326,322 @@ class DataService:
             'stations': stations_info,
             'statistics': statistics
         }
+
+    # ============= GIS检测功能方法 =============
+
+    def get_realtime_monitoring(self, province=None):
+        """获取实时监测指标"""
+        df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
+
+        # 获取最新的数据记录
+        latest_date = df_filtered['Date'].max()
+        recent_data = df_filtered[df_filtered['Date'] >= (latest_date - timedelta(days=7))]
+
+        # 定义标准阈值
+        thresholds = {
+            'Water_Quality_Index': {'good': 40, 'warning': 60, 'danger': 80},
+            'COD_mg_L': {'good': 20, 'warning': 30, 'danger': 40},
+            'pH': {'good_min': 6.5, 'good_max': 8.5, 'warning_min': 6.0, 'warning_max': 9.0},
+            'Total_Nitrogen_mg_L': {'good': 1.0, 'warning': 2.0, 'danger': 3.0},
+            'Total_Phosphorus_mg_L': {'good': 0.2, 'warning': 0.4, 'danger': 0.6},
+            'Dissolved_Oxygen_mg_L': {'good': 6.0, 'warning': 4.0, 'danger': 2.0},
+            'Ammonia_Nitrogen_mg_L': {'good': 1.0, 'warning': 1.5, 'danger': 2.0}
+        }
+
+        indicators = []
+
+        for indicator_name, threshold in thresholds.items():
+            if indicator_name not in df_filtered.columns:
+                continue
+
+            current_value = float(recent_data[indicator_name].mean())
+            all_time_avg = float(df_filtered[indicator_name].mean())
+
+            # 计算变化趋势
+            if len(recent_data) > 1:
+                recent_avg = recent_data.tail(3)[indicator_name].mean()
+                prev_avg = recent_data.head(max(1, len(recent_data) - 3))[indicator_name].mean()
+                trend = 'up' if recent_avg > prev_avg else 'down' if recent_avg < prev_avg else 'stable'
+                change_percent = ((recent_avg - prev_avg) / prev_avg * 100) if prev_avg != 0 else 0
+            else:
+                trend = 'stable'
+                change_percent = 0
+
+            # 判断状态
+            status = 'good'
+            if indicator_name == 'pH':
+                if threshold['good_min'] <= current_value <= threshold['good_max']:
+                    status = 'good'
+                elif threshold['warning_min'] <= current_value <= threshold['warning_max']:
+                    status = 'warning'
+                else:
+                    status = 'danger'
+            elif indicator_name == 'Dissolved_Oxygen_mg_L':
+                # 溶解氧是越高越好
+                if current_value >= threshold['good']:
+                    status = 'good'
+                elif current_value >= threshold['warning']:
+                    status = 'warning'
+                else:
+                    status = 'danger'
+            else:
+                # 其他指标是越低越好
+                if current_value <= threshold['good']:
+                    status = 'good'
+                elif current_value <= threshold['warning']:
+                    status = 'warning'
+                else:
+                    status = 'danger'
+
+            indicators.append({
+                'name': indicator_name,
+                'value': round(current_value, 2),
+                'unit': self._get_unit(indicator_name),
+                'status': status,
+                'trend': trend,
+                'change_percent': round(change_percent, 1),
+                'all_time_avg': round(all_time_avg, 2)
+            })
+
+        return {
+            'timestamp': latest_date.strftime('%Y-%m-%d %H:%M:%S') if pd.notna(latest_date) else None,
+            'indicators': indicators,
+            'total_stations': int(df_filtered['Monitoring_Station'].nunique()),
+            'records_count': int(len(recent_data))
+        }
+
+    def get_monitoring_alerts(self, province=None):
+        """获取告警信息"""
+        df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
+
+        # 获取最新数据
+        latest_date = df_filtered['Date'].max()
+        recent_data = df_filtered[df_filtered['Date'] >= (latest_date - timedelta(days=7))]
+
+        alerts = []
+
+        # 检查污染等级
+        pollution_alerts = recent_data[recent_data['Pollution_Level'].isin(['Poor', 'Very Poor'])]
+        for _, row in pollution_alerts.iterrows():
+            alerts.append({
+                'type': 'pollution',
+                'level': 'high' if row['Pollution_Level'] == 'Very Poor' else 'medium',
+                'station': row['Monitoring_Station'],
+                'province': row['Province'],
+                'message': f"{row['Monitoring_Station']} 污染等级为 {row['Pollution_Level']}",
+                'date': row['Date'].strftime('%Y-%m-%d') if pd.notna(row['Date']) else None,
+                'value': float(row['Water_Quality_Index'])
+            })
+
+        # 检查超标指标
+        if 'COD_mg_L' in recent_data.columns:
+            cod_alerts = recent_data[recent_data['COD_mg_L'] > 40]
+            for _, row in cod_alerts.head(10).iterrows():
+                alerts.append({
+                    'type': 'indicator',
+                    'level': 'high',
+                    'station': row['Monitoring_Station'],
+                    'province': row['Province'],
+                    'message': f"{row['Monitoring_Station']} COD超标",
+                    'date': row['Date'].strftime('%Y-%m-%d') if pd.notna(row['Date']) else None,
+                    'value': float(row['COD_mg_L'])
+                })
+
+        # 按日期排序，最新的在前
+        alerts.sort(key=lambda x: x['date'] if x['date'] else '', reverse=True)
+
+        return {
+            'total_alerts': len(alerts),
+            'critical_count': len([a for a in alerts if a['level'] == 'high']),
+            'warning_count': len([a for a in alerts if a['level'] == 'medium']),
+            'alerts': alerts[:20]  # 返回前20条告警
+        }
+
+    def get_data_quality_info(self, province=None):
+        """获取数据质量信息"""
+        df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
+
+        # 计算缺失值
+        missing_data = []
+        important_columns = ['Water_Quality_Index', 'COD_mg_L', 'pH', 'Total_Nitrogen_mg_L',
+                            'Total_Phosphorus_mg_L', 'Dissolved_Oxygen_mg_L']
+
+        for col in important_columns:
+            if col in df_filtered.columns:
+                missing_count = df_filtered[col].isna().sum()
+                missing_percent = (missing_count / len(df_filtered) * 100) if len(df_filtered) > 0 else 0
+                missing_data.append({
+                    'indicator': col,
+                    'missing_count': int(missing_count),
+                    'missing_percent': round(missing_percent, 2),
+                    'completeness': round(100 - missing_percent, 2)
+                })
+
+        # 计算更新频率
+        if 'Date' in df_filtered.columns and len(df_filtered) > 1:
+            date_diffs = df_filtered.sort_values('Date')['Date'].diff().dt.days.dropna()
+            avg_interval = float(date_diffs.mean()) if len(date_diffs) > 0 else 0
+            latest_update = df_filtered['Date'].max()
+            days_since_update = (datetime.now() - latest_update).days if pd.notna(latest_update) else 999
+        else:
+            avg_interval = 0
+            days_since_update = 999
+
+        # 数据质量评分
+        completeness_score = sum([item['completeness'] for item in missing_data]) / len(missing_data) if missing_data else 100
+        timeliness_score = max(0, 100 - days_since_update * 5)
+        quality_score = (completeness_score * 0.6 + timeliness_score * 0.4)
+
+        return {
+            'quality_score': round(quality_score, 1),
+            'completeness': round(completeness_score, 1),
+            'timeliness': round(timeliness_score, 1),
+            'total_records': int(len(df_filtered)),
+            'total_stations': int(df_filtered['Monitoring_Station'].nunique()),
+            'date_range': {
+                'start': df_filtered['Date'].min().strftime('%Y-%m-%d') if pd.notna(df_filtered['Date'].min()) else None,
+                'end': df_filtered['Date'].max().strftime('%Y-%m-%d') if pd.notna(df_filtered['Date'].max()) else None
+            },
+            'latest_update': df_filtered['Date'].max().strftime('%Y-%m-%d') if pd.notna(df_filtered['Date'].max()) else None,
+            'days_since_update': int(days_since_update),
+            'avg_sampling_interval': round(avg_interval, 1),
+            'missing_data': missing_data
+        }
+
+    def get_pollution_distribution(self, province=None, start_date=None, end_date=None):
+        """获取污染等级分布数据"""
+        df_filtered = self.df.copy()
+
+        if province:
+            df_filtered = df_filtered[df_filtered['Province'] == province]
+        if start_date:
+            df_filtered = df_filtered[df_filtered['Date'] >= pd.to_datetime(start_date)]
+        if end_date:
+            df_filtered = df_filtered[df_filtered['Date'] <= pd.to_datetime(end_date)]
+
+        distribution = df_filtered['Pollution_Level'].value_counts().to_dict()
+
+        # 确保所有等级都有数据
+        all_levels = ['Excellent', 'Good', 'Fair', 'Poor', 'Very Poor']
+        result = []
+        for level in all_levels:
+            result.append({
+                'level': level,
+                'count': int(distribution.get(level, 0)),
+                'percentage': round((distribution.get(level, 0) / len(df_filtered) * 100) if len(df_filtered) > 0 else 0, 1)
+            })
+
+        return {
+            'distribution': result,
+            'total_records': int(len(df_filtered))
+        }
+
+    def get_province_comparison(self, indicator='Water_Quality_Index'):
+        """获取省份对比数据"""
+        if indicator not in self.df.columns:
+            return {'provinces': []}
+
+        comparison = self.df.groupby('Province').agg({
+            indicator: ['mean', 'min', 'max', 'std'],
+            'Monitoring_Station': 'nunique',
+            'Pollution_Level': lambda x: x.value_counts().index[0] if len(x) > 0 else 'Unknown'
+        }).reset_index()
+
+        comparison.columns = ['province', 'avg', 'min', 'max', 'std', 'station_count', 'dominant_level']
+
+        provinces = []
+        for _, row in comparison.iterrows():
+            provinces.append({
+                'province': row['province'],
+                'average': round(float(row['avg']), 2),
+                'min': round(float(row['min']), 2),
+                'max': round(float(row['max']), 2),
+                'std': round(float(row['std']), 2),
+                'station_count': int(row['station_count']),
+                'dominant_level': row['dominant_level']
+            })
+
+        # 按平均值排序
+        provinces.sort(key=lambda x: x['average'])
+
+        return {
+            'indicator': indicator,
+            'provinces': provinces
+        }
+
+    def get_indicator_correlation(self, province=None):
+        """获取指标相关性数据"""
+        df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
+
+        # 选择数值型指标
+        numeric_indicators = ['Water_Quality_Index', 'COD_mg_L', 'pH', 'Total_Nitrogen_mg_L',
+                             'Total_Phosphorus_mg_L', 'Dissolved_Oxygen_mg_L', 'Ammonia_Nitrogen_mg_L',
+                             'Turbidity_NTU']
+
+        available_indicators = [ind for ind in numeric_indicators if ind in df_filtered.columns]
+
+        if len(available_indicators) < 2:
+            return {'indicators': [], 'correlation_matrix': []}
+
+        # 计算相关性矩阵
+        corr_matrix = df_filtered[available_indicators].corr()
+
+        # 转换为前端可用的格式
+        correlation_data = []
+        for i, ind1 in enumerate(available_indicators):
+            row = []
+            for j, ind2 in enumerate(available_indicators):
+                row.append({
+                    'x': ind1,
+                    'y': ind2,
+                    'value': round(float(corr_matrix.iloc[i, j]), 3)
+                })
+            correlation_data.append(row)
+
+        return {
+            'indicators': available_indicators,
+            'correlation_matrix': correlation_data
+        }
+
+    def get_multi_indicator_trend(self, indicators, province=None, interval='month'):
+        """获取多指标趋势数据"""
+        df_filtered = self.df.copy()
+
+        if province:
+            df_filtered = df_filtered[df_filtered['Province'] == province]
+
+        # 按时间间隔聚合
+        if interval == 'day':
+            df_filtered['period'] = df_filtered['Date'].dt.strftime('%Y-%m-%d')
+        elif interval == 'week':
+            df_filtered['period'] = df_filtered['Date'].dt.strftime('%Y-W%U')
+        else:  # month
+            df_filtered['period'] = df_filtered['Date'].dt.strftime('%Y-%m')
+
+        # 为每个指标计算趋势
+        trends = {}
+        for indicator in indicators:
+            if indicator in df_filtered.columns:
+                trend = df_filtered.groupby('period')[indicator].mean().reset_index()
+                trend.columns = ['period', 'value']
+                trends[indicator] = trend.to_dict('records')
+
+        return {
+            'indicators': indicators,
+            'trends': trends
+        }
+
+    def _get_unit(self, indicator_name):
+        """获取指标单位"""
+        units = {
+            'Water_Quality_Index': '',
+            'COD_mg_L': 'mg/L',
+            'pH': '',
+            'Total_Nitrogen_mg_L': 'mg/L',
+            'Total_Phosphorus_mg_L': 'mg/L',
+            'Dissolved_Oxygen_mg_L': 'mg/L',
+            'Ammonia_Nitrogen_mg_L': 'mg/L',
+            'Turbidity_NTU': 'NTU',
+            'BOD_mg_L': 'mg/L'
+        }
+        return units.get(indicator_name, '')

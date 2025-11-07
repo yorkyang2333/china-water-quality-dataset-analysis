@@ -291,6 +291,154 @@ def get_data_by_date():
             'error': str(e)
         }), 500
 
+# ============= GIS检测功能 API =============
+
+@app.route('/api/monitoring/realtime', methods=['GET'])
+def get_realtime_monitoring():
+    """
+    获取实时监测指标
+    返回关键水质指标的实时统计
+    """
+    try:
+        province = request.args.get('province')
+        data = data_service.get_realtime_monitoring(province)
+        return jsonify({
+            'success': True,
+            'data': data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/monitoring/alerts', methods=['GET'])
+def get_monitoring_alerts():
+    """
+    获取告警信息
+    返回超标站点和异常数据
+    """
+    try:
+        province = request.args.get('province')
+        alerts = data_service.get_monitoring_alerts(province)
+        return jsonify({
+            'success': True,
+            'data': alerts
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/monitoring/data-quality', methods=['GET'])
+def get_data_quality():
+    """
+    获取数据质量信息
+    返回数据完整性、更新频率等统计
+    """
+    try:
+        province = request.args.get('province')
+        quality_info = data_service.get_data_quality_info(province)
+        return jsonify({
+            'success': True,
+            'data': quality_info
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/charts/pollution-distribution', methods=['GET'])
+def get_pollution_distribution():
+    """
+    获取污染等级分布数据（用于饼图）
+    """
+    try:
+        province = request.args.get('province')
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+
+        distribution = data_service.get_pollution_distribution(
+            province=province,
+            start_date=start_date,
+            end_date=end_date
+        )
+        return jsonify({
+            'success': True,
+            'data': distribution
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/charts/province-comparison', methods=['GET'])
+def get_province_comparison():
+    """
+    获取省份对比数据（用于柱状图）
+    """
+    try:
+        indicator = request.args.get('indicator', 'Water_Quality_Index')
+        comparison_data = data_service.get_province_comparison(indicator)
+        return jsonify({
+            'success': True,
+            'data': comparison_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/charts/indicator-correlation', methods=['GET'])
+def get_indicator_correlation():
+    """
+    获取指标相关性数据
+    """
+    try:
+        province = request.args.get('province')
+        correlation_data = data_service.get_indicator_correlation(province)
+        return jsonify({
+            'success': True,
+            'data': correlation_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/charts/multi-indicator-trend', methods=['GET'])
+def get_multi_indicator_trend():
+    """
+    获取多指标趋势数据
+    """
+    try:
+        indicators = request.args.getlist('indicators')
+        if not indicators:
+            indicators = ['Water_Quality_Index', 'COD_mg_L', 'pH', 'Total_Nitrogen_mg_L']
+
+        province = request.args.get('province')
+        interval = request.args.get('interval', 'month')
+
+        trend_data = data_service.get_multi_indicator_trend(
+            indicators=indicators,
+            province=province,
+            interval=interval
+        )
+        return jsonify({
+            'success': True,
+            'data': trend_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     print("\n" + "="*60)
     print("  Water Quality Monitoring Platform - Backend Server")
