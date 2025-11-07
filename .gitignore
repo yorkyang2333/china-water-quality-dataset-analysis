@@ -1,35 +1,45 @@
-# Environment variables - DO NOT commit this file
+# Environment variables
 .env
+*.env.local
+*.env.*.local
 
-# Python cache
+# Python cache & artifacts
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.ipynb_checkpoints
 
 # Virtual environment
 venv/
 env/
 ENV/
+.venv/
 
-# IDE
+# IDE & Editor specific
 .vscode/
 .idea/
 *.swp
 *.swo
 
 # CLI agents
-# .claude/
+.claude/
 .gemini/
 
-# Data files (optional - uncomment if you don't want to commit data)
-# *.csv
-# *.xlsx
+# Node.js dependencies & build output
+node_modules/
+/platform_demo/frontend-vue/dist/
+/platform_demo/frontend-vue/auto-imports.d.ts
+/platform_demo/frontend-vue/components.d.ts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Outputs
+
+# Model and analysis outputs
 Outputs/
 catboost_info/
 
-# OS files
+# OS generated files
 .DS_Store
 Thumbs.db
