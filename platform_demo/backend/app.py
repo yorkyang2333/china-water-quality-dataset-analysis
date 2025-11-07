@@ -247,6 +247,50 @@ def get_trends():
             'error': str(e)
         }), 500
 
+@app.route('/api/data/date-range', methods=['GET'])
+def get_date_range():
+    """
+    获取数据的日期范围
+    返回最小和最大日期
+    """
+    try:
+        date_range = data_service.get_date_range()
+        return jsonify({
+            'success': True,
+            'data': date_range
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/data/by-date', methods=['GET'])
+def get_data_by_date():
+    """
+    获取截止到指定日期的站点数据
+    参数：
+        - date: 截止日期 (YYYY-MM-DD)
+    """
+    try:
+        date_str = request.args.get('date')
+        if not date_str:
+            return jsonify({
+                'success': False,
+                'error': 'Date parameter is required'
+            }), 400
+
+        result = data_service.get_stations_by_date(date_str)
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
     print("\n" + "="*60)
     print("  Water Quality Monitoring Platform - Backend Server")

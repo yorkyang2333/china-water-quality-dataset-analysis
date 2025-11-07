@@ -17,12 +17,22 @@ class DataService:
         except UnicodeDecodeError:
             self.df = pd.read_csv(data_path, encoding='utf-8-sig')
 
+        print(f"Columns in dataset: {list(self.df.columns)}")
+
         # 确保日期列为datetime类型
         if 'Date' in self.df.columns:
             self.df['Date'] = pd.to_datetime(self.df['Date'])
+            print("Using 'Date' column")
         elif 'Sampling_Date' in self.df.columns:
             self.df['Sampling_Date'] = pd.to_datetime(self.df['Sampling_Date'])
             self.df.rename(columns={'Sampling_Date': 'Date'}, inplace=True)
+            print("Using 'Sampling_Date' column, renamed to 'Date'")
+        else:
+            print("WARNING: No Date or Sampling_Date column found!")
+
+        # 打印日期范围
+        if 'Date' in self.df.columns:
+            print(f"Date range: {self.df['Date'].min()} to {self.df['Date'].max()}")
 
         # 加载站点位置信息（生成模拟坐标）
         self._generate_station_coordinates()
@@ -248,3 +258,71 @@ class DataService:
         trends.columns = ['period', 'value']
 
         return trends.to_dict('records')
+
+    def get_date_range(self):
+        """获取数据的日期范围"""
+        if 'Date' not in self.df.columns:
+            print("ERROR: Date column not found in dataframe")
+            return {
+                'min_date': None,
+                'max_date': None
+            }
+
+        min_date = self.df['Date'].min()
+        max_date = self.df['Date'].max()
+
+        print(f"Date range requested: {min_date} to {max_date}")
+
+        result = {
+            'min_date': min_date.strftime('%Y-%m-%d') if pd.notna(min_date) else None,
+            'max_date': max_date.strftime('%Y-%m-%d') if pd.notna(max_date) else None
+        }
+
+        print(f"Returning date range: {result}")
+        return result
+
+    def get_stations_by_date(self, date_str):
+        """获取截止到指定日期的站点数据（显示每个站点在该日期前的最新记录）"""
+        target_date = pd.to_datetime(date_str)
+
+        # 过滤到目标日期之前的数据
+        df_filtered = self.df[self.df['Date'] <= target_date]
+
+        if len(df_filtered) == 0:
+            return {
+                'stations': [],
+                'statistics': {
+                    'total_stations': 0,
+                    'total_records': 0,
+                    'avg_wqi': 0
+                }
+            }
+
+        # 为每个站点获取最新记录
+        stations_info = []
+        for station_name in df_filtered['Monitoring_Station'].unique():
+            station_data = df_filtered[df_filtered['Monitoring_Station'] == station_name]
+            latest_record = station_data.sort_values('Date', ascending=False).iloc[0]
+
+            if station_name in self.station_coords:
+                stations_info.append({
+                    'name': station_name,
+                    'province': latest_record['Province'],
+                    'coordinates': self.station_coords[station_name],
+                    'latest_wqi': float(latest_record['Water_Quality_Index']),
+                    'pollution_level': latest_record['Pollution_Level'],
+                    'record_count': int(len(station_data)),
+                    'latest_date': latest_record['Date'].strftime('%Y-%m-%d') if pd.notna(latest_record['Date']) else None
+                })
+
+        # 计算统计信息
+        statistics = {
+            'total_stations': len(stations_info),
+            'total_records': int(len(df_filtered)),
+            'avg_wqi': float(df_filtered['Water_Quality_Index'].mean())
+        }
+
+        return {
+            'stations': stations_info,
+            'statistics': statistics
+        }

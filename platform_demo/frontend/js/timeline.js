@@ -191,8 +191,9 @@ if (typeof WaterQualityApp !== 'undefined') {
 
     /**
      * 初始化时间轴功能（在init方法后调用）
+     * 注意：此方法已弃用，新的时间轴功能在map.js中实现
      */
-    WaterQualityApp.prototype.initTimeline = async function() {
+    WaterQualityApp.prototype.initTimelineOld = async function() {
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
 
@@ -201,9 +202,12 @@ if (typeof WaterQualityApp !== 'undefined') {
     };
 
     // 修改原有的init方法，添加时间轴初始化
+    // 注意：已注释掉，不再覆盖init方法
+    /*
     const originalInit = WaterQualityApp.prototype.init;
     WaterQualityApp.prototype.init = async function() {
         await originalInit.call(this);
         await this.initTimeline();
     };
+    */
 }

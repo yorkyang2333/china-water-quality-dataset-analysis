@@ -9,11 +9,14 @@ class WaterQualityApp {
     constructor() {
         this.map = null;
         this.stations = [];
+        this.allStations = [];  // 存储所有站点数据
         this.markerClusterGroup = null;
         this.drawnItems = null;
         this.currentIndicator = 'Water_Quality_Index';
         this.currentProvince = null;
         this.dateRange = { start: null, end: null };
+        this.timelineRange = { start: null, end: null };  // 时间轴的实际范围
+        this.currentTimelineDate = null;  // 当前时间轴选中的日期
         this.trendChart = null;
     }
 
@@ -95,12 +98,22 @@ class WaterQualityApp {
      * 初始化事件监听器
      */
     initEventListeners() {
-        // 时间轴滑块
+        // 时间轴滑块 - input事件用于实时更新显示
         const slider = document.getElementById('timelineSlider');
         if (slider) {
+            console.log('🎚️ Timeline slider found, binding events');
             slider.addEventListener('input', (e) => {
-                this.handleTimelineChange(e.target.value);
+                console.log('Timeline slider input:', e.target.value);
+                this.updateTimelineSlider(e.target.value);
             });
+
+            // change事件用于实际过滤数据（减少API调用）
+            slider.addEventListener('change', (e) => {
+                console.log('Timeline slider change:', e.target.value);
+                this.applyTimelineFilter(e.target.value);
+            });
+        } else {
+            console.warn('⚠️ Timeline slider not found!');
         }
     }
 
@@ -126,8 +139,14 @@ class WaterQualityApp {
             const result = await response.json();
 
             if (result.success) {
+                this.allStations = result.data;
                 this.stations = result.data;
                 this.renderStations();
+                await this.initTimelineRange();  // 初始化时间轴范围
+
+                // 加载趋势图表
+                await this.loadTrends('Water_Quality_Index', null, 'month');
+
                 console.log(`✅ Loaded ${this.stations.length} stations`);
             }
         } catch (error) {
@@ -426,31 +445,126 @@ class WaterQualityApp {
     }
 
     /**
-     * 时间轴变化处理
+     * 初始化时间轴范围（基于实际数据）
      */
-    async handleTimelineChange(value) {
-        const current = document.getElementById('timelineCurrent');
+    async initTimelineRange() {
+        try {
+            console.log('📅 Initializing timeline range...');
+            const response = await fetch(`${API_BASE_URL}/data/date-range`);
+            const result = await response.json();
 
-        // 计算实际日期
-        if (this.dateRange.start && this.dateRange.end) {
-            const startDate = new Date(this.dateRange.start);
-            const endDate = new Date(this.dateRange.end);
-            const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
-            const selectedDays = Math.floor(totalDays * (value / 100));
-            const selectedDate = new Date(startDate.getTime() + selectedDays * 24 * 60 * 60 * 1000);
+            console.log('Timeline API response:', result);
 
-            if (current) {
-                current.textContent = selectedDate.toLocaleDateString('zh-CN');
+            if (result.success && result.data) {
+                this.timelineRange.start = new Date(result.data.min_date);
+                this.timelineRange.end = new Date(result.data.max_date);
+                this.currentTimelineDate = this.timelineRange.end;  // 默认显示最新数据
+
+                console.log('Timeline range:', {
+                    start: this.timelineRange.start,
+                    end: this.timelineRange.end,
+                    startFormatted: this.formatDisplayDate(this.timelineRange.start),
+                    endFormatted: this.formatDisplayDate(this.timelineRange.end)
+                });
+
+                // 更新UI
+                const startElem = document.getElementById('timelineStart');
+                const endElem = document.getElementById('timelineEnd');
+                const currentElem = document.getElementById('timelineCurrent');
+
+                if (startElem) startElem.textContent = this.formatDisplayDate(this.timelineRange.start);
+                if (endElem) endElem.textContent = this.formatDisplayDate(this.timelineRange.end);
+                if (currentElem) currentElem.textContent = this.formatDisplayDate(this.currentTimelineDate);
+
+                // 设置滑块初始值为最大值（最新日期）
+                const slider = document.getElementById('timelineSlider');
+                if (slider) slider.value = 100;
+
+                console.log(`✅ Timeline initialized: ${result.data.min_date} to ${result.data.max_date}`);
+            } else {
+                console.error('❌ Timeline API returned unsuccessful or no data:', result);
             }
-
-            // 重新加载数据到选定日期
-            this.selectedDate = selectedDate.toISOString().split('T')[0];
-            await this.loadStations();
-        } else {
-            if (current) {
-                current.textContent = `${value}%`;
-            }
+        } catch (error) {
+            console.error('❌ Error initializing timeline:', error);
         }
+    }
+
+    /**
+     * 更新时间轴滑块显示（拖动时实时更新，不过滤数据）
+     */
+    updateTimelineSlider(sliderValue) {
+        console.log('Updating timeline slider, value:', sliderValue);
+        console.log('Timeline range:', this.timelineRange);
+
+        if (!this.timelineRange.start || !this.timelineRange.end) {
+            console.warn('Timeline range not initialized');
+            return;
+        }
+
+        const percentage = sliderValue / 100;
+        const totalMs = this.timelineRange.end - this.timelineRange.start;
+        const selectedMs = totalMs * percentage;
+        const selectedDate = new Date(this.timelineRange.start.getTime() + selectedMs);
+
+        console.log('Calculated date:', this.formatDisplayDate(selectedDate));
+
+        // 只更新显示，不过滤数据
+        const currentElem = document.getElementById('timelineCurrent');
+        if (currentElem) {
+            currentElem.textContent = this.formatDisplayDate(selectedDate);
+        } else {
+            console.warn('Timeline current element not found');
+        }
+    }
+
+    /**
+     * 应用时间轴过滤（松开滑块时执行）
+     */
+    async applyTimelineFilter(sliderValue) {
+        if (!this.timelineRange.start || !this.timelineRange.end) return;
+
+        const percentage = sliderValue / 100;
+        const totalMs = this.timelineRange.end - this.timelineRange.start;
+        const selectedMs = totalMs * percentage;
+        this.currentTimelineDate = new Date(this.timelineRange.start.getTime() + selectedMs);
+
+        try {
+            this.showLoading();
+
+            // 调用后端API获取截止到该日期的数据
+            const dateStr = this.formatDate(this.currentTimelineDate);
+            const response = await fetch(`${API_BASE_URL}/data/by-date?date=${dateStr}`);
+            const result = await response.json();
+
+            if (result.success) {
+                // 更新站点数据
+                this.stations = result.data.stations || [];
+                this.renderStations();
+
+                // 更新统计信息
+                if (result.data.statistics) {
+                    this.updateHeaderStats(result.data.statistics);
+                }
+
+                console.log(`✅ Filtered to date: ${dateStr}, showing ${this.stations.length} stations`);
+            }
+        } catch (error) {
+            console.error('❌ Error applying timeline filter:', error);
+            this.showError('时间轴过滤失败');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    /**
+     * 格式化显示日期
+     */
+    formatDisplayDate(date) {
+        if (!date) return '-';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     // 工具函数
