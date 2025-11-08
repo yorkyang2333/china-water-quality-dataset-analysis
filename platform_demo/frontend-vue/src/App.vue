@@ -40,7 +40,7 @@ onMounted(() => {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -56,26 +56,81 @@ onMounted(() => {
 }
 
 .el-button {
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 500;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--primary {
+    background: #409EFF !important;
+    background-color: #409EFF !important;
+    background-image: none !important;
+    border-color: #409EFF;
+
+    &:hover {
+      background: #66b1ff !important;
+      background-color: #66b1ff !important;
+      background-image: none !important;
+      border-color: #66b1ff;
+    }
+
+    &:active {
+      background: #3a8ee6 !important;
+      background-color: #3a8ee6 !important;
+      background-image: none !important;
+      border-color: #3a8ee6;
+    }
+  }
+
+  &--small {
+    &.el-button--primary {
+      background: #409EFF !important;
+      background-color: #409EFF !important;
+      background-image: none !important;
+    }
+  }
 }
 
 .el-card {
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: 1px solid #e4e7ed;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  background: #ffffff;
 }
 
 .el-input__wrapper {
-  border-radius: 12px;
+  border-radius: 8px;
   transition: all 0.3s ease;
+
+  &:hover {
+    border-color: #409EFF;
+  }
+
+  &.is-focus {
+    border-color: #409EFF;
+    box-shadow: 0 0 0 1px rgba(64, 158, 255, 0.2);
+  }
 }
 
 .el-select .el-input__wrapper {
-  border-radius: 12px;
+  border-radius: 8px;
+
+  &:hover {
+    border-color: #409EFF;
+  }
+
+  &.is-focus {
+    border-color: #409EFF;
+  }
+}
+
+.el-tag {
+  border-radius: 6px;
+
+  &--primary {
+    background-color: rgba(64, 158, 255, 0.1);
+    border-color: #409EFF;
+    color: #409EFF;
+  }
 }
 
 // 平滑滚动

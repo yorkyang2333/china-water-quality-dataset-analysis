@@ -26,19 +26,31 @@ CORS(app)  # 允许跨域请求
 print(f"Frontend folder: {frontend_folder}")
 
 # 初始化数据服务和预测器
-# 数据文件在项目根目录的上一级
-DATA_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    'preprocessed_data_feature_eng.csv'
-)
+# 数据文件路径优先级：
+# 1. 项目根目录/preprocessed_data_feature_eng.csv
+# 2. 项目根目录/preprocess/preprocessed_data_feature_eng.csv
+# 3. 项目根目录/preprocessed_data.csv
 
-# 检查数据文件是否存在
-print(f"Looking for data file at: {DATA_PATH}")
-if not os.path.exists(DATA_PATH):
-    print(f"❌ ERROR: Data file not found at {DATA_PATH}")
-    print(f"Please ensure preprocessed_data_feature_eng.csv is in the correct location")
-else:
-    print(f"✓ Data file found")
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+possible_paths = [
+    os.path.join(project_root, 'preprocessed_data_feature_eng.csv'),
+    os.path.join(project_root, 'preprocess', 'preprocessed_data_feature_eng.csv'),
+    os.path.join(project_root, 'preprocessed_data.csv'),
+    os.path.join(project_root, 'preprocess', 'preprocessed_data.csv')
+]
+
+DATA_PATH = None
+for path in possible_paths:
+    if os.path.exists(path):
+        DATA_PATH = path
+        print(f"✓ Data file found at: {DATA_PATH}")
+        break
+
+if DATA_PATH is None:
+    print(f"❌ ERROR: Data file not found. Searched in:")
+    for path in possible_paths:
+        print(f"  - {path}")
+    raise FileNotFoundError("Could not find preprocessed data CSV file")
 
 try:
     data_service = DataService(DATA_PATH)
@@ -446,7 +458,9 @@ if __name__ == '__main__':
     print(f"\n  Data loaded: {len(data_service.df)} records")
     print(f"  Provinces: {data_service.df['Province'].nunique()}")
     print(f"  Stations: {data_service.df['Monitoring_Station'].nunique()}")
-    print("\n  Server running at: http://localhost:5000")
+    print("\n  Server running at: http://localhost:8000")
     print("="*60 + "\n")
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variable to control debug mode (default: False to avoid double start)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=8000, use_reloader=False)

@@ -13,12 +13,26 @@ class WaterQualityPredictor:
     def __init__(self):
         """初始化预测器，加载训练好的模型"""
         self.model = None
+        # 模型训练时使用的特征列（按顺序）
         self.feature_columns = [
-            'Water_Quality_Index', 'COD_mg_L', 'BOD_mg_L', 'Total_Nitrogen_mg_L',
-            'Total_Phosphorus_mg_L', 'Dissolved_Oxygen_mg_L', 'pH',
-            'Ammonia_N_mg_L', 'Turbidity_NTU', 'Temperature_C',
-            'Conductivity_uS_cm', 'Lead_ug_L', 'Cadmium_ug_L', 'Mercury_ug_L',
-            'Total_Heavy_Metals_ug_L', 'COD_BOD_Ratio', 'NP_Ratio'
+            'Latitude',
+            'Longitude',
+            'Water_Temperature_C',
+            'pH',
+            'Dissolved_Oxygen_mg_L',
+            'Conductivity_uS_cm',
+            'Turbidity_NTU',
+            'Nitrate_mg_L',
+            'Nitrite_mg_L',
+            'Ammonia_N_mg_L',
+            'Total_Phosphorus_mg_L',
+            'Total_Nitrogen_mg_L',
+            'COD_mg_L',
+            'BOD_mg_L',
+            'Coliform_Count_CFU_100mL',
+            'Total_Heavy_Metals_ug_L',
+            'COD_BOD_Ratio',
+            'NP_Ratio'
         ]
         self.pollution_levels = ['Excellent', 'Good', 'Fair', 'Poor', 'Very Poor']
 
@@ -27,24 +41,34 @@ class WaterQualityPredictor:
 
     def _load_model(self):
         """加载训练好的模型"""
-        # 尝试加载XGBoost模型（最佳模型）
+        # 模型文件应该放在 backend/models/saved_models/ 目录下
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # 优先从本地saved_models目录加载
         model_paths = [
-            '../Outputs/Classification_XGBoost/xgboost_model.pkl',
-            '../../Outputs/Classification_XGBoost/xgboost_model.pkl',
-            '../../../Outputs/Classification_XGBoost/xgboost_model.pkl'
+            # 首选：backend/models/saved_models/
+            os.path.join(current_dir, 'saved_models', 'xgboost_model.pkl'),
+            # 备选：backend/models/
+            os.path.join(current_dir, 'xgboost_model.pkl'),
+            # 后备：项目根目录的Outputs（仅用于开发）
+            os.path.join(current_dir, '../../../Outputs/Classification_XGBoost/xgboost_model.pkl'),
         ]
 
         for path in model_paths:
-            full_path = os.path.join(os.path.dirname(__file__), path)
+            full_path = os.path.normpath(path)
             if os.path.exists(full_path):
                 try:
                     self.model = joblib.load(full_path)
-                    print(f"Model loaded successfully from: {full_path}")
+                    print(f"✓ Model loaded successfully from: {full_path}")
                     return
                 except Exception as e:
-                    print(f"Error loading model from {full_path}: {e}")
+                    print(f"⚠ Error loading model from {full_path}: {e}")
 
-        print("Warning: No trained model found. Using mock predictions.")
+        print("⚠ Warning: No trained model found. Using mock predictions.")
+        print("  To use a trained model:")
+        print("  1. Train the model: python models/pollution_level_classification/classification_xgboost.py")
+        print("  2. Copy the model file to: platform_demo/backend/models/saved_models/xgboost_model.pkl")
+        print("     Or copy to: platform_demo/backend/models/xgboost_model.pkl")
 
     def predict_pollution_level(self, input_data):
         """
@@ -53,42 +77,138 @@ class WaterQualityPredictor:
         输出：预测的污染等级及概率
         """
         try:
-            # 准备特征数据
+            # 字段名映射（支持驼峰命名和下划线命名）
+            field_mapping = {
+                'waterQualityIndex': 'Water_Quality_Index',
+                'cod': 'COD_mg_L',
+                'bod': 'BOD_mg_L',
+                'totalNitrogen': 'Total_Nitrogen_mg_L',
+                'totalPhosphorus': 'Total_Phosphorus_mg_L',
+                'dissolvedOxygen': 'Dissolved_Oxygen_mg_L',
+                'ph': 'pH',
+                'ammoniaN': 'Ammonia_N_mg_L',
+                'turbidity': 'Turbidity_NTU',
+                'temperature': 'Water_Temperature_C',
+                'waterTemperature': 'Water_Temperature_C',
+                'conductivity': 'Conductivity_uS_cm',
+                'nitrate': 'Nitrate_mg_L',
+                'nitrite': 'Nitrite_mg_L',
+                'coliformCount': 'Coliform_Count_CFU_100mL',
+                'latitude': 'Latitude',
+                'longitude': 'Longitude',
+                'totalHeavyMetals': 'Total_Heavy_Metals_ug_L',
+                'codBodRatio': 'COD_BOD_Ratio',
+                'npRatio': 'NP_Ratio'
+            }
+
+            # 转换输入数据
+            normalized_data = {}
+            for key, value in input_data.items():
+                # 如果是驼峰命名，转换为下划线命名
+                if key in field_mapping:
+                    normalized_data[field_mapping[key]] = value
+                else:
+                    normalized_data[key] = value
+
+            # 设置默认值（基于数据集的典型值）
+            default_values = {
+                'Latitude': 30.0,  # 中国中部纬度
+                'Longitude': 110.0,  # 中国中部经度
+                'Water_Temperature_C': 18.0,
+                'pH': normalized_data.get('pH', 7.0),
+                'Dissolved_Oxygen_mg_L': normalized_data.get('Dissolved_Oxygen_mg_L', 7.0),
+                'Conductivity_uS_cm': 500.0,
+                'Turbidity_NTU': normalized_data.get('Turbidity_NTU', 5.0),
+                'Nitrate_mg_L': 2.0,
+                'Nitrite_mg_L': 0.1,
+                'Ammonia_N_mg_L': 0.5,
+                'Total_Phosphorus_mg_L': normalized_data.get('Total_Phosphorus_mg_L', 0.1),
+                'Total_Nitrogen_mg_L': normalized_data.get('Total_Nitrogen_mg_L', 2.0),
+                'COD_mg_L': normalized_data.get('COD_mg_L', 15.0),
+                'BOD_mg_L': 3.0,
+                'Coliform_Count_CFU_100mL': 100.0,
+                'Total_Heavy_Metals_ug_L': 5.0,
+                'COD_BOD_Ratio': 5.0,
+                'NP_Ratio': 20.0
+            }
+
+            # 计算派生特征
+            cod_val = normalized_data.get('COD_mg_L', default_values['COD_mg_L'])
+            bod_val = normalized_data.get('BOD_mg_L', default_values['BOD_mg_L'])
+            tn_val = normalized_data.get('Total_Nitrogen_mg_L', default_values['Total_Nitrogen_mg_L'])
+            tp_val = normalized_data.get('Total_Phosphorus_mg_L', default_values['Total_Phosphorus_mg_L'])
+
+            if 'COD_BOD_Ratio' not in normalized_data:
+                normalized_data['COD_BOD_Ratio'] = cod_val / bod_val if bod_val > 0 else default_values['COD_BOD_Ratio']
+
+            if 'NP_Ratio' not in normalized_data:
+                normalized_data['NP_Ratio'] = tn_val / tp_val if tp_val > 0 else default_values['NP_Ratio']
+
+            # 准备特征数据，按正确顺序
             features = []
             for col in self.feature_columns:
-                value = input_data.get(col, 0)
+                if col in normalized_data:
+                    value = normalized_data[col]
+                else:
+                    value = default_values.get(col, 0)
                 features.append(float(value))
 
             features_array = np.array(features).reshape(1, -1)
 
             if self.model is not None:
                 # 使用训练好的模型预测
-                prediction = self.model.predict(features_array)[0]
+                prediction_num = self.model.predict(features_array)[0]
                 probabilities = self.model.predict_proba(features_array)[0]
 
-                # 获取概率分布
+                # 标签映射 (模型返回的是数字0-4)
+                label_mapping = {
+                    0: 'Excellent',
+                    1: 'Fair',
+                    2: 'Good',
+                    3: 'Poor',
+                    4: 'Very Poor'
+                }
+
+                prediction = label_mapping.get(int(prediction_num), 'Unknown')
+
+                # 获取概率分布（将数字键转换为文字标签）
                 prob_dict = {}
-                for level, prob in zip(self.model.classes_, probabilities):
-                    prob_dict[level] = float(prob)
+                for idx, prob in enumerate(probabilities):
+                    label = label_mapping.get(idx, f'Level_{idx}')
+                    prob_dict[label] = float(prob)
 
             else:
-                # Mock预测（基于WQI简单规则）
-                wqi = input_data.get('Water_Quality_Index', 50)
-                if wqi < 20:
-                    prediction = 'Excellent'
-                    prob_dict = {'Excellent': 0.85, 'Good': 0.10, 'Fair': 0.03, 'Poor': 0.01, 'Very Poor': 0.01}
-                elif wqi < 40:
-                    prediction = 'Good'
-                    prob_dict = {'Excellent': 0.10, 'Good': 0.75, 'Fair': 0.10, 'Poor': 0.03, 'Very Poor': 0.02}
-                elif wqi < 60:
-                    prediction = 'Fair'
-                    prob_dict = {'Excellent': 0.02, 'Good': 0.15, 'Fair': 0.70, 'Poor': 0.10, 'Very Poor': 0.03}
-                elif wqi < 80:
-                    prediction = 'Poor'
-                    prob_dict = {'Excellent': 0.01, 'Good': 0.03, 'Fair': 0.15, 'Poor': 0.70, 'Very Poor': 0.11}
-                else:
+                # Mock预测（基于主要指标的简单规则）
+                cod = normalized_data.get('COD_mg_L', default_values['COD_mg_L'])
+                do = normalized_data.get('Dissolved_Oxygen_mg_L', default_values['Dissolved_Oxygen_mg_L'])
+                tn = normalized_data.get('Total_Nitrogen_mg_L', default_values['Total_Nitrogen_mg_L'])
+
+                # 基于多个指标的综合评估
+                score = 0
+                if cod > 30: score += 2
+                elif cod > 20: score += 1
+
+                if do < 5: score += 2
+                elif do < 6: score += 1
+
+                if tn > 5: score += 2
+                elif tn > 2: score += 1
+
+                if score >= 5:
                     prediction = 'Very Poor'
                     prob_dict = {'Excellent': 0.01, 'Good': 0.01, 'Fair': 0.03, 'Poor': 0.15, 'Very Poor': 0.80}
+                elif score >= 4:
+                    prediction = 'Poor'
+                    prob_dict = {'Excellent': 0.01, 'Good': 0.03, 'Fair': 0.15, 'Poor': 0.70, 'Very Poor': 0.11}
+                elif score >= 2:
+                    prediction = 'Fair'
+                    prob_dict = {'Excellent': 0.02, 'Good': 0.15, 'Fair': 0.70, 'Poor': 0.10, 'Very Poor': 0.03}
+                elif score >= 1:
+                    prediction = 'Good'
+                    prob_dict = {'Excellent': 0.10, 'Good': 0.75, 'Fair': 0.10, 'Poor': 0.03, 'Very Poor': 0.02}
+                else:
+                    prediction = 'Excellent'
+                    prob_dict = {'Excellent': 0.85, 'Good': 0.10, 'Fair': 0.03, 'Poor': 0.01, 'Very Poor': 0.01}
 
             return {
                 'prediction': prediction,
@@ -97,6 +217,9 @@ class WaterQualityPredictor:
             }
 
         except Exception as e:
+            print(f"Prediction error details: {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise Exception(f"Prediction error: {str(e)}")
 
     def predict_water_quality(self, input_data):

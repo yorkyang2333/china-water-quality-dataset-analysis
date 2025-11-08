@@ -25,8 +25,10 @@ print()
 from backend.app import app
 
 if __name__ == '__main__':
-    print("Starting server at http://localhost:5000")
+    print("Starting server at http://localhost:8000")
     print("Press Ctrl+C to stop")
     print("="*60)
     print()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use environment variable to control debug mode (default: False to avoid double start)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=8000, use_reloader=False)

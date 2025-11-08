@@ -11,11 +11,11 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
   const selectedProvince = ref('')
   const selectedDateRange = ref([])
 
-  // 计算属性
+  // 计算属性 - 添加数组防护
   const stationCount = computed(() => stations.value.length)
-  const criticalAlerts = computed(() => alerts.value.filter(alert => alert.level === 'critical'))
-  const warningAlerts = computed(() => alerts.value.filter(alert => alert.level === 'warning'))
-  const totalAlerts = computed(() => alerts.value.length)
+  const criticalAlerts = computed(() => Array.isArray(alerts.value) ? alerts.value.filter(alert => alert.level === 'critical') : [])
+  const warningAlerts = computed(() => Array.isArray(alerts.value) ? alerts.value.filter(alert => alert.level === 'warning') : [])
+  const totalAlerts = computed(() => Array.isArray(alerts.value) ? alerts.value.length : 0)
 
   // 获取所有站点
   const fetchStations = async () => {
@@ -57,10 +57,20 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
   const fetchAlerts = async (province = '') => {
     try {
       const response = await waterQualityApi.getAlerts(province)
-      alerts.value = response.data.data || []
+      // 确保返回的是数组格式
+      const data = response.data.data
+      if (data && typeof data === 'object') {
+        // 后端返回的是对象 { total_alerts, critical_count, warning_count, alerts: [] }
+        alerts.value = data.alerts || []
+      } else if (Array.isArray(data)) {
+        alerts.value = data
+      } else {
+        alerts.value = []
+      }
       return alerts.value
     } catch (error) {
       console.error('获取告警信息失败:', error)
+      alerts.value = [] // 确保出错时也是数组
       throw error
     }
   }
@@ -83,6 +93,28 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
       return response.data
     } catch (error) {
       console.error('获取污染分布数据失败:', error)
+      throw error
+    }
+  }
+
+  // 获取趋势数据
+  const getTrends = async (params = {}) => {
+    try {
+      const response = await waterQualityApi.getTrends(params)
+      return response.data
+    } catch (error) {
+      console.error('获取趋势数据失败:', error)
+      throw error
+    }
+  }
+
+  // 获取省份对比数据
+  const getProvinceComparison = async (params = {}) => {
+    try {
+      const response = await waterQualityApi.getProvinceComparison(params)
+      return response.data
+    } catch (error) {
+      console.error('获取省份对比数据失败:', error)
       throw error
     }
   }
@@ -124,6 +156,8 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
     fetchAlerts,
     predictPollutionLevel,
     fetchPollutionDistribution,
+    getTrends,
+    getProvinceComparison,
     setProvince,
     setDateRange,
     resetFilters

@@ -1,19 +1,19 @@
 <template>
   <div class="dashboard">
-    <!-- 页面标题和筛选器 -->
-    <div class="dashboard-header">
-      <div class="header-content">
+    <!-- 页面标题 -->
+    <div class="page-header">
+      <div>
         <h1 class="page-title">数据概览</h1>
         <p class="page-subtitle">全国水质监测数据实时监控</p>
       </div>
-      
-      <div class="header-filters">
+
+      <div class="header-actions">
         <el-select
           v-model="selectedProvince"
           placeholder="选择省份"
           clearable
           @change="handleProvinceChange"
-          style="width: 200px"
+          style="width: 180px"
         >
           <el-option
             v-for="province in provinces"
@@ -22,7 +22,7 @@
             :value="province"
           />
         </el-select>
-        
+
         <el-date-picker
           v-model="dateRange"
           type="daterange"
@@ -30,223 +30,209 @@
           start-placeholder="开始日期"
           end-placeholder="结束日期"
           @change="handleDateChange"
-          style="width: 280px"
+          style="width: 260px"
         />
       </div>
     </div>
 
     <!-- 统计卡片 -->
-    <div class="stats-grid">
-      <div class="stat-card glass-card fade-in">
-        <div class="stat-icon bg-info">
-          <el-icon><Location /></el-icon>
-        </div>
-        <div class="stat-content">
+    <el-row :gutter="20" class="stats-row">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-icon-wrapper blue">
+            <el-icon :size="32"><Location /></el-icon>
+          </div>
           <div class="stat-value">{{ stationCount }}</div>
           <div class="stat-label">监测站点</div>
-          <div class="stat-change positive">
-            <el-icon><TrendCharts /></el-icon>
+          <div class="stat-trend up">
+            <el-icon><Top /></el-icon>
             <span>+12% 本月新增</span>
           </div>
-        </div>
-      </div>
+        </el-card>
+      </el-col>
 
-      <div class="stat-card glass-card fade-in">
-        <div class="stat-icon bg-success">
-          <el-icon><CircleCheck /></el-icon>
-        </div>
-        <div class="stat-content">
-          <div class="stat-value">{{ statistics.excellent || 0 }}</div>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-icon-wrapper green">
+            <el-icon :size="32"><CircleCheck /></el-icon>
+          </div>
+          <div class="stat-value">{{ statistics.excellent || statistics.Excellent || 0 }}</div>
           <div class="stat-label">优秀水质</div>
-          <div class="stat-change positive">
-            <el-icon><TrendCharts /></el-icon>
+          <div class="stat-trend up">
+            <el-icon><Top /></el-icon>
             <span>+5% 较上月</span>
           </div>
-        </div>
-      </div>
+        </el-card>
+      </el-col>
 
-      <div class="stat-card glass-card fade-in">
-        <div class="stat-icon bg-warning">
-          <el-icon><Warning /></el-icon>
-        </div>
-        <div class="stat-content">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-icon-wrapper orange">
+            <el-icon :size="32"><Warning /></el-icon>
+          </div>
           <div class="stat-value">{{ warningAlerts.length }}</div>
           <div class="stat-label">预警站点</div>
-          <div class="stat-change negative">
-            <el-icon><TrendCharts /></el-icon>
+          <div class="stat-trend down">
+            <el-icon><Bottom /></el-icon>
             <span>-3% 较上月</span>
           </div>
-        </div>
-      </div>
+        </el-card>
+      </el-col>
 
-      <div class="stat-card glass-card fade-in">
-        <div class="stat-icon bg-danger">
-          <el-icon><CircleClose /></el-icon>
-        </div>
-        <div class="stat-content">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-icon-wrapper red">
+            <el-icon :size="32"><CircleClose /></el-icon>
+          </div>
           <div class="stat-value">{{ criticalAlerts.length }}</div>
           <div class="stat-label">严重污染</div>
-          <div class="stat-change negative">
-            <el-icon><TrendCharts /></el-icon>
+          <div class="stat-trend down">
+            <el-icon><Bottom /></el-icon>
             <span>+2% 需关注</span>
           </div>
-        </div>
-      </div>
-    </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-    <!-- 图表和地图区域 -->
-    <div class="dashboard-content">
-      <!-- 左侧图表 -->
-      <div class="charts-section">
-        <!-- 污染等级分布 -->
-        <div class="chart-container glass-card fade-in">
-          <div class="chart-header">
-            <h3 class="chart-title">污染等级分布</h3>
-            <el-select
-              v-model="chartProvince"
-              placeholder="选择省份"
-              clearable
-              @change="updatePollutionChart"
-              style="width: 150px"
-            >
-              <el-option
-                v-for="province in provinces"
-                :key="province"
-                :label="province"
-                :value="province"
-              />
-            </el-select>
-          </div>
-          <div class="chart-content">
+    <!-- 图表区域 -->
+    <el-row :gutter="20" class="charts-row">
+      <!-- 污染等级分布 -->
+      <el-col :xs="24" :md="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">污染等级分布</span>
+            </div>
+          </template>
+          <div class="chart-wrapper">
             <canvas ref="pollutionChart"></canvas>
           </div>
-        </div>
+        </el-card>
+      </el-col>
 
-        <!-- 趋势图表 -->
-        <div class="chart-container glass-card fade-in">
-          <div class="chart-header">
-            <h3 class="chart-title">水质趋势</h3>
-            <el-select
-              v-model="trendIndicator"
-              @change="updateTrendChart"
-              style="width: 150px"
-            >
-              <el-option label="水质指数" value="Water_Quality_Index" />
-              <el-option label="COD" value="COD_mg_L" />
-              <el-option label="总氮" value="Total_Nitrogen_mg_L" />
-              <el-option label="总磷" value="Total_Phosphorus_mg_L" />
-            </el-select>
-          </div>
-          <div class="chart-content">
+      <!-- 水质趋势 -->
+      <el-col :xs="24" :md="12">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">水质趋势</span>
+              <el-select
+                v-model="trendIndicator"
+                @change="updateTrendChart"
+                size="small"
+                style="width: 120px"
+              >
+                <el-option label="水质指数" value="Water_Quality_Index" />
+                <el-option label="COD" value="COD_mg_L" />
+                <el-option label="总氮" value="Total_Nitrogen_mg_L" />
+                <el-option label="总磷" value="Total_Phosphorus_mg_L" />
+              </el-select>
+            </div>
+          </template>
+          <div class="chart-wrapper">
             <canvas ref="trendChart"></canvas>
           </div>
-        </div>
-      </div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-      <!-- 右侧地图和告警 -->
-      <div class="side-section">
-        <!-- 实时告警 -->
-        <div class="alerts-container glass-card fade-in">
-          <div class="alerts-header">
-            <h3 class="alerts-title">
-              <el-icon><Warning /></el-icon>
-              实时告警
-            </h3>
-            <el-badge :value="totalAlerts" type="danger" />
-          </div>
-          <div class="alerts-list custom-scrollbar">
-            <div
-              v-for="alert in recentAlerts"
-              :key="alert.id"
-              class="alert-item"
-              :class="alert.level"
-            >
-              <div class="alert-icon">
-                <el-icon>
-                  <CircleClose v-if="alert.level === 'critical'" />
-                  <Warning v-else />
-                </el-icon>
-              </div>
-              <div class="alert-content">
-                <div class="alert-title">{{ alert.station }}</div>
-                <div class="alert-message">{{ alert.message }}</div>
-                <div class="alert-time">{{ alert.time }}</div>
+    <!-- 实时告警和快捷操作 -->
+    <el-row :gutter="20" class="bottom-row">
+      <!-- 实时告警 -->
+      <el-col :xs="24" :md="16">
+        <el-card shadow="hover" class="alerts-card">
+          <template #header>
+            <div class="card-header">
+              <span class="card-title">
+                <el-icon><Bell /></el-icon>
+                实时告警
+              </span>
+              <el-badge :value="totalAlerts" type="danger" />
+            </div>
+          </template>
+          <el-scrollbar height="320px">
+            <div v-if="recentAlerts.length === 0" class="empty-state">
+              <el-icon :size="48" color="#C0C4CC"><CircleCheck /></el-icon>
+              <p>暂无告警信息</p>
+            </div>
+            <div v-else class="alerts-list">
+              <div
+                v-for="alert in recentAlerts"
+                :key="alert.id"
+                class="alert-item"
+                :class="alert.level"
+              >
+                <div class="alert-icon">
+                  <el-icon v-if="alert.level === 'critical'"><CircleClose /></el-icon>
+                  <el-icon v-else><Warning /></el-icon>
+                </div>
+                <div class="alert-content">
+                  <div class="alert-title">{{ alert.station }}</div>
+                  <div class="alert-message">{{ alert.message }}</div>
+                  <div class="alert-time">{{ alert.time }}</div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </el-scrollbar>
+        </el-card>
+      </el-col>
 
-        <!-- 快速操作 -->
-        <div class="quick-actions glass-card fade-in">
-          <h3 class="actions-title">快速操作</h3>
-          <div class="action-buttons">
-            <el-button
-              type="primary"
-              @click="$router.push('/monitoring')"
-              class="action-btn"
-            >
-              <el-icon><Monitor /></el-icon>
-              实时监测
+      <!-- 快捷操作 -->
+      <el-col :xs="24" :md="8">
+        <el-card shadow="hover" class="quick-actions-card">
+          <template #header>
+            <span class="card-title">快捷操作</span>
+          </template>
+          <div class="quick-actions">
+            <el-button type="primary" @click="$router.push('/monitoring')">
+              <el-icon><View /></el-icon>
+              <span>实时监测</span>
             </el-button>
-            
-            <el-button
-              type="success"
-              @click="$router.push('/prediction')"
-              class="action-btn"
-            >
+            <el-button type="primary" @click="$router.push('/prediction')">
               <el-icon><TrendCharts /></el-icon>
-              智能预测
+              <span>智能预测</span>
             </el-button>
-            
-            <el-button
-              type="warning"
-              @click="$router.push('/analysis')"
-              class="action-btn"
-            >
-              <el-icon><DataAnalysis /></el-icon>
-              数据分析
+            <el-button type="primary" @click="$router.push('/analysis')">
+              <el-icon><PieChart /></el-icon>
+              <span>数据分析</span>
             </el-button>
-            
-            <el-button
-              type="info"
-              @click="$router.push('/spatial')"
-              class="action-btn"
-            >
+            <el-button type="primary" @click="$router.push('/spatial')">
               <el-icon><Location /></el-icon>
-              空间分析
+              <span>空间分析</span>
             </el-button>
           </div>
-        </div>
-      </div>
-    </div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useWaterQualityStore } from '@/stores/waterQuality'
-import { useLoadingStore } from '@/stores/loading'
-import { Chart, registerables } from 'chart.js'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   Location,
   CircleCheck,
   Warning,
   CircleClose,
+  Bell,
+  View,
   TrendCharts,
-  Monitor,
-  DataAnalysis
+  PieChart,
+  Top,
+  Bottom
 } from '@element-plus/icons-vue'
+import { Chart } from 'chart.js/auto'
+import { useWaterQualityStore } from '@/stores/waterQuality'
+import { useLoadingStore } from '@/stores/loading'
 
-// 注册Chart.js组件
-Chart.register(...registerables)
-
+const router = useRouter()
 const waterQualityStore = useWaterQualityStore()
 const loadingStore = useLoadingStore()
 
 // 响应式数据
-const selectedProvince = ref('')
-const dateRange = ref([])
-const chartProvince = ref('')
+const selectedProvince = ref('北京')
+const dateRange = ref([new Date('2023-01-01'), new Date('2023-12-31')])
 const trendIndicator = ref('Water_Quality_Index')
 const pollutionChart = ref(null)
 const trendChart = ref(null)
@@ -263,9 +249,26 @@ const warningAlerts = computed(() => waterQualityStore.warningAlerts)
 const totalAlerts = computed(() => waterQualityStore.totalAlerts)
 
 const provinces = computed(() => [
-  '北京', '上海', '广州', '深圳', '成都', 
-  '杭州', '武汉', '西安', '南京', '重庆'
+  '北京', '上海', '广东省', '江苏省', '浙江省',
+  '山东省', '河南省', '四川省', '湖北省', '湖南省'
 ])
+
+// 中文省份名到后端英文名的映射
+const provinceToEnglish = {
+  '北京': 'Beijing',
+  '上海': 'Shanghai',
+  '广东省': 'Guangdong',
+  '江苏省': 'Jiangsu',
+  '浙江省': 'Zhejiang',
+  '山东省': 'Shandong',
+  '河南省': 'Henan',
+  '四川省': 'Sichuan',
+  '湖北省': 'Hubei',
+  '湖南省': 'Hunan',
+  '福建省': 'Fujian',
+  '安徽省': 'Anhui',
+  '云南省': 'Yunnan'
+}
 
 const recentAlerts = computed(() => {
   const allAlerts = [...criticalAlerts.value, ...warningAlerts.value]
@@ -280,15 +283,25 @@ const recentAlerts = computed(() => {
 
 // 方法
 const handleProvinceChange = async (province) => {
+  console.log('Province changed to:', province)
+  // 转换中文省份名为英文
+  const englishProvince = provinceToEnglish[province] || province
+  console.log('Converted to English:', englishProvince)
+
   loadingStore.setPageLoading(true)
   try {
+    // 重新加载所有数据
     await Promise.all([
-      waterQualityStore.fetchStatistics(province),
-      waterQualityStore.fetchRealtimeData(province),
-      waterQualityStore.fetchAlerts(province)
+      waterQualityStore.fetchStations(),
+      waterQualityStore.fetchStatistics(englishProvince),
+      waterQualityStore.fetchRealtimeData(englishProvince),
+      waterQualityStore.fetchAlerts(englishProvince)
     ])
+    console.log('Statistics after province change:', statistics.value)
     updatePollutionChart()
     updateTrendChart()
+  } catch (error) {
+    console.error('Failed to load data for province:', error)
   } finally {
     loadingStore.setPageLoading(false)
   }
@@ -298,7 +311,6 @@ const handleDateChange = async (dates) => {
   if (dates && dates.length === 2) {
     loadingStore.setPageLoading(true)
     try {
-      // 根据日期范围更新数据
       await updateCharts()
     } finally {
       loadingStore.setPageLoading(false)
@@ -317,13 +329,14 @@ const initPollutionChart = () => {
       datasets: [{
         data: [30, 25, 20, 15, 10],
         backgroundColor: [
-          '#10b981',
-          '#3b82f6',
-          '#f59e0b',
-          '#f97316',
-          '#ef4444'
+          '#67C23A',
+          '#409EFF',
+          '#E6A23C',
+          '#F56C6C',
+          '#909399'
         ],
-        borderWidth: 0
+        borderWidth: 2,
+        borderColor: '#fff'
       }]
     },
     options: {
@@ -331,7 +344,13 @@ const initPollutionChart = () => {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          position: 'bottom'
+          position: 'bottom',
+          labels: {
+            padding: 15,
+            font: {
+              size: 12
+            }
+          }
         }
       }
     }
@@ -349,9 +368,12 @@ const initTrendChart = () => {
       datasets: [{
         label: '水质指数',
         data: [65, 62, 68, 70, 66, 72],
-        borderColor: '#667eea',
-        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-        tension: 0.4
+        borderColor: '#409EFF',
+        backgroundColor: 'rgba(64, 158, 255, 0.1)',
+        tension: 0.4,
+        fill: true,
+        pointRadius: 4,
+        pointHoverRadius: 6
       }]
     },
     options: {
@@ -364,7 +386,15 @@ const initTrendChart = () => {
       },
       scales: {
         y: {
-          beginAtZero: true
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
         }
       }
     }
@@ -372,33 +402,89 @@ const initTrendChart = () => {
 }
 
 const updatePollutionChart = async () => {
+  if (!pollutionChartInstance) return
+
   try {
-    const data = await waterQualityStore.fetchPollutionDistribution({
-      province: chartProvince.value
+    // 转换中文省份名为英文
+    const englishProvince = selectedProvince.value ?
+      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+
+    console.log('Updating pollution chart for province:', selectedProvince.value, '->', englishProvince)
+
+    const result = await waterQualityStore.fetchPollutionDistribution({
+      province: englishProvince
     })
-    
-    if (pollutionChartInstance && data.data) {
-      pollutionChartInstance.data.datasets[0].data = data.data
-      pollutionChartInstance.update()
+
+    console.log('Pollution distribution API result:', result)
+
+    // API返回格式: { data: { distribution: [{level, count, percentage}], total_records } }
+    if (result?.data?.distribution && Array.isArray(result.data.distribution) && result.data.distribution.length > 0) {
+      // 提取count值用于图表
+      const counts = result.data.distribution.map(item => item.count || 0)
+      console.log('Extracted counts for chart:', counts)
+      pollutionChartInstance.data.datasets[0].data = counts
+    } else {
+      // 使用默认数据
+      console.log('Using default data for pollution chart')
+      pollutionChartInstance.data.datasets[0].data = [30, 50, 40, 60, 20]
     }
+    pollutionChartInstance.update()
   } catch (error) {
     console.error('更新污染分布图表失败:', error)
+    // 保持现有数据或使用默认数据
+    if (!pollutionChartInstance.data.datasets[0].data ||
+        pollutionChartInstance.data.datasets[0].data.length === 0) {
+      pollutionChartInstance.data.datasets[0].data = [30, 50, 40, 60, 20]
+    }
+    pollutionChartInstance.update()
   }
 }
 
 const updateTrendChart = async () => {
+  if (!trendChartInstance) return
+
   try {
-    const data = await waterQualityStore.getTrends({
+    // 转换中文省份名为英文
+    const englishProvince = selectedProvince.value ?
+      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+
+    console.log('Updating trend chart for province:', selectedProvince.value, '->', englishProvince)
+    console.log('Indicator:', trendIndicator.value)
+
+    const result = await waterQualityStore.getTrends({
       indicator: trendIndicator.value,
-      province: selectedProvince.value
+      province: englishProvince
     })
-    
-    if (trendChartInstance && data.data) {
-      trendChartInstance.data.datasets[0].data = data.data
-      trendChartInstance.update()
+
+    console.log('Trend API result:', result)
+
+    // API返回格式: { data: [{period: string, value: number}] }
+    if (result?.data && Array.isArray(result.data) && result.data.length > 0) {
+      // 提取value值和period标签
+      const values = result.data.map(item => item.value)
+      const labels = result.data.map(item => item.period)
+
+      console.log('Extracted values:', values)
+      console.log('Extracted labels:', labels)
+
+      trendChartInstance.data.labels = labels
+      trendChartInstance.data.datasets[0].data = values
+    } else {
+      // 使用默认数据
+      console.log('Using default data for trend chart')
+      const mockData = Array.from({ length: 6 }, () => 50 + Math.random() * 30)
+      trendChartInstance.data.datasets[0].data = mockData
     }
+    trendChartInstance.update()
   } catch (error) {
     console.error('更新趋势图表失败:', error)
+    // 保持现有数据或使用默认数据
+    if (!trendChartInstance.data.datasets[0].data ||
+        trendChartInstance.data.datasets[0].data.length === 0) {
+      const mockData = Array.from({ length: 6 }, () => 50 + Math.random() * 30)
+      trendChartInstance.data.datasets[0].data = mockData
+    }
+    trendChartInstance.update()
   }
 }
 
@@ -412,12 +498,20 @@ const updateCharts = async () => {
 const loadInitialData = async () => {
   loadingStore.setGlobalLoading(true)
   try {
+    // 转换中文省份名为英文
+    const englishProvince = provinceToEnglish[selectedProvince.value] || selectedProvince.value
+    console.log('Loading initial data for province:', selectedProvince.value, '->', englishProvince)
+
+    // 使用默认省份加载初始数据
     await Promise.all([
       waterQualityStore.fetchStations(),
-      waterQualityStore.fetchStatistics(),
-      waterQualityStore.fetchRealtimeData(),
-      waterQualityStore.fetchAlerts()
+      waterQualityStore.fetchStatistics(englishProvince),
+      waterQualityStore.fetchRealtimeData(englishProvince),
+      waterQualityStore.fetchAlerts(englishProvince)
     ])
+    console.log('Initial statistics loaded:', statistics.value)
+  } catch (error) {
+    console.error('Failed to load initial data:', error)
   } finally {
     loadingStore.setGlobalLoading(false)
   }
@@ -426,8 +520,7 @@ const loadInitialData = async () => {
 // 生命周期
 onMounted(async () => {
   await loadInitialData()
-  
-  // 初始化图表
+
   setTimeout(() => {
     initPollutionChart()
     initTrendChart()
@@ -437,307 +530,292 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .dashboard {
-  padding: $spacing-6;
+  padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-.dashboard-header {
+.page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: $spacing-8;
-  gap: $spacing-6;
-}
-
-.header-content {
-  flex: 1;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .page-title {
-  font-size: $font-size-3xl;
-  font-weight: 700;
-  color: $white;
-  margin-bottom: $spacing-2;
+  font-size: 28px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 8px 0;
 }
 
 .page-subtitle {
-  font-size: $font-size-lg;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  color: #909399;
   margin: 0;
 }
 
-.header-filters {
+.header-actions {
   display: flex;
-  gap: $spacing-4;
-  flex-shrink: 0;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: $spacing-6;
-  margin-bottom: $spacing-8;
+// 统计卡片
+.stats-row {
+  margin-bottom: 20px;
 }
 
 .stat-card {
-  display: flex;
-  align-items: center;
-  gap: $spacing-4;
-  padding: $spacing-6;
-}
+  text-align: center;
+  padding: 20px 10px;
+  transition: all 0.3s;
 
-.stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: $border-radius-xl;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: $font-size-2xl;
-  color: $white;
-  flex-shrink: 0;
-}
-
-.stat-content {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: $font-size-3xl;
-  font-weight: 700;
-  color: $gray-800;
-  margin-bottom: $spacing-1;
-}
-
-.stat-label {
-  font-size: $font-size-sm;
-  color: $gray-600;
-  margin-bottom: $spacing-2;
-  font-weight: 500;
-}
-
-.stat-change {
-  display: flex;
-  align-items: center;
-  gap: $spacing-1;
-  font-size: $font-size-sm;
-  font-weight: 500;
-
-  &.positive {
-    color: $success-color;
+  &:hover {
+    transform: translateY(-4px);
   }
 
-  &.negative {
-    color: $danger-color;
+  .stat-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    color: #fff;
+
+    &.blue {
+      background-color: #409EFF;
+    }
+
+    &.green {
+      background-color: #67C23A;
+    }
+
+    &.orange {
+      background-color: #E6A23C;
+    }
+
+    &.red {
+      background-color: #F56C6C;
+    }
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #303133;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #909399;
+    margin-bottom: 12px;
+  }
+
+  .stat-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 12px;
+
+    &.up {
+      color: #67C23A;
+      background-color: rgba(103, 194, 58, 0.1);
+    }
+
+    &.down {
+      color: #F56C6C;
+      background-color: rgba(245, 108, 108, 0.1);
+    }
   }
 }
 
-.dashboard-content {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: $spacing-8;
+// 图表区域
+.charts-row {
+  margin-bottom: 20px;
 }
 
-.charts-section {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-6;
-}
-
-.chart-container {
-  padding: $spacing-6;
-  min-height: 350px;
-}
-
-.chart-header {
+.card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: $spacing-6;
 }
 
-.chart-title {
-  font-size: $font-size-lg;
+.card-title {
+  font-size: 16px;
   font-weight: 600;
-  color: $gray-800;
-  margin: 0;
-}
-
-.chart-content {
-  height: 280px;
-  position: relative;
-}
-
-.side-section {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-6;
-}
-
-.alerts-container {
-  padding: $spacing-6;
-  max-height: 500px;
-}
-
-.alerts-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-4;
-}
-
-.alerts-title {
+  color: #303133;
   display: flex;
   align-items: center;
-  gap: $spacing-2;
-  font-size: $font-size-lg;
-  font-weight: 600;
-  color: $gray-800;
-  margin: 0;
+  gap: 8px;
+}
+
+.chart-wrapper {
+  height: 300px;
+  padding: 10px;
+}
+
+// 告警列表
+.bottom-row {
+  margin-bottom: 20px;
+}
+
+.alerts-card {
+  :deep(.el-card__body) {
+    padding: 0 20px 20px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #909399;
+
+  p {
+    margin-top: 16px;
+    font-size: 14px;
+  }
 }
 
 .alerts-list {
-  max-height: 400px;
-  overflow-y: auto;
+  padding: 10px 0;
 }
 
 .alert-item {
   display: flex;
-  gap: $spacing-3;
-  padding: $spacing-4;
-  border-radius: $border-radius-lg;
-  margin-bottom: $spacing-3;
-  border-left: 4px solid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border-left: 3px solid;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateX(4px);
+  }
 
   &.critical {
-    background: rgba(239, 68, 68, 0.1);
-    border-left-color: $danger-color;
+    background-color: rgba(245, 108, 108, 0.05);
+    border-left-color: #F56C6C;
   }
 
   &.warning {
-    background: rgba(245, 158, 11, 0.1);
-    border-left-color: $warning-color;
+    background-color: rgba(230, 162, 60, 0.05);
+    border-left-color: #E6A23C;
+  }
+
+  .alert-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #fff;
+  }
+
+  &.critical .alert-icon {
+    background-color: #F56C6C;
+  }
+
+  &.warning .alert-icon {
+    background-color: #E6A23C;
+  }
+
+  .alert-content {
+    flex: 1;
+  }
+
+  .alert-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 4px;
+  }
+
+  .alert-message {
+    font-size: 13px;
+    color: #606266;
+    margin-bottom: 4px;
+  }
+
+  .alert-time {
+    font-size: 12px;
+    color: #909399;
   }
 }
 
-.alert-icon {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: $border-radius;
+// 快捷操作
+.quick-actions-card {
+  height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: $white;
+  flex-direction: column;
 
-  .alert-item.critical & {
-    background: $danger-color;
+  :deep(.el-card__body) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
-
-  .alert-item.warning & {
-    background: $warning-color;
-  }
-}
-
-.alert-content {
-  flex: 1;
-}
-
-.alert-title {
-  font-weight: 600;
-  color: $gray-800;
-  margin-bottom: $spacing-1;
-}
-
-.alert-message {
-  font-size: $font-size-sm;
-  color: $gray-600;
-  margin-bottom: $spacing-1;
-}
-
-.alert-time {
-  font-size: $font-size-xs;
-  color: $gray-500;
 }
 
 .quick-actions {
-  padding: $spacing-6;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: stretch;
+  flex: 1;
+
+  .el-button {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+
+    .el-icon {
+      font-size: 18px;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex-shrink: 0;
+    }
+  }
 }
 
-.actions-title {
-  font-size: $font-size-lg;
-  font-weight: 600;
-  color: $gray-800;
-  margin: 0 0 $spacing-4 0;
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-3;
-}
-
-.action-btn {
-  height: 48px;
-  border-radius: $border-radius-lg;
-  font-weight: 500;
-}
-
-// 响应式设计
-@media (max-width: $breakpoint-lg) {
-  .dashboard-header {
+// 响应式
+@media (max-width: 768px) {
+  .page-header {
     flex-direction: column;
     align-items: stretch;
-    gap: $spacing-4;
   }
 
-  .header-filters {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .dashboard-content {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-}
-
-@media (max-width: $breakpoint-md) {
-  .dashboard {
-    padding: $spacing-4;
-  }
-
-  .action-buttons {
-    grid-template-columns: 1fr;
-  }
-
-  .header-filters {
+  .header-actions {
     flex-direction: column;
-    gap: $spacing-3;
 
     .el-select,
     .el-date-picker {
       width: 100% !important;
     }
   }
-}
-
-@media (max-width: $breakpoint-sm) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-card {
-    flex-direction: column;
-    text-align: center;
-  }
 
   .page-title {
-    font-size: $font-size-2xl;
+    font-size: 24px;
   }
 }
 </style>

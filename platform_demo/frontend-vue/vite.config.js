@@ -25,9 +25,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    hmr: {
+      overlay: true  // 显示错误覆盖层，但不自动刷新
+    },
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')
       }

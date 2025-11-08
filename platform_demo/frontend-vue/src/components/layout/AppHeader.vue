@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="header-container">
       <!-- Logo和标题 -->
-      <div class="header-left">
+      <div class="header-left" @click="goHome" style="cursor: pointer;">
         <div class="logo">
           <el-icon size="32" color="#ffffff">
             <Odometer />
@@ -137,6 +137,11 @@ const router = useRouter()
 
 const userAvatar = '' // 可以从用户store获取
 
+// 返回首页
+const goHome = () => {
+  router.push('/')
+}
+
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   router.push(index)
@@ -218,7 +223,7 @@ const handleUserAction = (command) => {
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: #409EFF;
   border-radius: $border-radius-lg;
   box-shadow: $shadow-md;
 }
@@ -226,12 +231,8 @@ const handleUserAction = (command) => {
 .app-title {
   font-size: $font-size-xl;
   font-weight: 700;
-  color: $gray-800;
+  color: #303133;
   margin: 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .header-nav {
@@ -252,22 +253,22 @@ const handleUserAction = (command) => {
 :deep(.el-menu--horizontal) {
   border-bottom: none;
   background: transparent;
-  
+
   .el-menu-item {
     border-bottom: 2px solid transparent;
     transition: all $transition-base;
-    
+
     &:hover {
-      background: rgba(102, 126, 234, 0.1);
-      color: #667eea;
+      background: rgba(64, 158, 255, 0.1);
+      color: #409EFF;
     }
-    
+
     &.is-active {
-      background: rgba(102, 126, 234, 0.1);
-      color: #667eea;
-      border-bottom-color: #667eea;
+      background: rgba(64, 158, 255, 0.1);
+      color: #409EFF;
+      border-bottom-color: #409EFF;
     }
-    
+
     .el-icon {
       margin-right: $spacing-2;
     }
@@ -286,10 +287,10 @@ const handleUserAction = (command) => {
   height: 40px;
   border-radius: $border-radius-lg;
   transition: all $transition-base;
-  
+
   &:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
+    background: rgba(64, 158, 255, 0.1);
+    color: #409EFF;
   }
 }
 

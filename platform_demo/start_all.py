@@ -46,17 +46,18 @@ def cleanup():
 def check_node_npm():
     """检查Node.js和npm是否安装"""
     try:
+        # 修复：移除shell=True，在macOS/Linux上使用列表参数
         node_version = subprocess.run(
             ['node', '--version'],
             capture_output=True,
             text=True,
-            shell=True
+            timeout=5  # 添加超时防止卡住
         )
         npm_version = subprocess.run(
             ['npm', '--version'],
             capture_output=True,
             text=True,
-            shell=True
+            timeout=5  # 添加超时防止卡住
         )
 
         if node_version.returncode == 0 and npm_version.returncode == 0:
@@ -66,6 +67,10 @@ def check_node_npm():
         else:
             print("❌ Node.js或npm未安装")
             return False
+    except subprocess.TimeoutExpired:
+        print("❌ Node.js或npm检测超时")
+        print("   请检查是否正确安装")
+        return False
     except Exception as e:
         print(f"❌ Node.js或npm检测失败: {e}")
         print("   请从 https://nodejs.org 下载安装")
@@ -84,17 +89,33 @@ def install_vue_dependencies():
     if not node_modules.exists():
         print("📥 安装Vue项目依赖（这可能需要几分钟）...")
         try:
-            result = subprocess.run(
-                ['npm', 'install'],
-                cwd=vue_dir,
-                capture_output=True,
-                text=True,
-                shell=True
-            )
+            # 修复：在非Windows系统上移除shell=True
+            if sys.platform == 'win32':
+                result = subprocess.run(
+                    'npm install',
+                    cwd=vue_dir,
+                    capture_output=True,
+                    text=True,
+                    shell=True,
+                    timeout=300  # 5分钟超时
+                )
+            else:
+                result = subprocess.run(
+                    ['npm', 'install'],
+                    cwd=vue_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=300  # 5分钟超时
+                )
+
             if result.returncode != 0:
                 print(f"❌ 依赖安装失败: {result.stderr}")
                 return False
             print("✅ Vue依赖安装成功")
+        except subprocess.TimeoutExpired:
+            print("❌ 依赖安装超时（超过5分钟）")
+            print("   请尝试手动运行: cd frontend-vue && npm install")
+            return False
         except Exception as e:
             print(f"❌ 依赖安装失败: {e}")
             return False
@@ -106,7 +127,8 @@ def install_vue_dependencies():
 def start_backend():
     """启动Flask后端"""
     print("\n🚀 启动Flask后端...")
-    print("   后端地址: http://localhost:5000")
+    print("   后端地址: http://localhost:8000")
+    print("   (后端日志将显示在下方)\n")
 
     try:
         # 查找run.py的位置
@@ -118,20 +140,20 @@ def start_backend():
             print("❌ 找不到run.py文件")
             return None
 
+        # 让子进程直接输出到终端，不重定向
         process = subprocess.Popen(
-            [sys.executable, run_script],
-            shell=True
+            [sys.executable, run_script]
         )
 
         # 等待后端启动
-        print("   等待后端启动...")
-        time.sleep(5)  # 增加等待时间以确保服务有足够时间初始化
+        print("\n⏳ 等待后端启动...\n")
+        time.sleep(5)
 
         if process.poll() is None:
-            print("✅ Flask后端已启动（日志将直接显示在下方）")
+            print("\n✅ Flask后端已启动\n")
             return process
         else:
-            print("❌ Flask后端启动失败，请检查上方日志")
+            print("\n❌ Flask后端启动失败，请检查上方日志\n")
             return None
 
     except Exception as e:
@@ -142,25 +164,35 @@ def start_frontend():
     """启动Vue前端"""
     print("\n🚀 启动Vue前端...")
     print("   前端地址: http://localhost:3000")
+    print("   (前端日志将显示在下方)\n")
 
     vue_dir = Path("frontend-vue")
 
     try:
-        process = subprocess.Popen(
-            ['npm', 'run', 'dev'],
-            cwd=vue_dir,
-            shell=True
-        )
+        # 让子进程直接输出到终端，不重定向
+        if sys.platform == 'win32':
+            # Windows上需要shell=True来运行npm
+            process = subprocess.Popen(
+                'npm run dev',
+                cwd=vue_dir,
+                shell=True
+            )
+        else:
+            # Unix-like系统上不需要shell=True
+            process = subprocess.Popen(
+                ['npm', 'run', 'dev'],
+                cwd=vue_dir
+            )
 
         # 等待前端启动
-        print("   等待前端启动...")
+        print("⏳ 等待前端启动...\n")
         time.sleep(10) # Vue启动可能较慢，增加等待时间
 
         if process.poll() is None:
-            print("✅ Vue前端已启动（日志将直接显示在下方）")
+            print("\n✅ Vue前端已启动\n")
             return process
         else:
-            print("❌ Vue前端启动失败，请检查上方日志")
+            print("\n❌ Vue前端启动失败，请检查上方日志\n")
             return None
 
     except Exception as e:
@@ -190,7 +222,7 @@ def print_success():
     print("✨ 所有服务已成功启动!")
     print("=" * 60)
     print("\n📋 服务地址:")
-    print("   🔧 后端API: http://localhost:5000")
+    print("   🔧 后端API: http://localhost:8000")
     print("   🎨 前端界面: http://localhost:3000")
     print("\n💡 提示:")
     print("   - 前端会自动代理API请求到后端")

@@ -5,6 +5,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import xgboost as xgb
+import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.preprocessing import LabelEncoder
@@ -145,8 +146,28 @@ def train_xgboost_model(input_csv, output_dir):
     plt.close()
     print(f"特征重要性图已保存到: {fi_path}")
 
+    # --- 7. 保存训练好的模型 ---
+    model_path = os.path.join(output_dir, 'xgboost_model.pkl')
+    joblib.dump(model, model_path)
+    print(f"训练模型已保存到: {model_path}")
+
+    # 同时保存标签编码器，以便后续预测使用
+    le_path = os.path.join(output_dir, 'label_encoder.pkl')
+    joblib.dump(le, le_path)
+    print(f"标签编码器已保存到: {le_path}")
+
 if __name__ == '__main__':
+    # 数据文件在项目根目录
+    import sys
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    input_csv_path = os.path.join(project_root, 'preprocessed_data_feature_eng.csv')
+    output_dir_path = os.path.join(project_root, 'Outputs/Classification_XGBoost')
+
+    print(f"Project root: {project_root}")
+    print(f"Input CSV: {input_csv_path}")
+    print(f"Output directory: {output_dir_path}")
+
     train_xgboost_model(
-        input_csv='preprocessed_data_feature_eng.csv',
-        output_dir='Outputs/Classification_XGBoost'
+        input_csv=input_csv_path,
+        output_dir=output_dir_path
     )

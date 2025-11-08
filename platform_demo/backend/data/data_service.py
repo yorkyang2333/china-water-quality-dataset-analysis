@@ -206,11 +206,25 @@ class DataService:
         """获取统计摘要"""
         df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
 
+        # 计算污染等级分布
+        pollution_dist = df_filtered['Pollution_Level'].value_counts().to_dict()
+
         summary = {
             'total_records': int(len(df_filtered)),
             'total_stations': int(df_filtered['Monitoring_Station'].nunique()),
             'avg_wqi': float(df_filtered['Water_Quality_Index'].mean()),
-            'pollution_distribution': df_filtered['Pollution_Level'].value_counts().to_dict(),
+            'pollution_distribution': pollution_dist,
+            # 添加各等级的数量（用于前端显示）
+            'excellent': int(pollution_dist.get('Excellent', 0)),
+            'Excellent': int(pollution_dist.get('Excellent', 0)),
+            'good': int(pollution_dist.get('Good', 0)),
+            'Good': int(pollution_dist.get('Good', 0)),
+            'fair': int(pollution_dist.get('Fair', 0)),
+            'Fair': int(pollution_dist.get('Fair', 0)),
+            'poor': int(pollution_dist.get('Poor', 0)),
+            'Poor': int(pollution_dist.get('Poor', 0)),
+            'very_poor': int(pollution_dist.get('Very Poor', 0)),
+            'VeryPoor': int(pollution_dist.get('Very Poor', 0)),
             'provinces': int(df_filtered['Province'].nunique()) if province is None else 1,
             'date_range': {
                 'start': df_filtered['Date'].min().strftime('%Y-%m-%d') if pd.notna(df_filtered['Date'].min()) else None,
@@ -414,18 +428,20 @@ class DataService:
         """获取告警信息"""
         df_filtered = self.df if province is None else self.df[self.df['Province'] == province]
 
-        # 获取最新数据
+        # 获取最新数据 - 扩大时间范围到90天以确保有足够的告警数据
         latest_date = df_filtered['Date'].max()
-        recent_data = df_filtered[df_filtered['Date'] >= (latest_date - timedelta(days=7))]
+        recent_data = df_filtered[df_filtered['Date'] >= (latest_date - timedelta(days=90))]
 
         alerts = []
 
-        # 检查污染等级
+        # 检查污染等级 - Poor和Very Poor
         pollution_alerts = recent_data[recent_data['Pollution_Level'].isin(['Poor', 'Very Poor'])]
-        for _, row in pollution_alerts.iterrows():
+        for _, row in pollution_alerts.head(50).iterrows():  # 增加到50条
+            level = 'critical' if row['Pollution_Level'] == 'Very Poor' else 'warning'
             alerts.append({
                 'type': 'pollution',
-                'level': 'high' if row['Pollution_Level'] == 'Very Poor' else 'medium',
+                'level': level,
+                'station_name': row['Monitoring_Station'],
                 'station': row['Monitoring_Station'],
                 'province': row['Province'],
                 'message': f"{row['Monitoring_Station']} 污染等级为 {row['Pollution_Level']}",
@@ -433,28 +449,67 @@ class DataService:
                 'value': float(row['Water_Quality_Index'])
             })
 
+        # 检查高水质指数（WQI > 80表示水质较差）
+        high_wqi = recent_data[recent_data['Water_Quality_Index'] > 80]
+        for _, row in high_wqi.head(30).iterrows():
+            alerts.append({
+                'type': 'indicator',
+                'level': 'warning',
+                'station_name': row['Monitoring_Station'],
+                'station': row['Monitoring_Station'],
+                'province': row['Province'],
+                'message': f"{row['Monitoring_Station']} 水质指数偏高 (WQI: {row['Water_Quality_Index']:.1f})",
+                'date': row['Date'].strftime('%Y-%m-%d') if pd.notna(row['Date']) else None,
+                'value': float(row['Water_Quality_Index'])
+            })
+
         # 检查超标指标
         if 'COD_mg_L' in recent_data.columns:
-            cod_alerts = recent_data[recent_data['COD_mg_L'] > 40]
-            for _, row in cod_alerts.head(10).iterrows():
+            cod_alerts = recent_data[recent_data['COD_mg_L'] > 30]  # 降低阈值从40到30
+            for _, row in cod_alerts.head(20).iterrows():
                 alerts.append({
                     'type': 'indicator',
-                    'level': 'high',
+                    'level': 'critical',
+                    'station_name': row['Monitoring_Station'],
                     'station': row['Monitoring_Station'],
                     'province': row['Province'],
-                    'message': f"{row['Monitoring_Station']} COD超标",
+                    'message': f"{row['Monitoring_Station']} COD超标 ({row['COD_mg_L']:.1f} mg/L)",
                     'date': row['Date'].strftime('%Y-%m-%d') if pd.notna(row['Date']) else None,
                     'value': float(row['COD_mg_L'])
                 })
 
+        # 检查总氮超标
+        if 'Total_Nitrogen_mg_L' in recent_data.columns:
+            nitrogen_alerts = recent_data[recent_data['Total_Nitrogen_mg_L'] > 2.0]
+            for _, row in nitrogen_alerts.head(20).iterrows():
+                alerts.append({
+                    'type': 'indicator',
+                    'level': 'warning',
+                    'station_name': row['Monitoring_Station'],
+                    'station': row['Monitoring_Station'],
+                    'province': row['Province'],
+                    'message': f"{row['Monitoring_Station']} 总氮超标 ({row['Total_Nitrogen_mg_L']:.2f} mg/L)",
+                    'date': row['Date'].strftime('%Y-%m-%d') if pd.notna(row['Date']) else None,
+                    'value': float(row['Total_Nitrogen_mg_L'])
+                })
+
+        # 去重（同一站点同一天只保留一条告警）
+        seen = set()
+        unique_alerts = []
+        for alert in alerts:
+            key = (alert['station_name'], alert['date'])
+            if key not in seen:
+                seen.add(key)
+                unique_alerts.append(alert)
+
         # 按日期排序，最新的在前
-        alerts.sort(key=lambda x: x['date'] if x['date'] else '', reverse=True)
+        unique_alerts.sort(key=lambda x: x['date'] if x['date'] else '', reverse=True)
 
         return {
-            'total_alerts': len(alerts),
-            'critical_count': len([a for a in alerts if a['level'] == 'high']),
-            'warning_count': len([a for a in alerts if a['level'] == 'medium']),
-            'alerts': alerts[:20]  # 返回前20条告警
+            'total_alerts': len(unique_alerts),
+            'critical_count': len([a for a in unique_alerts if a['level'] == 'critical']),
+            'warning_count': len([a for a in unique_alerts if a['level'] == 'warning']),
+            'alerts': unique_alerts[:50]  # 返回前50条告警
         }
 
     def get_data_quality_info(self, province=None):
