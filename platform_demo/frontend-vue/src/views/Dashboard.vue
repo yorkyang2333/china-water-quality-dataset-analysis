@@ -44,9 +44,11 @@
           </div>
           <div class="stat-value">{{ stationCount }}</div>
           <div class="stat-label">监测站点</div>
-          <div class="stat-trend up">
-            <el-icon><Top /></el-icon>
-            <span>+12% 本月新增</span>
+          <div class="stat-trend" :class="stationCountTrend >= 0 ? 'up' : 'down'">
+            <el-icon v-if="stationCountTrend >= 0"><Top /></el-icon>
+            <el-icon v-else><Bottom /></el-icon>
+            <span v-if="stationCountTrend >= 0">+{{ stationCountTrend }}% 本月新增</span>
+            <span v-else>{{ stationCountTrend }}% 本月减少</span>
           </div>
         </el-card>
       </el-col>
@@ -58,9 +60,11 @@
           </div>
           <div class="stat-value">{{ statistics.excellent || statistics.Excellent || 0 }}</div>
           <div class="stat-label">优秀水质</div>
-          <div class="stat-trend up">
-            <el-icon><Top /></el-icon>
-            <span>+5% 较上月</span>
+          <div class="stat-trend" :class="excellentCountTrend >= 0 ? 'up' : 'down'">
+            <el-icon v-if="excellentCountTrend >= 0"><Top /></el-icon>
+            <el-icon v-else><Bottom /></el-icon>
+            <span v-if="excellentCountTrend >= 0">+{{ excellentCountTrend }}% 较上月</span>
+            <span v-else>{{ excellentCountTrend }}% 较上月</span>
           </div>
         </el-card>
       </el-col>
@@ -72,9 +76,11 @@
           </div>
           <div class="stat-value">{{ warningAlerts.length }}</div>
           <div class="stat-label">预警站点</div>
-          <div class="stat-trend down">
-            <el-icon><Bottom /></el-icon>
-            <span>-3% 较上月</span>
+          <div class="stat-trend" :class="warningStationsTrend >= 0 ? 'up' : 'down'">
+            <el-icon v-if="warningStationsTrend >= 0"><Top /></el-icon>
+            <el-icon v-else><Bottom /></el-icon>
+            <span v-if="warningStationsTrend >= 0">+{{ warningStationsTrend }}% 较上月</span>
+            <span v-else>{{ warningStationsTrend }}% 较上月</span>
           </div>
         </el-card>
       </el-col>
@@ -86,9 +92,11 @@
           </div>
           <div class="stat-value">{{ criticalAlerts.length }}</div>
           <div class="stat-label">严重污染</div>
-          <div class="stat-trend down">
-            <el-icon><Bottom /></el-icon>
-            <span>+2% 需关注</span>
+          <div class="stat-trend" :class="criticalStationsTrend >= 0 ? 'up' : 'down'">
+            <el-icon v-if="criticalStationsTrend >= 0"><Top /></el-icon>
+            <el-icon v-else><Bottom /></el-icon>
+            <span v-if="criticalStationsTrend >= 0">+{{ criticalStationsTrend }}% 需关注</span>
+            <span v-else>{{ criticalStationsTrend }}% 已改善</span>
           </div>
         </el-card>
       </el-col>
@@ -147,7 +155,7 @@
                 <el-icon><Bell /></el-icon>
                 实时告警
               </span>
-              <el-badge :value="totalAlerts" type="danger" />
+              <el-badge :value="recentAlerts.length" type="danger" />
             </div>
           </template>
           <el-scrollbar height="320px">
@@ -237,6 +245,12 @@ const trendIndicator = ref('Water_Quality_Index')
 const pollutionChart = ref(null)
 const trendChart = ref(null)
 
+// 趋势数据
+const stationCountTrend = ref(0)
+const excellentCountTrend = ref(0)
+const warningStationsTrend = ref(0)
+const criticalStationsTrend = ref(0)
+
 // 图表实例
 let pollutionChartInstance = null
 let trendChartInstance = null
@@ -295,7 +309,8 @@ const handleProvinceChange = async (province) => {
       waterQualityStore.fetchStations(),
       waterQualityStore.fetchStatistics(englishProvince),
       waterQualityStore.fetchRealtimeData(englishProvince),
-      waterQualityStore.fetchAlerts(englishProvince)
+      waterQualityStore.fetchAlerts(englishProvince),
+      loadStatisticsTrend(englishProvince)
     ])
     console.log('Statistics after province change:', statistics.value)
     updatePollutionChart()
@@ -507,13 +522,33 @@ const loadInitialData = async () => {
       waterQualityStore.fetchStations(),
       waterQualityStore.fetchStatistics(englishProvince),
       waterQualityStore.fetchRealtimeData(englishProvince),
-      waterQualityStore.fetchAlerts(englishProvince)
+      waterQualityStore.fetchAlerts(englishProvince),
+      loadStatisticsTrend(englishProvince)
     ])
     console.log('Initial statistics loaded:', statistics.value)
   } catch (error) {
     console.error('Failed to load initial data:', error)
   } finally {
     loadingStore.setGlobalLoading(false)
+  }
+}
+
+const loadStatisticsTrend = async (province = '') => {
+  try {
+    const response = await fetch(`/api/statistics/trend${province ? `?province=${province}` : ''}`)
+    const result = await response.json()
+
+    if (result.success && result.data) {
+      stationCountTrend.value = result.data.station_count_change
+      excellentCountTrend.value = result.data.excellent_count_change
+      warningStationsTrend.value = result.data.warning_stations_change
+      criticalStationsTrend.value = result.data.critical_stations_change
+      console.log('Statistics trend loaded:', result.data)
+      console.log(`对比周期: ${result.data.previous_month} → ${result.data.current_month}`)
+    }
+  } catch (error) {
+    console.error('Failed to load statistics trend:', error)
+    // 使用默认值 0 如果加载失败
   }
 }
 

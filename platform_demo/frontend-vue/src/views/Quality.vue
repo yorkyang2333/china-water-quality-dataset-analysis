@@ -127,33 +127,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { Refresh } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
+import { useWaterQualityStore } from '@/stores/waterQuality'
 
+const waterQualityStore = useWaterQualityStore()
 const loading = ref(false)
 const selectedProvince = ref('')
-const provinces = ref(['广东省', '浙江省', '江苏省', '山东省', '河南省', '四川省', '湖北省', '湖南省', '福建省', '安徽省'])
+const provinces = ref(['广东省', '浙江省', '江苏省', '山东省', '河南省', '四川省', '湖北省', '湖南省', '福建省', '安徽省', '北京', '上海', '云南省'])
+
+// 中文省份名到后端英文名的映射
+const provinceToEnglish = {
+  '北京': 'Beijing',
+  '上海': 'Shanghai',
+  '广东省': 'Guangdong',
+  '江苏省': 'Jiangsu',
+  '浙江省': 'Zhejiang',
+  '山东省': 'Shandong',
+  '河南省': 'Henan',
+  '四川省': 'Sichuan',
+  '湖北省': 'Hubei',
+  '湖南省': 'Hunan',
+  '福建省': 'Fujian',
+  '安徽省': 'Anhui',
+  '云南省': 'Yunnan'
+}
 
 const qualityMetrics = ref({
-  completeness: 92.5,
-  accuracy: 95.2,
-  timeliness: 88.7,
-  consistency: 91.3
+  completeness: 0,
+  accuracy: 0,
+  timeliness: 0,
+  consistency: 0
 })
 
 const stationQuality = ref([])
 const currentPage = ref(1)
 const pageSize = ref(10)
-const totalStations = ref(180)
+const totalStations = ref(0)
 
-const qualityIssues = ref([
-  { station: '广州站点01', issue: '缺失pH值数据', severity: '中等', detectedAt: '2024-01-15 14:30' },
-  { station: '深圳站点05', issue: '溶解氧数值异常', severity: '严重', detectedAt: '2024-01-15 13:20' },
-  { station: '杭州站点03', issue: '数据更新延迟超过24小时', severity: '轻微', detectedAt: '2024-01-15 12:10' },
-  { station: '苏州站点02', issue: '总氮数据缺失', severity: '中等', detectedAt: '2024-01-15 10:45' }
-])
+const qualityIssues = ref([])
 
 const radarChart = ref(null)
 const lineChart = ref(null)
@@ -179,7 +193,7 @@ const getSeverityType = (severity) => {
   return 'info'
 }
 
-const initRadarChart = () => {
+const initRadarChart = (metrics) => {
   if (radarChartInstance) {
     radarChartInstance.dispose()
   }
@@ -202,7 +216,13 @@ const initRadarChart = () => {
         type: 'radar',
         data: [
           {
-            value: [92.5, 95.2, 88.7, 91.3, 93.8],
+            value: [
+              metrics.completeness || 0,
+              metrics.accuracy || 0,
+              metrics.timeliness || 0,
+              metrics.consistency || 0,
+              (metrics.completeness + metrics.accuracy) / 2 || 0 // 有效性估算
+            ],
             name: '当前评分',
             areaStyle: {
               color: 'rgba(88, 127, 255, 0.3)'
@@ -216,14 +236,15 @@ const initRadarChart = () => {
   radarChartInstance.setOption(option)
 }
 
-const initLineChart = () => {
+const initLineChart = (trendData) => {
   if (lineChartInstance) {
     lineChartInstance.dispose()
   }
   lineChartInstance = echarts.init(lineChart.value)
 
-  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
-  const data = days.map(() => 85 + Math.random() * 15)
+  // 使用真实数据或默认数据
+  const days = trendData?.labels || Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+  const data = trendData?.values || Array.from({ length: 30 }, () => 85 + Math.random() * 15)
 
   const option = {
     tooltip: {
@@ -260,22 +281,83 @@ const initLineChart = () => {
 const fetchData = async () => {
   loading.value = true
   try {
-    // 模拟获取站点质量数据
-    stationQuality.value = Array.from({ length: pageSize.value }, (_, i) => ({
-      station: `${selectedProvince.value || '各省'}站点${(currentPage.value - 1) * pageSize.value + i + 1}`,
-      province: selectedProvince.value || provinces.value[i % provinces.value.length],
-      dataCount: Math.floor(1000 + Math.random() * 2000),
-      completeness: Math.floor(70 + Math.random() * 30),
-      accuracy: Math.floor(75 + Math.random() * 25),
-      lastUpdate: new Date().toLocaleString('zh-CN'),
-      missingFields: Math.random() > 0.7 ? 'pH, 浊度' : Math.random() > 0.5 ? '总磷' : '无'
-    }))
+    // 转换中文省份名为英文
+    const englishProvince = selectedProvince.value ?
+      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+
+    console.log('Fetching quality data for province:', selectedProvince.value, '->', englishProvince)
+
+    // 从后端获取数据质量信息
+    const result = await waterQualityStore.fetchDataQuality(englishProvince)
+
+    console.log('Quality data result:', result)
+
+    // 更新汇总指标
+    if (result?.data?.metrics) {
+      qualityMetrics.value = {
+        completeness: result.data.metrics.completeness || 0,
+        accuracy: result.data.metrics.accuracy || 0,
+        timeliness: result.data.metrics.timeliness || 0,
+        consistency: result.data.metrics.consistency || 0
+      }
+    }
+
+    // 更新站点质量数据
+    if (result?.data?.stations && Array.isArray(result.data.stations)) {
+      totalStations.value = result.data.total || result.data.stations.length
+
+      // 分页处理
+      const start = (currentPage.value - 1) * pageSize.value
+      const end = start + pageSize.value
+      stationQuality.value = result.data.stations.slice(start, end).map(item => ({
+        station: item.station_name || item.station || '未知站点',
+        province: item.province || '',
+        dataCount: item.data_count || 0,
+        completeness: Math.round(item.completeness || 0),
+        accuracy: Math.round(item.accuracy || 0),
+        lastUpdate: item.last_update || new Date().toLocaleString('zh-CN'),
+        missingFields: item.missing_fields || '无'
+      }))
+    } else {
+      // 如果后端没有返回数据，使用fallback逻辑
+      console.warn('No stations data from backend, using fallback')
+      stationQuality.value = []
+      totalStations.value = 0
+    }
+
+    // 更新质量问题列表
+    if (result?.data?.issues && Array.isArray(result.data.issues)) {
+      qualityIssues.value = result.data.issues.map(item => ({
+        station: item.station_name || item.station || '未知站点',
+        issue: item.issue || item.description || '数据质量问题',
+        severity: item.severity || '中等',
+        detectedAt: item.detected_at || new Date().toLocaleString('zh-CN')
+      }))
+    }
 
     await nextTick()
-    initRadarChart()
-    initLineChart()
+
+    // 初始化图表
+    initRadarChart(qualityMetrics.value)
+    initLineChart(result?.data?.trend)
+
   } catch (error) {
-    ElMessage.error('数据加载失败')
+    console.error('获取数据质量信息失败:', error)
+    ElMessage.error('数据加载失败，请稍后重试')
+
+    // 错误时使用默认值
+    qualityMetrics.value = {
+      completeness: 0,
+      accuracy: 0,
+      timeliness: 0,
+      consistency: 0
+    }
+    stationQuality.value = []
+    qualityIssues.value = []
+
+    await nextTick()
+    initRadarChart(qualityMetrics.value)
+    initLineChart()
   } finally {
     loading.value = false
   }

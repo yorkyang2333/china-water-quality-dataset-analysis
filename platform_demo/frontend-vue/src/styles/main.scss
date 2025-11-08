@@ -1,4 +1,5 @@
-@import './variables.scss';
+@use './variables.scss' as *;
+@use 'sass:color';
 
 // 重置样式
 * {
@@ -485,7 +486,7 @@ body {
     border: none;
     
     &:hover {
-      background: linear-gradient(135deg, darken($primary-color, 10%), darken($secondary-color, 10%));
+      background: linear-gradient(135deg, color.adjust($primary-color, $lightness: -10%), color.adjust($secondary-color, $lightness: -10%));
     }
   }
 }

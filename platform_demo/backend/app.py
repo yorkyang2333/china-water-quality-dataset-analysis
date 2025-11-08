@@ -17,6 +17,7 @@ sys.path.insert(0, current_dir)
 
 from models.predictor import WaterQualityPredictor
 from data.data_service import DataService
+from data.quality_analyzer import DataQualityAnalyzer
 
 # 设置静态文件夹（前端文件）
 frontend_folder = os.path.join(os.path.dirname(current_dir), 'frontend')
@@ -69,6 +70,22 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     raise
+
+# 初始化数据质量分析器（使用原始数据集）
+ORIGINAL_DATA_PATH = os.path.join(project_root, '中国水污染监测数据集.csv')
+try:
+    if os.path.exists(ORIGINAL_DATA_PATH):
+        quality_analyzer = DataQualityAnalyzer(ORIGINAL_DATA_PATH)
+        print(f"✓ Quality Analyzer initialized with original dataset")
+    else:
+        print(f"⚠ Warning: Original dataset not found at {ORIGINAL_DATA_PATH}")
+        quality_analyzer = None
+except Exception as e:
+    print(f"❌ ERROR initializing Quality Analyzer: {e}")
+    import traceback
+    traceback.print_exc()
+    quality_analyzer = None
+
 
 @app.route('/')
 def index():
@@ -346,17 +363,56 @@ def get_monitoring_alerts():
 @app.route('/api/monitoring/data-quality', methods=['GET'])
 def get_data_quality():
     """
-    获取数据质量信息
-    返回数据完整性、更新频率等统计
+    获取数据质量分析结果（基于原始数据集）
+    参数：
+        - province: 省份（可选）
     """
     try:
-        province = request.args.get('province')
-        quality_info = data_service.get_data_quality_info(province)
-        return jsonify({
-            'success': True,
-            'data': quality_info
-        })
+        # 优先使用quality_analyzer（基于原始数据集）
+        if quality_analyzer is not None:
+            province = request.args.get('province')
+            print(f"API /monitoring/data-quality called (using original dataset), province={province}")
+
+            # 获取总体指标
+            overall_metrics = quality_analyzer.get_overall_metrics()
+            print(f"Overall metrics: {overall_metrics}")
+
+            # 获取站点质量数据
+            station_quality = quality_analyzer.get_station_quality(province=province)
+            print(f"Station quality count: {len(station_quality)}")
+
+            # 获取质量问题
+            quality_issues = quality_analyzer.get_quality_issues(province=province)
+            print(f"Quality issues count: {len(quality_issues)}")
+
+            # 获取完整度趋势
+            trend = quality_analyzer.get_completeness_trend()
+            print(f"Trend data points: {len(trend.get('values', []))}")
+
+            return jsonify({
+                'success': True,
+                'data': {
+                    'metrics': overall_metrics,
+                    'stations': station_quality,
+                    'total': len(station_quality),
+                    'issues': quality_issues,
+                    'trend': trend
+                }
+            })
+
+        # 降级使用data_service（如果quality_analyzer不可用）
+        else:
+            province = request.args.get('province')
+            print(f"API /monitoring/data-quality called (using data_service)")
+            quality_info = data_service.get_data_quality_info(province)
+            return jsonify({
+                'success': True,
+                'data': quality_info
+            })
     except Exception as e:
+        print(f"ERROR in /api/monitoring/data-quality: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)
@@ -446,6 +502,102 @@ def get_multi_indicator_trend():
             'data': trend_data
         })
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/statistics/trend', methods=['GET'])
+def get_statistics_trend():
+    """
+    获取统计指标的月度趋势
+    "本月"指数据中最后有记录的那个月，"较上月"指与前一个月对比
+    用于计算"本月新增"、"较上月变化"等数据
+    返回：
+      - station_count_change: 站点数量变化 (%)
+      - excellent_count_change: 优秀水质变化 (%)
+      - warning_stations_change: 预警站点数变化 (%)
+      - critical_stations_change: 严重污染站点数变化 (%)
+      - current_month: 本月 (格式: YYYY-MM)
+      - previous_month: 上月 (格式: YYYY-MM)
+    """
+    try:
+        province = request.args.get('province')
+
+        # 获取上两个月的数据
+        df = data_service.df.copy()
+        if province:
+            df = df[df['Province'] == province]
+
+        if 'Date' not in df.columns:
+            return jsonify({
+                'success': False,
+                'error': 'Date column not found'
+            }), 400
+
+        df['Date'] = pd.to_datetime(df['Date'])
+        df['YearMonth'] = df['Date'].dt.to_period('M')
+
+        # 获取最近两个月份（数据中存在的）
+        months = sorted(df['YearMonth'].dropna().unique())[-2:]
+
+        if len(months) < 2:
+            # 如果没有足够的历史数据，返回默认值
+            return jsonify({
+                'success': True,
+                'data': {
+                    'station_count_change': 0,
+                    'excellent_count_change': 0,
+                    'warning_stations_change': 0,
+                    'critical_stations_change': 0,
+                    'current_month': 'N/A',
+                    'previous_month': 'N/A',
+                    'note': '数据不足，无法计算变化趋势'
+                }
+            })
+
+        current_month = months[-1]
+        previous_month = months[-2]
+
+        df_current = df[df['YearMonth'] == current_month]
+        df_previous = df[df['YearMonth'] == previous_month]
+
+        # 计算各指标的变化
+        # 1. 站点数量变化
+        current_stations = df_current['Monitoring_Station'].nunique()
+        previous_stations = df_previous['Monitoring_Station'].nunique()
+        station_change = ((current_stations - previous_stations) / previous_stations * 100) if previous_stations > 0 else 0
+
+        # 2. 优秀水质数量变化
+        current_excellent = len(df_current[df_current['Pollution_Level'] == 'Excellent']) if 'Pollution_Level' in df_current.columns else 0
+        previous_excellent = len(df_previous[df_previous['Pollution_Level'] == 'Excellent']) if 'Pollution_Level' in df_previous.columns else 0
+        excellent_change = ((current_excellent - previous_excellent) / max(previous_excellent, 1) * 100)
+
+        # 3. 预警站点（Warning级别）变化
+        current_warning = len(df_current[df_current['Pollution_Level'] == 'Warning']) if 'Pollution_Level' in df_current.columns else 0
+        previous_warning = len(df_previous[df_previous['Pollution_Level'] == 'Warning']) if 'Pollution_Level' in df_previous.columns else 0
+        warning_change = ((current_warning - previous_warning) / max(previous_warning, 1) * 100) if previous_warning > 0 else 0
+
+        # 4. 严重污染站点（Critical级别）变化
+        current_critical = len(df_current[df_current['Pollution_Level'] == 'Critical']) if 'Pollution_Level' in df_current.columns else 0
+        previous_critical = len(df_previous[df_previous['Pollution_Level'] == 'Critical']) if 'Pollution_Level' in df_previous.columns else 0
+        critical_change = ((current_critical - previous_critical) / max(previous_critical, 1) * 100) if previous_critical > 0 else 0
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'station_count_change': round(station_change, 1),
+                'excellent_count_change': round(excellent_change, 1),
+                'warning_stations_change': round(warning_change, 1),
+                'critical_stations_change': round(critical_change, 1),
+                'current_month': str(current_month),
+                'previous_month': str(previous_month)
+            }
+        })
+    except Exception as e:
+        print(f"ERROR in /api/statistics/trend: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'error': str(e)

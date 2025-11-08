@@ -134,6 +134,17 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
     selectedDateRange.value = []
   }
 
+  // 获取数据质量信息
+  const fetchDataQuality = async (province = '') => {
+    try {
+      const response = await waterQualityApi.getDataQuality(province)
+      return response.data
+    } catch (error) {
+      console.error('获取数据质量信息失败:', error)
+      throw error
+    }
+  }
+
   return {
     // 状态
     stations,
@@ -154,6 +165,7 @@ export const useWaterQualityStore = defineStore('waterQuality', () => {
     fetchStatistics,
     fetchRealtimeData,
     fetchAlerts,
+    fetchDataQuality,
     predictPollutionLevel,
     fetchPollutionDistribution,
     getTrends,

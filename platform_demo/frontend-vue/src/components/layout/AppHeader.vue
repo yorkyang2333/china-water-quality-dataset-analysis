@@ -60,7 +60,18 @@
           class="header-btn"
         >
           <el-icon size="20">
-            <FullScreen />
+            <FullScreen v-if="!isFullscreen" />
+            <!-- 退出全屏图标：四个角的箭头指向中心 -->
+            <component :is="'svg'" v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- 左上角：向右下的箭头 -->
+              <path fill="currentColor" d="M3 5h6v2H5v4H3V5z"/>
+              <!-- 右上角：向左下的箭头 -->
+              <path fill="currentColor" d="M21 5h-6v2h4v4h2V5z"/>
+              <!-- 左下角：向右上的箭头 -->
+              <path fill="currentColor" d="M3 19h6v-2H5v-4H3v6z"/>
+              <!-- 右下角：向左上的箭头 -->
+              <path fill="currentColor" d="M21 19h-6v-2h4v-4h2v6z"/>
+            </component>
           </el-icon>
         </el-button>
 
@@ -116,6 +127,7 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
@@ -134,6 +146,7 @@ import {
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const isFullscreen = ref(false)
 
 const userAvatar = '' // 可以从用户store获取
 
@@ -145,6 +158,11 @@ const goHome = () => {
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   router.push(index)
+}
+
+// 全屏状态变化监听
+const handleFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
 }
 
 // 全屏切换
@@ -182,6 +200,23 @@ const handleUserAction = (command) => {
       break
   }
 }
+
+// 生命周期
+onMounted(() => {
+  // 监听全屏状态变化
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+  document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+  document.addEventListener('MSFullscreenChange', handleFullscreenChange)
+})
+
+onUnmounted(() => {
+  // 移除监听器
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
+})
 </script>
 
 <style lang="scss" scoped>
