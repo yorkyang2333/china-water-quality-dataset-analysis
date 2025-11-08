@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/stores/auth'
 
 // 创建axios实例
 const api = axios.create({
@@ -13,7 +14,11 @@ const api = axios.create({
 // 请求拦截器
 api.interceptors.request.use(
   (config) => {
-    // 可以在这里添加token等认证信息
+    const authStore = useAuthStore()
+    const token = authStore?.token || localStorage.getItem('wqp_auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -33,6 +38,11 @@ api.interceptors.response.use(
     // 显示错误消息
     const message = error.response?.data?.message || error.message || '请求失败'
     ElMessage.error(message)
+
+    if (error.response?.status === 401) {
+      const authStore = useAuthStore()
+      authStore.logout(false)
+    }
     
     return Promise.reject(error)
   }

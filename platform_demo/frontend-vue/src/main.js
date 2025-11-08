@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import router from './router'
 import App from './App.vue'
+import { useAuthStore } from '@/stores/auth'
 
 // Element Plus
 import ElementPlus from 'element-plus'
@@ -34,6 +35,10 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 
 app.use(pinia)
+
+const authStore = useAuthStore()
+await authStore.initialize()
+
 app.use(router)
 app.use(ElementPlus)
 

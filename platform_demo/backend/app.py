@@ -3,13 +3,24 @@
 提供数据查询、预测服务等API接口
 """
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, g
 from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
 import sys
+from functools import wraps
+from pathlib import Path
+
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
+from .models.user import UserManager
+
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 # 添加当前目录到路径，以便导入模块
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,9 +33,19 @@ from data.quality_analyzer import DataQualityAnalyzer
 # 设置静态文件夹（前端文件）
 frontend_folder = os.path.join(os.path.dirname(current_dir), 'frontend')
 app = Flask(__name__, static_folder=frontend_folder, static_url_path='')
-CORS(app)  # 允许跨域请求
+CORS(app, supports_credentials=True)  # 允许跨域请求
 
 print(f"Frontend folder: {frontend_folder}")
+
+if not app.config.get('SECRET_KEY'):
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'water-quality-platform-secret')
+app.config.setdefault('TOKEN_EXPIRES_IN', 60 * 60 * 24 * 7)  # 默认7天
+
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt='user-auth-token')
+
+user_db_path = Path(current_dir) / 'data' / 'users.db'
+user_manager = UserManager(user_db_path)
+print(f"✓ User database initialized at: {user_db_path}")
 
 # 初始化数据服务和预测器
 # 数据文件路径优先级：
@@ -32,26 +53,17 @@ print(f"Frontend folder: {frontend_folder}")
 # 2. 项目根目录/preprocess/preprocessed_data_feature_eng.csv
 # 3. 项目根目录/preprocessed_data.csv
 
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-possible_paths = [
-    os.path.join(project_root, 'preprocessed_data_feature_eng.csv'),
-    os.path.join(project_root, 'preprocess', 'preprocessed_data_feature_eng.csv'),
-    os.path.join(project_root, 'preprocessed_data.csv'),
-    os.path.join(project_root, 'preprocess', 'preprocessed_data.csv')
-]
+platform_demo_dir = Path(current_dir).parent
+default_data_path = platform_demo_dir / 'data' / 'sample_water_quality.csv'
 
-DATA_PATH = None
-for path in possible_paths:
-    if os.path.exists(path):
-        DATA_PATH = path
-        print(f"✓ Data file found at: {DATA_PATH}")
-        break
+if not default_data_path.exists():
+    raise FileNotFoundError(
+        f"数据文件缺失: {default_data_path}\n"
+        "请将水质数据CSV放置于 platform_demo/data/ 目录，并命名为 sample_water_quality.csv"
+    )
 
-if DATA_PATH is None:
-    print(f"❌ ERROR: Data file not found. Searched in:")
-    for path in possible_paths:
-        print(f"  - {path}")
-    raise FileNotFoundError("Could not find preprocessed data CSV file")
+DATA_PATH = str(default_data_path.resolve())
+print(f"✓ Data file loaded from: {DATA_PATH}")
 
 try:
     data_service = DataService(DATA_PATH)
@@ -72,7 +84,7 @@ except Exception as e:
     raise
 
 # 初始化数据质量分析器（使用原始数据集）
-ORIGINAL_DATA_PATH = os.path.join(project_root, '中国水污染监测数据集.csv')
+ORIGINAL_DATA_PATH = DATA_PATH
 try:
     if os.path.exists(ORIGINAL_DATA_PATH):
         quality_analyzer = DataQualityAnalyzer(ORIGINAL_DATA_PATH)
@@ -85,6 +97,102 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     quality_analyzer = None
+
+
+def _serialize_user(user: dict) -> dict:
+    """统一返回给前端的用户结构"""
+    return {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "full_name": user.get("full_name"),
+        "bio": user.get("bio") or "",
+        "avatar_url": user.get("avatar_url") or "",
+        "created_at": user.get("created_at"),
+        "updated_at": user.get("updated_at"),
+    }
+
+
+def _generate_token(user_id: int) -> str:
+    return serializer.dumps({"user_id": user_id})
+
+
+def _resolve_token() -> str | None:
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header.split(" ", 1)[1].strip()
+    # 备用：如果未来需要支持Cookie，可在此扩展
+    return None
+
+
+def _verify_token(token: str) -> int | None:
+    try:
+        data = serializer.loads(token, max_age=app.config["TOKEN_EXPIRES_IN"])
+        return data.get("user_id")
+    except SignatureExpired:
+        return None
+    except BadSignature:
+        return None
+
+
+def login_required(func):
+    """校验用户登录状态的装饰器"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if request.method == 'OPTIONS':
+            response = app.make_default_options_response()
+            return response
+        token = _resolve_token()
+        if not token:
+            return (
+                jsonify({"success": False, "error": "未授权访问，请先登录"}),
+                401,
+            )
+
+        user_id = _verify_token(token)
+        if not user_id:
+            return (
+                jsonify({"success": False, "error": "凭证无效或已过期"}),
+                401,
+            )
+
+        user = user_manager.get_user_by_id(user_id)
+        if user is None:
+            return jsonify({"success": False, "error": "用户不存在"}), 401
+
+        g.current_user = user
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        return response
+
+
+@app.after_request
+def enrich_response_headers(response):
+    origin = request.headers.get('Origin', '*')
+    response.headers.setdefault('Access-Control-Allow-Origin', origin)
+    response.headers.setdefault(
+        'Vary',
+        ', '.join(filter(None, [response.headers.get('Vary'), 'Origin']))
+    )
+    response.headers.setdefault(
+        'Access-Control-Allow-Headers',
+        'Authorization, Content-Type, X-Requested-With'
+    )
+    response.headers.setdefault(
+        'Access-Control-Allow-Methods',
+        'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    )
+    response.headers.setdefault('Access-Control-Allow-Credentials', 'true')
+    response.headers.setdefault('Content-Type', response.headers.get('Content-Type', 'application/json; charset=utf-8'))
+    return response
 
 
 @app.route('/')
@@ -101,6 +209,130 @@ def serve_css(filename):
 def serve_js(filename):
     """返回JS文件"""
     return send_from_directory(os.path.join(app.static_folder, 'js'), filename)
+
+
+# ------------------------------- 用户管理 ------------------------------- #
+@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
+def register_user():
+    """用户注册"""
+    if request.method == 'OPTIONS':
+        return app.make_default_options_response()
+    payload = request.get_json() or {}
+    username = (payload.get('username') or '').strip()
+    password = payload.get('password') or ''
+    email = payload.get('email')
+    full_name = payload.get('full_name')
+
+    if not username or not password:
+        return jsonify({
+            'success': False,
+            'error': '用户名和密码不能为空'
+        }), 400
+
+    try:
+        user = user_manager.create_user(
+            username=username,
+            password=password,
+            email=email,
+            full_name=full_name
+        )
+    except ValueError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc)
+        }), 400
+    except Exception as exc:  # 安全兜底
+        return jsonify({
+            'success': False,
+            'error': f'注册失败: {exc}'
+        }), 500
+
+    token = _generate_token(user['id'])  # type: ignore[index]
+    return jsonify({
+        'success': True,
+        'data': {
+            'token': token,
+            'user': _serialize_user(user)
+        }
+    }), 201
+
+
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
+def login_user():
+    """用户登录"""
+    if request.method == 'OPTIONS':
+        return app.make_default_options_response()
+    payload = request.get_json() or {}
+    username = (payload.get('username') or '').strip()
+    password = payload.get('password') or ''
+
+    if not username or not password:
+        return jsonify({
+            'success': False,
+            'error': '请输入用户名和密码'
+        }), 400
+
+    try:
+        user = user_manager.authenticate_user(username, password)
+    except ValueError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc)
+        }), 401
+    except Exception as exc:
+        return jsonify({
+            'success': False,
+            'error': f'登录失败: {exc}'
+        }), 500
+
+    token = _generate_token(user['id'])  # type: ignore[index]
+    return jsonify({
+        'success': True,
+        'data': {
+            'token': token,
+            'user': _serialize_user(user)
+        }
+    })
+
+
+@app.route('/api/user/profile', methods=['GET'])
+@login_required
+def get_profile():
+    """获取当前登录用户信息"""
+    return jsonify({
+        'success': True,
+        'data': _serialize_user(g.current_user)
+    })
+
+
+@app.route('/api/user/profile', methods=['PUT'])
+@login_required
+def update_profile():
+    """更新当前用户资料"""
+    payload = request.get_json() or {}
+    try:
+        user = user_manager.update_user(
+            g.current_user['id'],  # type: ignore[index]
+            email=payload.get('email'),
+            full_name=payload.get('full_name'),
+            bio=payload.get('bio'),
+            avatar_url=payload.get('avatar_url')
+        )
+    except ValueError as exc:
+        return jsonify({
+            'success': False,
+            'error': str(exc)
+        }), 400
+    except Exception as exc:
+        return jsonify({
+            'success': False,
+            'error': f'更新失败: {exc}'
+        }), 500
+
+    return jsonify({
+        'success': True,
+        'data': _serialize_user(user)
+    })
 
 @app.route('/api/stations', methods=['GET'])
 def get_stations():

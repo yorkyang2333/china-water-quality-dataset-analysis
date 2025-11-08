@@ -32,17 +32,18 @@ except Exception as e:
 print()
 print("[2/4] Testing data loading...")
 try:
-    DATA_PATH = os.path.join(
-        os.path.dirname(os.path.dirname(backend_dir)),
-        'preprocessed_data_feature_eng.csv'
+    sample_path = os.path.join(
+        os.path.dirname(backend_dir),
+        'data',
+        'sample_water_quality.csv'
     )
-    print(f"  Data path: {DATA_PATH}")
-
-    if not os.path.exists(DATA_PATH):
-        print(f"  ERROR - Data file not found!")
+    data_path = sample_path
+    print(f"  Using data file: {data_path}")
+    if not os.path.exists(data_path):
+        print("  ERROR - Data file not found!")
         sys.exit(1)
 
-    data_service = DataService(DATA_PATH)
+    data_service = DataService(data_path)
     print(f"  OK - Data loaded: {len(data_service.df)} records")
 except Exception as e:
     print(f"  ERROR - Data loading failed: {e}")

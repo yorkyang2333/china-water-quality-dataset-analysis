@@ -2,10 +2,10 @@
   <div id="app">
     <el-config-provider :locale="locale">
       <!-- 导航栏 -->
-      <AppHeader />
+      <AppHeader v-if="showHeader" />
       
       <!-- 主内容区域 -->
-      <main class="main-content">
+      <main :class="mainContentClass">
         <router-view />
       </main>
       
@@ -20,13 +20,21 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import { useLoadingStore } from '@/stores/loading'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
 const loadingStore = useLoadingStore()
 const locale = zhCn
+const route = useRoute()
+
+const showHeader = computed(() => route.meta?.layout !== 'auth')
+const mainContentClass = computed(() => ({
+  'main-content': true,
+  'main-content--auth': !showHeader.value
+}))
 
 onMounted(() => {
   // 初始化应用
@@ -47,6 +55,14 @@ onMounted(() => {
 .main-content {
   padding-top: 72px;
   min-height: calc(100vh - 72px);
+}
+
+.main-content--auth {
+  padding-top: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 // Element Plus 样式覆盖

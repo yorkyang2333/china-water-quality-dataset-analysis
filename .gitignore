@@ -35,6 +35,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Local datasets & generated databases
+preprocessed_data*.csv
+中国水污染监测数据集*.csv
+platform_demo/backend/data/users.db
+
 
 # Model and analysis outputs
 Outputs/

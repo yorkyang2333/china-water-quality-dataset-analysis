@@ -21,6 +21,10 @@ if sys.platform == 'win32':
 # 全局进程列表，用于清理
 processes = []
 
+NODE_CMD = 'node'
+NPM_CMD = 'npm.cmd' if sys.platform == 'win32' else 'npm'
+VITE_BIN_NAME = 'vite.cmd' if sys.platform == 'win32' else 'vite'
+
 def signal_handler(sig, frame):
     """处理Ctrl+C信号"""
     print("\n\n🛑 接收到停止信号，正在关闭服务...")
@@ -48,13 +52,13 @@ def check_node_npm():
     try:
         # 修复：移除shell=True，在macOS/Linux上使用列表参数
         node_version = subprocess.run(
-            ['node', '--version'],
+            [NODE_CMD, '--version'],
             capture_output=True,
             text=True,
             timeout=5  # 添加超时防止卡住
         )
         npm_version = subprocess.run(
-            ['npm', '--version'],
+            [NPM_CMD, '--version'],
             capture_output=True,
             text=True,
             timeout=5  # 添加超时防止卡住
@@ -81,39 +85,93 @@ def check_python():
     print(f"✅ Python: {sys.version.split()[0]}")
     return True
 
+def install_backend_dependencies():
+    """安装后端依赖"""
+    requirements_file = Path("backend") / "requirements.txt"
+
+    if not requirements_file.exists():
+        print("⚠️  未找到后端依赖清单 requirements.txt，跳过安装")
+        return True
+
+    required_modules = {
+        "flask": "flask",
+        "flask_cors": "flask-cors",
+        "pandas": "pandas",
+        "numpy": "numpy",
+        "sklearn": "scikit-learn",
+        "xgboost": "xgboost",
+        "joblib": "joblib",
+    }
+
+    missing_packages = []
+    for module_name, package_name in required_modules.items():
+        try:
+            __import__(module_name)
+        except ImportError:
+            missing_packages.append(package_name)
+
+    if not missing_packages:
+        print("✅ 后端依赖已安装")
+        return True
+
+    print("📥 安装后端依赖（这可能需要几分钟）...")
+    print(f"   缺少模块: {', '.join(missing_packages)}")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "-r", str(requirements_file)],
+            capture_output=True,
+            text=True,
+            timeout=600  # 10分钟超时
+        )
+
+        if result.returncode != 0:
+            print("❌ 后端依赖安装失败")
+            if result.stdout:
+                print(result.stdout)
+            if result.stderr:
+                print(result.stderr)
+            return False
+
+        print("✅ 后端依赖安装成功")
+        return True
+    except subprocess.TimeoutExpired:
+        print("❌ 后端依赖安装超时（超过10分钟）")
+        print("   请尝试手动运行: python -m pip install -r backend/requirements.txt")
+        return False
+    except Exception as e:
+        print(f"❌ 后端依赖安装失败: {e}")
+        return False
+
+
 def install_vue_dependencies():
     """安装Vue依赖"""
     vue_dir = Path("frontend-vue")
     node_modules = vue_dir / "node_modules"
+    vite_binary = vue_dir / "node_modules" / ".bin" / VITE_BIN_NAME
 
-    if not node_modules.exists():
+    needs_install = not node_modules.exists() or not vite_binary.exists()
+
+    if needs_install:
         print("📥 安装Vue项目依赖（这可能需要几分钟）...")
         try:
-            # 修复：在非Windows系统上移除shell=True
-            if sys.platform == 'win32':
-                result = subprocess.run(
-                    'npm install',
-                    cwd=vue_dir,
-                    capture_output=True,
-                    text=True,
-                    shell=True,
-                    timeout=300  # 5分钟超时
-                )
-            else:
-                result = subprocess.run(
-                    ['npm', 'install'],
-                    cwd=vue_dir,
-                    capture_output=True,
-                    text=True,
-                    timeout=300  # 5分钟超时
-                )
+            result = subprocess.run(
+                [NPM_CMD, 'install'],
+                cwd=vue_dir,
+                capture_output=True,
+                text=True,
+                timeout=600  # 10分钟超时
+            )
 
             if result.returncode != 0:
-                print(f"❌ 依赖安装失败: {result.stderr}")
+                print("❌ 依赖安装失败")
+                if result.stdout:
+                    print(result.stdout)
+                if result.stderr:
+                    print(result.stderr)
                 return False
             print("✅ Vue依赖安装成功")
         except subprocess.TimeoutExpired:
-            print("❌ 依赖安装超时（超过5分钟）")
+            print("❌ 依赖安装超时（超过10分钟）")
             print("   请尝试手动运行: cd frontend-vue && npm install")
             return False
         except Exception as e:
@@ -170,19 +228,11 @@ def start_frontend():
 
     try:
         # 让子进程直接输出到终端，不重定向
-        if sys.platform == 'win32':
-            # Windows上需要shell=True来运行npm
-            process = subprocess.Popen(
-                'npm run dev',
-                cwd=vue_dir,
-                shell=True
-            )
-        else:
-            # Unix-like系统上不需要shell=True
-            process = subprocess.Popen(
-                ['npm', 'run', 'dev'],
-                cwd=vue_dir
-            )
+        process = subprocess.Popen(
+            [NPM_CMD, 'run', 'dev'],
+            cwd=vue_dir,
+            shell=False
+        )
 
         # 等待前端启动
         print("⏳ 等待前端启动...\n")
@@ -240,6 +290,9 @@ def main():
     # 检查环境
     print("\n🔍 检查运行环境...")
     if not check_python():
+        return False
+
+    if not install_backend_dependencies():
         return False
 
     if not check_node_npm():

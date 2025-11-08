@@ -12,7 +12,7 @@
       </div>
 
       <!-- 导航菜单 -->
-      <nav class="header-nav">
+      <nav class="header-nav" v-if="isAuthenticated">
         <el-menu
           :default-active="$route.path"
           mode="horizontal"
@@ -53,83 +53,93 @@
 
       <!-- 右侧工具栏 -->
       <div class="header-right">
-        <!-- 全屏切换 -->
-        <el-button
-          text
-          @click="toggleFullscreen"
-          class="header-btn"
-        >
-          <el-icon size="20">
-            <FullScreen v-if="!isFullscreen" />
-            <!-- 退出全屏图标：四个角的箭头指向中心 -->
-            <component :is="'svg'" v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <!-- 左上角：向右下的箭头 -->
-              <path fill="currentColor" d="M3 5h6v2H5v4H3V5z"/>
-              <!-- 右上角：向左下的箭头 -->
-              <path fill="currentColor" d="M21 5h-6v2h4v4h2V5z"/>
-              <!-- 左下角：向右上的箭头 -->
-              <path fill="currentColor" d="M3 19h6v-2H5v-4H3v6z"/>
-              <!-- 右下角：向左上的箭头 -->
-              <path fill="currentColor" d="M21 19h-6v-2h4v-4h2v6z"/>
-            </component>
-          </el-icon>
-        </el-button>
+        <template v-if="isAuthenticated">
+          <!-- 全屏切换 -->
+          <el-button
+            text
+            @click="toggleFullscreen"
+            class="header-btn"
+          >
+            <el-icon size="20">
+              <FullScreen v-if="!isFullscreen" />
+              <!-- 退出全屏图标：四个角的箭头指向中心 -->
+              <component :is="'svg'" v-else viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <!-- 左上角：向右下的箭头 -->
+                <path fill="currentColor" d="M3 5h6v2H5v4H3V5z"/>
+                <!-- 右上角：向左下的箭头 -->
+                <path fill="currentColor" d="M21 5h-6v2h4v4h2V5z"/>
+                <!-- 左下角：向右上的箭头 -->
+                <path fill="currentColor" d="M3 19h6v-2H5v-4H3v6z"/>
+                <!-- 右下角：向左上的箭头 -->
+                <path fill="currentColor" d="M21 19h-6v-2h4v-4h2v6z"/>
+              </component>
+            </el-icon>
+          </el-button>
 
-        <!-- 刷新按钮 -->
-        <el-button
-          text
-          @click="refreshPage"
-          class="header-btn"
-        >
-          <el-icon size="20">
-            <Refresh />
-          </el-icon>
-        </el-button>
+          <!-- 刷新按钮 -->
+          <el-button
+            text
+            @click="refreshPage"
+            class="header-btn"
+          >
+            <el-icon size="20">
+              <Refresh />
+            </el-icon>
+          </el-button>
 
-        <!-- 设置按钮 -->
-        <el-button
-          text
-          @click="openSettings"
-          class="header-btn"
-        >
-          <el-icon size="20">
-            <Setting />
-          </el-icon>
-        </el-button>
+          <!-- 设置按钮 -->
+          <el-button
+            text
+            @click="openSettings"
+            class="header-btn"
+          >
+            <el-icon size="20">
+              <Setting />
+            </el-icon>
+          </el-button>
 
-        <!-- 用户信息 -->
-        <el-dropdown @command="handleUserAction">
-          <div class="user-avatar">
-            <el-avatar :size="32" :src="userAvatar">
-              <el-icon><User /></el-icon>
-            </el-avatar>
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="profile">
+          <!-- 用户信息 -->
+          <el-dropdown @command="handleUserAction">
+            <div class="user-avatar">
+              <el-avatar :size="32" :src="userAvatar">
                 <el-icon><User /></el-icon>
-                个人资料
-              </el-dropdown-item>
-              <el-dropdown-item command="settings">
-                <el-icon><Setting /></el-icon>
-                设置
-              </el-dropdown-item>
-              <el-dropdown-item divided command="logout">
-                <el-icon><SwitchButton /></el-icon>
-                退出登录
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+              </el-avatar>
+              <span class="user-name">{{ displayName }}</span>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>
+                  个人资料
+                </el-dropdown-item>
+                <el-dropdown-item command="settings">
+                  <el-icon><Setting /></el-icon>
+                  设置
+                </el-dropdown-item>
+                <el-dropdown-item divided command="logout">
+                  <el-icon><SwitchButton /></el-icon>
+                  退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
+        <template v-else>
+          <el-button type="primary" @click="goLogin" :loading="authLoading">
+            登录平台
+          </el-button>
+        </template>
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '@/stores/auth'
 import {
   Odometer,
   DataLine,
@@ -146,9 +156,14 @@ import {
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const { user, isAuthenticated, loading: authLoadingRef } = storeToRefs(authStore)
+
 const isFullscreen = ref(false)
 
-const userAvatar = '' // 可以从用户store获取
+const userAvatar = computed(() => user.value?.avatar_url || '')
+const displayName = computed(() => user.value?.full_name || user.value?.username || '用户')
+const authLoading = computed(() => authLoadingRef.value)
 
 // 返回首页
 const goHome = () => {
@@ -186,17 +201,22 @@ const openSettings = () => {
   ElMessage.info('设置功能开发中...')
 }
 
+const goLogin = () => {
+  router.push({ name: 'Login' })
+}
+
 // 用户操作处理
 const handleUserAction = (command) => {
   switch (command) {
     case 'profile':
-      ElMessage.info('个人资料功能开发中...')
+      router.push({ name: 'Profile' })
       break
     case 'settings':
       openSettings()
       break
     case 'logout':
-      ElMessage.success('已退出登录')
+      authStore.logout()
+      router.push({ name: 'Login' })
       break
   }
 }
@@ -332,10 +352,19 @@ onUnmounted(() => {
 .user-avatar {
   cursor: pointer;
   transition: all $transition-base;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
   
   &:hover {
     transform: scale(1.05);
   }
+}
+
+.user-name {
+  font-size: $font-size-base;
+  color: #303133;
+  font-weight: 500;
 }
 
 // 响应式设计

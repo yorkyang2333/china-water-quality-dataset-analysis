@@ -1,0 +1,7 @@
+Province,City,Monitoring_Station,Latitude,Longitude,Date,Water_Temperature_C,pH,Dissolved_Oxygen_mg_L,Conductivity_uS_cm,Turbidity_NTU,Nitrate_mg_L,Nitrite_mg_L,Ammonia_N_mg_L,Total_Phosphorus_mg_L,Total_Nitrogen_mg_L,COD_mg_L,BOD_mg_L,Heavy_Metals_Pb_ug_L,Heavy_Metals_Cd_ug_L,Heavy_Metals_Hg_ug_L,Coliform_Count_CFU_100mL,Water_Quality_Index,Pollution_Level,Remarks,Total_Heavy_Metals_ug_L,COD_BOD_Ratio,NP_Ratio
+Beijing,Beijing,Beijing-Haidian,39.98,116.31,2024-06-01,21.4,7.4,7.2,320,2.4,0.45,0.03,0.12,0.05,0.82,18.5,4.3,12.5,0.6,0.04,220,36.8,Excellent,,13.14,4.30,10.25
+Beijing,Beijing,Beijing-Haidian,39.98,116.31,2024-07-01,23.1,7.3,7.1,318,2.1,0.42,0.02,0.11,0.05,0.80,19.1,4.5,12.1,0.5,0.03,230,38.6,Good,,12.63,4.24,10.67
+Guangdong,Guangzhou,Pearl-River-01,23.12,113.27,2024-06-01,26.8,7.1,6.3,410,4.8,0.62,0.05,0.43,0.12,1.45,32.7,7.8,18.2,0.8,0.05,520,58.4,Fair,,19.05,4.19,12.08
+Guangdong,Guangzhou,Pearl-River-01,23.12,113.27,2024-07-01,28.2,7.0,5.9,422,5.1,0.68,0.06,0.50,0.13,1.62,35.4,8.4,18.9,0.9,0.05,610,63.7,Poor,,19.85,4.21,12.46
+Sichuan,Chengdu,Min-River-Station,30.67,104.06,2024-06-15,19.6,7.6,8.1,285,2.9,0.38,0.03,0.19,0.07,0.96,22.3,5.6,14.3,0.7,0.04,280,41.5,Good,,15.04,3.98,11.12
+
