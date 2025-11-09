@@ -19,7 +19,19 @@
       "Bash(python3:*)",
       "Bash(curl:*)",
       "Bash(pkill:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(./LSTM_RF_HYBRID_SETUP.md )",
+      "Bash(./models/SETUP_SUMMARY.txt )",
+      "Bash(./models/HYBRID_MODEL_README.md )",
+      "Bash(./models/QUICK_START.md )",
+      "Bash(./models/timeseries_models_province_revised/QUICK_START_V6.md )",
+      "Bash(./models/timeseries_models_province_revised/QUICK_START_V7.md )",
+      "Bash(./models/timeseries_models_province_revised/README_FIXED.md )",
+      "Bash(./models/timeseries_models_province_revised/README_V5_IMPORTANT_FINDINGS.md )",
+      "Bash(./models/timeseries_models_province_revised/README_V6_CRITICAL_FIX.md )",
+      "Bash(./models/timeseries_models_province_revised/README_V7_ENHANCEMENTS.md )",
+      "Bash(./models/timeseries_models_province_revised/v6_indicators_selection.md )",
+      "Bash(./revise.md)"
     ],
     "deny": [],
     "ask": []
