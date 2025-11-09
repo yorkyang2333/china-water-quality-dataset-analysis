@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { waterQualityApi } from '@/api/waterQuality'
@@ -130,6 +130,11 @@ let lineChartInstance = null
 let heatmapChartInstance = null
 
 const initPieChart = async () => {
+  if (!pieChart.value) {
+    console.warn('Pie chart DOM element not found')
+    return
+  }
+
   if (pieChartInstance) {
     pieChartInstance.dispose()
   }
@@ -152,6 +157,8 @@ const initPieChart = async () => {
     console.log('Pollution distribution response:', response.data)
 
     let chartData = []
+    let chartTitle = filters.value.province || '全部'
+
     if (response.data?.data?.distribution && Array.isArray(response.data.data.distribution)) {
       // 使用真实数据
       const levelMap = {
@@ -177,19 +184,26 @@ const initPieChart = async () => {
     }
 
     const option = {
+      title: {
+        text: `污染等级分布 (${chartTitle})`,
+        left: 'center',
+        top: 'top'
+      },
       tooltip: {
         trigger: 'item',
         formatter: '{b}: {c} ({d}%)'
       },
       legend: {
         orient: 'vertical',
-        left: 'left'
+        left: 'left',
+        top: 40
       },
       series: [
         {
           name: '污染等级',
           type: 'pie',
           radius: '50%',
+          center: ['60%', '50%'],
           data: chartData,
           emphasis: {
             itemStyle: {
@@ -226,6 +240,7 @@ const initBarChart = async () => {
 
     let provinceNames = []
     let provinceValues = []
+    let colors = []
 
     if (response.data?.data?.provinces && Array.isArray(response.data.data.provinces)) {
       // 使用真实数据
@@ -244,14 +259,38 @@ const initBarChart = async () => {
         'Anhui': '安徽省',
         'Yunnan': '云南省'
       }
-      provinceNames = response.data.data.provinces.map(p =>
-        englishToChineseMap[p.province] || p.province
-      )
-      provinceValues = response.data.data.provinces.map(p => p.average)
+
+      // 获取选中的省份（转换为英文）
+      const selectedProvinceEnglish = filters.value.province ?
+        (provinceToEnglish[filters.value.province] || '') : ''
+
+      // 首先获取所有数据
+      let allData = response.data.data.provinces.map(p => ({
+        province: p.province,
+        chineseName: englishToChineseMap[p.province] || p.province,
+        average: p.average
+      }))
+
+      // 如果选中了省份，把它排到最前面
+      if (selectedProvinceEnglish) {
+        const selectedIndex = allData.findIndex(p => p.province === selectedProvinceEnglish)
+        if (selectedIndex > -1) {
+          const [selectedData] = allData.splice(selectedIndex, 1)
+          allData.unshift(selectedData)
+        }
+      }
+
+      // 提取数据和颜色
+      provinceNames = allData.map(p => p.chineseName)
+      provinceValues = allData.map(p => p.average)
+
+      // 第一个是选中的省份，用特殊颜色，其他用默认颜色
+      colors = allData.map((_, index) => index === 0 ? '#FF6B6B' : '#409EFF')
     } else {
       // 备用数据
       provinceNames = provinces.value.slice(0, 10)
       provinceValues = provinceNames.map(() => 50 + Math.random() * 40)
+      colors = provinceNames.map((_, index) => index === 0 ? '#FF6B6B' : '#409EFF')
     }
 
     const option = {
@@ -279,14 +318,14 @@ const initBarChart = async () => {
       },
       series: [
         {
-          data: provinceValues,
+          data: provinceValues.map((value, index) => ({
+            value,
+            itemStyle: {
+              color: colors[index]
+            }
+          })),
           type: 'bar',
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#83bff6' },
-              { offset: 1, color: '#188df0' }
-            ])
-          }
+          barWidth: '60%'
         }
       ]
     }
@@ -520,6 +559,13 @@ const initHeatmapChart = async () => {
 const updateTrendChart = () => {
   initLineChart()
 }
+
+// 监听省份变化，更新图表
+watch(() => filters.value.province, () => {
+  initPieChart()
+  initBarChart()
+  initHeatmapChart()
+})
 
 const fetchData = async () => {
   loading.value = true

@@ -194,88 +194,110 @@ const getSeverityType = (severity) => {
 }
 
 const initRadarChart = (metrics) => {
+  // 检查 DOM 元素是否存在
+  if (!radarChart.value) {
+    console.warn('Radar chart DOM element not found')
+    return
+  }
+
   if (radarChartInstance) {
     radarChartInstance.dispose()
   }
-  radarChartInstance = echarts.init(radarChart.value)
 
-  const option = {
-    tooltip: {},
-    radar: {
-      indicator: [
-        { name: '完整度', max: 100 },
-        { name: '准确度', max: 100 },
-        { name: '及时性', max: 100 },
-        { name: '一致性', max: 100 },
-        { name: '有效性', max: 100 }
-      ]
-    },
-    series: [
-      {
-        name: '数据质量评分',
-        type: 'radar',
-        data: [
-          {
-            value: [
-              metrics.completeness || 0,
-              metrics.accuracy || 0,
-              metrics.timeliness || 0,
-              metrics.consistency || 0,
-              (metrics.completeness + metrics.accuracy) / 2 || 0 // 有效性估算
-            ],
-            name: '当前评分',
-            areaStyle: {
-              color: 'rgba(88, 127, 255, 0.3)'
-            }
-          }
+  try {
+    radarChartInstance = echarts.init(radarChart.value)
+
+    const option = {
+      tooltip: {},
+      radar: {
+        indicator: [
+          { name: '完整度', max: 100 },
+          { name: '准确度', max: 100 },
+          { name: '及时性', max: 100 },
+          { name: '一致性', max: 100 },
+          { name: '有效性', max: 100 }
         ]
-      }
-    ]
-  }
+      },
+      series: [
+        {
+          name: '数据质量评分',
+          type: 'radar',
+          data: [
+            {
+              value: [
+                metrics.completeness || 0,
+                metrics.accuracy || 0,
+                metrics.timeliness || 0,
+                metrics.consistency || 0,
+                (metrics.completeness + metrics.accuracy) / 2 || 0 // 有效性估算
+              ],
+              name: '当前评分',
+              areaStyle: {
+                color: 'rgba(88, 127, 255, 0.3)'
+              }
+            }
+          ]
+        }
+      ]
+    }
 
-  radarChartInstance.setOption(option)
+    radarChartInstance.setOption(option)
+  } catch (error) {
+    console.error('Failed to initialize radar chart:', error)
+  }
 }
 
 const initLineChart = (trendData) => {
+  // 检查 DOM 元素是否存在
+  if (!lineChart.value) {
+    console.warn('Line chart DOM element not found')
+    return
+  }
+
   if (lineChartInstance) {
     lineChartInstance.dispose()
   }
-  lineChartInstance = echarts.init(lineChart.value)
 
-  // 使用真实数据或默认数据
-  const days = trendData?.labels || Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
-  const data = trendData?.values || Array.from({ length: 30 }, () => 85 + Math.random() * 15)
+  try {
+    lineChartInstance = echarts.init(lineChart.value)
 
-  const option = {
-    tooltip: {
-      trigger: 'axis'
-    },
-    xAxis: {
-      type: 'category',
-      data: days
-    },
-    yAxis: {
-      type: 'value',
-      name: '完整度 (%)',
-      min: 80,
-      max: 100
-    },
-    series: [
-      {
-        data: data,
-        type: 'line',
-        smooth: true,
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(88, 127, 255, 0.3)' },
-            { offset: 1, color: 'rgba(88, 127, 255, 0.05)' }
-          ])
+    // 使用真实数据或默认数据
+    const days = trendData?.labels || Array.from({ length: 30 }, (_, i) => `${i + 1}日`)
+    const data = trendData?.values || Array.from({ length: 30 }, () => 85 + Math.random() * 15)
+
+    const option = {
+      tooltip: {
+        trigger: 'axis'
+      },
+      xAxis: {
+        type: 'category',
+        data: days
+      },
+      yAxis: {
+        type: 'value',
+        name: '完整度 (%)',
+        min: 80,
+        max: 100
+      },
+      series: [
+        {
+          data: data,
+          type: 'line',
+          smooth: true,
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(88, 127, 255, 0.3)' },
+              { offset: 1, color: 'rgba(88, 127, 255, 0.05)' }
+            ])
+          }
         }
-      }
-    ]
-  }
+      ]
+    }
 
-  lineChartInstance.setOption(option)
+    lineChartInstance.setOption(option)
+  } catch (error) {
+    console.error('Failed to initialize line chart:', error)
+  }
 }
 
 const fetchData = async () => {

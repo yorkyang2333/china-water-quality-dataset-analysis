@@ -29,6 +29,8 @@ sys.path.insert(0, current_dir)
 from models.predictor import WaterQualityPredictor
 from data.data_service import DataService
 from data.quality_analyzer import DataQualityAnalyzer
+from data.valid_ranges import check_all_values, check_value_in_range
+from models.seasonality_analyzer import SeasonalityAnalyzer, analyze_water_quality_seasonality
 
 # 设置静态文件夹（前端文件）
 frontend_folder = os.path.join(os.path.dirname(current_dir), 'frontend')
@@ -48,26 +50,39 @@ user_manager = UserManager(user_db_path)
 print(f"✓ User database initialized at: {user_db_path}")
 
 # 初始化数据服务和预测器
-# 数据文件路径优先级：
-# 1. 项目根目录/preprocessed_data_feature_eng.csv
-# 2. 项目根目录/preprocess/preprocessed_data_feature_eng.csv
-# 3. 项目根目录/preprocessed_data.csv
+# 数据文件配置：
+# - DataService 使用: preprocessed_data.csv（预处理后的数据）
+# - Quality Analyzer 使用: 中国水污染监测数据集.csv（原始数据集）
+# - Predictor 使用: preprocessed_data.csv
 
 platform_demo_dir = Path(current_dir).parent
-default_data_path = platform_demo_dir / 'data' / 'sample_water_quality.csv'
+project_root = platform_demo_dir.parent
 
-if not default_data_path.exists():
+# 预处理数据文件路径（用于 DataService 和 Predictor）
+DATA_PATH = str((project_root / 'preprocessed_data.csv').resolve())
+
+# 原始数据文件路径（用于 Quality Analyzer）
+ORIGINAL_DATA_PATH = str((project_root / '中国水污染监测数据集.csv').resolve())
+
+# 检查文件存在性
+if not os.path.exists(DATA_PATH):
     raise FileNotFoundError(
-        f"数据文件缺失: {default_data_path}\n"
-        "请将水质数据CSV放置于 platform_demo/data/ 目录，并命名为 sample_water_quality.csv"
+        f"预处理数据文件缺失: {DATA_PATH}\n"
+        "请确保 preprocessed_data.csv 位于项目根目录"
     )
 
-DATA_PATH = str(default_data_path.resolve())
+if not os.path.exists(ORIGINAL_DATA_PATH):
+    raise FileNotFoundError(
+        f"原始数据文件缺失: {ORIGINAL_DATA_PATH}\n"
+        "请确保 中国水污染监测数据集.csv 位于项目根目录"
+    )
+
 print(f"✓ Data file loaded from: {DATA_PATH}")
+print(f"✓ Original data file loaded from: {ORIGINAL_DATA_PATH}")
 
 try:
     data_service = DataService(DATA_PATH)
-    print(f"✓ DataService initialized successfully")
+    print(f"✓ DataService initialized with preprocessed data")
 except Exception as e:
     print(f"❌ ERROR initializing DataService: {e}")
     import traceback
@@ -84,14 +99,9 @@ except Exception as e:
     raise
 
 # 初始化数据质量分析器（使用原始数据集）
-ORIGINAL_DATA_PATH = DATA_PATH
 try:
-    if os.path.exists(ORIGINAL_DATA_PATH):
-        quality_analyzer = DataQualityAnalyzer(ORIGINAL_DATA_PATH)
-        print(f"✓ Quality Analyzer initialized with original dataset")
-    else:
-        print(f"⚠ Warning: Original dataset not found at {ORIGINAL_DATA_PATH}")
-        quality_analyzer = None
+    quality_analyzer = DataQualityAnalyzer(ORIGINAL_DATA_PATH)
+    print(f"✓ Quality Analyzer initialized with original dataset")
 except Exception as e:
     print(f"❌ ERROR initializing Quality Analyzer: {e}")
     import traceback
@@ -418,15 +428,31 @@ def predict_pollution_level():
     """
     预测污染等级
     输入水质指标，预测污染等级
+    返回结果 + 范围警告
     """
     try:
         input_data = request.get_json()
+
+        # 检查输入值是否在有效范围内
+        range_warnings = check_all_values(input_data)
+
+        # 调用预测器
         result = predictor.predict_pollution_level(input_data)
 
-        return jsonify({
+        # 添加警告信息到响应
+        response_data = {
             'success': True,
             'data': result
-        })
+        }
+
+        # 如果有超出范围的值，添加警告
+        if range_warnings:
+            response_data['warnings'] = range_warnings
+            response_data['has_warnings'] = True
+        else:
+            response_data['has_warnings'] = False
+
+        return jsonify(response_data)
     except Exception as e:
         return jsonify({
             'success': False,
@@ -830,6 +856,155 @@ def get_statistics_trend():
         print(f"ERROR in /api/statistics/trend: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ============= 季节性分析 API =============
+
+@app.route('/api/analysis/seasonality', methods=['GET'])
+def get_seasonality_analysis():
+    """
+    获取水质指标的季节性分析
+    参数：
+        - indicator: 水质指标名称 (可选，不指定则分析所有)
+        - group_by: 分组方式 (Province 或 Monitoring_Station，默认 Province)
+        - province: 省份过滤 (可选)
+    """
+    try:
+        indicator = request.args.get('indicator')
+        group_by = request.args.get('group_by', 'Province')
+        province = request.args.get('province')
+
+        print(f"API /analysis/seasonality called: indicator={indicator}, group_by={group_by}, province={province}")
+
+        # 准备数据
+        df = data_service.df.copy()
+        if province:
+            df = df[df['Province'] == province]
+
+        # 执行季节性分析
+        analyzer = SeasonalityAnalyzer(df)
+
+        if indicator:
+            result = analyzer.analyze_indicator(indicator, group_by)
+        else:
+            # 分析所有指标
+            result = analyze_water_quality_seasonality(df, indicator=None, group_by=group_by)
+
+        return jsonify({
+            'success': True,
+            'data': result,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        print(f"ERROR in /api/analysis/seasonality: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/analysis/seasonality/quick', methods=['GET'])
+def get_seasonality_quick():
+    """
+    快速获取指定指标的季节性分析结果
+    参数：
+        - indicator: 水质指标名称 (必需)
+        - group_by: 分组方式 (Province 或 Monitoring_Station，默认 Province)
+    """
+    try:
+        indicator = request.args.get('indicator')
+        group_by = request.args.get('group_by', 'Province')
+
+        if not indicator:
+            return jsonify({
+                'success': False,
+                'error': '缺少必需参数: indicator'
+            }), 400
+
+        print(f"\n{'='*60}")
+        print(f"API /api/analysis/seasonality/quick called")
+        print(f"  Indicator: {indicator}")
+        print(f"  Group By: {group_by}")
+        print(f"  Data shape: {data_service.df.shape}")
+        print(f"  Columns: {list(data_service.df.columns)}")
+        print(f"  Indicator exists: {indicator in data_service.df.columns}")
+
+        if indicator in data_service.df.columns:
+            print(f"  Non-null values in {indicator}: {data_service.df[indicator].notna().sum()}")
+            print(f"  Null values in {indicator}: {data_service.df[indicator].isna().sum()}")
+            print(f"  {indicator} dtype: {data_service.df[indicator].dtype}")
+
+        # 执行季节性分析
+        analyzer = SeasonalityAnalyzer(data_service.df)
+        result = analyzer.analyze_indicator(indicator, group_by)
+
+        print(f"  Analysis result keys: {list(result.keys())}")
+        print(f"  Has summary: {'summary' in result}")
+        if 'summary' in result:
+            print(f"  Summary: {result['summary']}")
+        if 'error' in result:
+            print(f"  Error in result: {result.get('error')}")
+
+        # 检查是否有 summary 和有效的数据
+        summary = result.get('summary', {})
+
+        if summary:
+            # 清理 NaN 值，转换为有效数字或 0
+            def clean_value(val):
+                if val is None:
+                    return 0
+                try:
+                    # 处理 NumPy NaN
+                    if isinstance(val, (float, int)):
+                        if np.isnan(val) if isinstance(val, float) else False:
+                            return 0
+                        return float(val)
+                except:
+                    pass
+                return 0
+
+            summary_cleaned = {
+                'avg_seasonality_strength': clean_value(summary.get('avg_seasonality_strength', 0)),
+                'max_seasonality_strength': clean_value(summary.get('max_seasonality_strength', 0)),
+                'min_seasonality_strength': clean_value(summary.get('min_seasonality_strength', 0)),
+                'groups_count': int(summary.get('groups_count', 0))
+            }
+        else:
+            print(f"  ⚠️ No summary found in result")
+            summary_cleaned = {
+                'avg_seasonality_strength': 0,
+                'max_seasonality_strength': 0,
+                'min_seasonality_strength': 0,
+                'groups_count': 0
+            }
+
+        # 简化输出
+        simplified_result = {
+            'indicator': result.get('indicator'),
+            'group_by': result.get('group_by'),
+            'summary': summary_cleaned,
+            'has_strong_seasonality': summary_cleaned.get('avg_seasonality_strength', 0) > 0.5
+        }
+
+        print(f"  Final result: {simplified_result}")
+        print(f"{'='*60}\n")
+
+        return jsonify({
+            'success': True,
+            'data': simplified_result,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        print(f"{'='*60}")
+        print(f"ERROR in /api/analysis/seasonality/quick: {e}")
+        import traceback
+        traceback.print_exc()
+        print(f"{'='*60}\n")
         return jsonify({
             'success': False,
             'error': str(e)

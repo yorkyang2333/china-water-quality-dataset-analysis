@@ -15,7 +15,11 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore()
-    const token = authStore?.token || localStorage.getItem('wqp_auth_token')
+    // 优先使用内存中的 token，其次尝试 localStorage（已勾选"记住我"）和 sessionStorage（当前会话）
+    let token = authStore?.token
+    if (!token) {
+      token = localStorage.getItem('wqp_auth_token') || sessionStorage.getItem('wqp_auth_token_session')
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

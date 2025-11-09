@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import { authApi } from '@/api/auth'
 
 const TOKEN_STORAGE_KEY = 'wqp_auth_token'
+const TOKEN_SESSION_KEY = 'wqp_auth_token_session'
 let initializationTask = null
 
 export const useAuthStore = defineStore('auth', () => {
@@ -18,10 +19,18 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = newToken || ''
     user.value = newUser || null
 
+    // 清除所有之前的 token 存储
     localStorage.removeItem(TOKEN_STORAGE_KEY)
+    sessionStorage.removeItem(TOKEN_SESSION_KEY)
 
-    if (token.value && persist) {
-      localStorage.setItem(TOKEN_STORAGE_KEY, token.value)
+    if (token.value) {
+      // 总是在 sessionStorage 中存储（维持当前会话）
+      sessionStorage.setItem(TOKEN_SESSION_KEY, token.value)
+
+      // 如果 persist 为 true，也在 localStorage 中存储（长期保存）
+      if (persist) {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token.value)
+      }
     }
   }
 
@@ -33,7 +42,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     initializationTask = (async () => {
-      const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY)
+      // 优先从 localStorage 读取（已勾选"记住我"）
+      let storedToken = localStorage.getItem(TOKEN_STORAGE_KEY)
+
+      // 如果 localStorage 中没有，尝试从 sessionStorage 读取（未勾选但在当前会话中）
+      if (!storedToken) {
+        storedToken = sessionStorage.getItem(TOKEN_SESSION_KEY)
+      }
+
       if (storedToken) {
         token.value = storedToken
         try {
@@ -130,6 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = (showMessage = true) => {
+    // 清除所有 token 存储
     setAuthState('', null)
     if (showMessage) {
       ElMessage.success('已退出登录')

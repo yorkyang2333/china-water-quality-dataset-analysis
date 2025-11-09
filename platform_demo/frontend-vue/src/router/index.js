@@ -37,7 +37,7 @@ const routes = [
     name: 'Prediction',
     component: () => import('@/views/Prediction.vue'),
     meta: {
-      title: '智能预测',
+      title: 'AI预测分析',
       icon: 'TrendCharts',
       requiresAuth: true
     }

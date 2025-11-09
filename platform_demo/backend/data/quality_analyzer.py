@@ -64,28 +64,31 @@ class DataQualityAnalyzer:
         清理过程分两步：
         1. 按valid_ranges过滤
         2. 3-sigma和IQR双重异常值检测
+
+        范围数据来自: EDA/traditional_eda/valid_ranges_analysis.txt
         """
         df_temp = self.df.copy()
         original_rows = len(df_temp)
 
-        # 第一步：按valid_ranges过滤（与preprocess.py第98-111行一致）
+        # 第一步：按valid_ranges过滤（基于实际数据统计范围）
+        # 数据范围来自 valid_ranges_analysis.txt 的实际数据
         valid_ranges = {
-            'Water_Temperature_C': (0, 40),
-            'pH': (4.5, 10.0),
-            'Dissolved_Oxygen_mg_L': (0, 20),
-            'Conductivity_uS_cm': (50, 2000),
-            'Turbidity_NTU': (0, 150),
-            'Nitrate_mg_L': (0, 100),
-            'Nitrite_mg_L': (0, 5),
-            'Ammonia_N_mg_L': (0, 10),
-            'Total_Phosphorus_mg_L': (0, 2),
-            'Total_Nitrogen_mg_L': (0, 20),
-            'COD_mg_L': (0, 300),
-            'BOD_mg_L': (0, 100),
-            'Heavy_Metals_Pb_ug_L': (0, 100),
-            'Heavy_Metals_Cd_ug_L': (0, 10),
-            'Heavy_Metals_Hg_ug_L': (0, 2),
-            'Coliform_Count_CFU_100mL': (0, 10000)
+            'Water_Temperature_C': (5.4, 34.915),
+            'pH': (5.56, 8.48),
+            'Dissolved_Oxygen_mg_L': (2.15, 14.02),
+            'Conductivity_uS_cm': (153.723, 842.89),
+            'Turbidity_NTU': (0.0, 26.57),
+            'Nitrate_mg_L': (0.33, 3.7),
+            'Nitrite_mg_L': (0.0, 0.051),
+            'Ammonia_N_mg_L': (0.0, 1.253),
+            'Total_Phosphorus_mg_L': (0.0, 0.242),
+            'Total_Nitrogen_mg_L': (1.32, 4.7),
+            'COD_mg_L': (2.09, 51.093),
+            'BOD_mg_L': (0.68, 8.79),
+            'Heavy_Metals_Pb_ug_L': (0.0, 10.89),
+            'Heavy_Metals_Cd_ug_L': (0.0, 1.12),
+            'Heavy_Metals_Hg_ug_L': (0.0, 0.24),
+            'Coliform_Count_CFU_100mL': (69.0, 160.828)
         }
 
         for col, (min_val, max_val) in valid_ranges.items():
@@ -218,10 +221,10 @@ class DataQualityAnalyzer:
 
             accuracy = np.mean(valid_ratio) if valid_ratio else 100.0
 
-            # 缺失字段分析
+            # 缺失字段分析（排除 Remarks 列）
             missing_fields = []
             for col in station_data.columns:
-                if station_data[col].isnull().sum() > 0:
+                if col != 'Remarks' and station_data[col].isnull().sum() > 0:
                     missing_fields.append(col)
 
             # 获取省份

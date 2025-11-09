@@ -32,15 +32,15 @@ except Exception as e:
 print()
 print("[2/4] Testing data loading...")
 try:
-    sample_path = os.path.join(
-        os.path.dirname(backend_dir),
-        'data',
-        'sample_water_quality.csv'
-    )
-    data_path = sample_path
+    # 获取项目根目录的预处理数据
+    platform_demo_dir = os.path.dirname(backend_dir)
+    project_root = os.path.dirname(platform_demo_dir)
+    data_path = os.path.join(project_root, 'preprocessed_data.csv')
+
     print(f"  Using data file: {data_path}")
     if not os.path.exists(data_path):
         print("  ERROR - Data file not found!")
+        print(f"  Please ensure preprocessed_data.csv exists in: {project_root}")
         sys.exit(1)
 
     data_service = DataService(data_path)
