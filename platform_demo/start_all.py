@@ -189,18 +189,33 @@ def start_backend():
     print("   (后端日志将显示在下方)\n")
 
     try:
-        # 查找run.py的位置
-        if Path("run.py").exists():
-            run_script = "run.py"
-        elif Path("../run.py").exists():
-            run_script = "../run.py"
-        else:
-            print("❌ 找不到run.py文件")
-            return None
+        # 直接使用Python启动backend应用，集成run.py逻辑
+        backend_script = """
+import sys
+import os
 
-        # 让子进程直接输出到终端，不重定向
+# 添加当前目录到Python路径（使用getcwd而非__file__）
+current_dir = os.getcwd()
+sys.path.insert(0, current_dir)
+
+# 从backend模块导入Flask应用
+from backend.app import app
+
+print("\\n" + "="*60)
+print("  Water Quality Monitoring Platform - Backend Server")
+print("="*60)
+print(f"\\n  Starting Flask server...")
+print(f"  Server will run at: http://localhost:8000")
+print("="*60 + "\\n")
+
+# 启动Flask应用
+app.run(debug=False, host='0.0.0.0', port=8000, use_reloader=False)
+"""
+
+        # 直接运行backend应用
         process = subprocess.Popen(
-            [sys.executable, run_script]
+            [sys.executable, "-c", backend_script],
+            cwd=Path.cwd()
         )
 
         # 等待后端启动
