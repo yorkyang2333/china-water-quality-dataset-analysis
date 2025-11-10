@@ -136,23 +136,23 @@ import { useWaterQualityStore } from '@/stores/waterQuality'
 const waterQualityStore = useWaterQualityStore()
 const loading = ref(false)
 const selectedProvince = ref('')
-const provinces = ref(['广东省', '浙江省', '江苏省', '山东省', '河南省', '四川省', '湖北省', '湖南省', '福建省', '安徽省', '北京', '上海', '云南省'])
+const provinces = ref([
+  '北京', '广东', '河南', '湖北', '江苏',
+  '山东', '上海', '四川', '云南', '浙江'
+])
 
-// 中文省份名到后端英文名的映射
-const provinceToEnglish = {
+// 中文到英文的映射（用于API调用）
+const chineseToEnglish = {
   '北京': 'Beijing',
+  '广东': 'Guangdong',
+  '河南': 'Henan',
+  '湖北': 'Hubei',
+  '江苏': 'Jiangsu',
+  '山东': 'Shandong',
   '上海': 'Shanghai',
-  '广东省': 'Guangdong',
-  '江苏省': 'Jiangsu',
-  '浙江省': 'Zhejiang',
-  '山东省': 'Shandong',
-  '河南省': 'Henan',
-  '四川省': 'Sichuan',
-  '湖北省': 'Hubei',
-  '湖南省': 'Hunan',
-  '福建省': 'Fujian',
-  '安徽省': 'Anhui',
-  '云南省': 'Yunnan'
+  '四川': 'Sichuan',
+  '云南': 'Yunnan',
+  '浙江': 'Zhejiang'
 }
 
 const qualityMetrics = ref({
@@ -303,11 +303,9 @@ const initLineChart = (trendData) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    // 转换中文省份名为英文
-    const englishProvince = selectedProvince.value ?
-      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+    console.log('Fetching quality data for province:', selectedProvince.value)
 
-    console.log('Fetching quality data for province:', selectedProvince.value, '->', englishProvince)
+    const englishProvince = selectedProvince.value ? (chineseToEnglish[selectedProvince.value] || selectedProvince.value) : ''
 
     // 从后端获取数据质量信息
     const result = await waterQualityStore.fetchDataQuality(englishProvince)

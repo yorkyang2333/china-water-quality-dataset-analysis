@@ -45,6 +45,17 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
+import argparse
+import json
+import logging
+
+try:
+    import optuna
+    from optuna.samplers import TPESampler
+    OPTUNA_AVAILABLE = True
+except ImportError:
+    OPTUNA_AVAILABLE = False
+    print("⚠️  Optuna未安装，优化功能不可用。请运行: pip install optuna")
 
 warnings.filterwarnings('ignore')
 
@@ -90,6 +101,18 @@ OUTPUT_DIR = 'Outputs/LSTM_RF_Hybrid_Province'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/Province_Plots", exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/Model_Comparison", exist_ok=True)
+os.makedirs(f"{OUTPUT_DIR}/Optuna_Optimization", exist_ok=True)
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(f'{OUTPUT_DIR}/optimization.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # ======================== LSTM 模型定义 ========================
 
@@ -442,13 +465,166 @@ def plot_predictions(test_data, y_true, y_lstm, y_rf, y_hybrid, indicator, provi
     print(f"✓ 图表已保存: {save_path}")
     plt.close()
 
+# ======================== Optuna 超参数优化 ========================
+
+class HybridModelOptimizer:
+    """混合模型超参数优化器"""
+
+    def __init__(self, train_data, test_data, indicator, province, n_trials=20):
+        self.train_data = train_data
+        self.test_data = test_data
+        self.indicator = indicator
+        self.province = province
+        self.n_trials = n_trials
+        self.best_params = None
+        self.best_score = -np.inf
+        self.study = None
+
+    def objective(self, trial):
+        """Optuna目标函数"""
+        try:
+            # 建议超参数
+            hidden_size = trial.suggest_int('hidden_size', 32, 128, step=16)
+            num_layers = trial.suggest_int('num_layers', 1, 3)
+            dropout = trial.suggest_float('dropout', 0.1, 0.5, step=0.1)
+            learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
+            batch_size = trial.suggest_int('batch_size', 8, 32, step=8)
+            epochs = trial.suggest_int('epochs', 20, 100, step=10)
+            seq_length = trial.suggest_int('seq_length', 5, 20, step=5)
+            rf_n_estimators = trial.suggest_int('rf_n_estimators', 50, 200, step=50)
+            rf_max_depth = trial.suggest_int('rf_max_depth', 10, 30, step=5)
+            lstm_weight = trial.suggest_float('lstm_weight', 0.3, 0.7, step=0.1)
+
+            logger.info(f"Trial {trial.number}: Testing params - hidden_size={hidden_size}, num_layers={num_layers}, lr={learning_rate:.6f}")
+
+            # 训练LSTM
+            feature_cols = [col for col in self.train_data.columns if col not in ['Date', 'Province', 'Year', self.indicator]]
+            X_train = self.train_data[feature_cols].values
+            y_train = self.train_data[self.indicator].values
+
+            scaler = MinMaxScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+
+            dataset = TimeSeriesDataset(X_train_scaled, y_train, seq_length=seq_length)
+            loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            input_size = X_train_scaled.shape[1]
+            lstm_model = LSTMModel(input_size=input_size, hidden_size=hidden_size,
+                                   num_layers=num_layers, dropout=dropout).to(DEVICE)
+            optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
+            criterion = nn.MSELoss()
+
+            best_loss = float('inf')
+            patience = 10
+            patience_counter = 0
+
+            for epoch in range(epochs):
+                lstm_model.train()
+                epoch_loss = 0
+
+                for X_batch, y_batch in loader:
+                    X_batch = X_batch.to(DEVICE)
+                    y_batch = y_batch.to(DEVICE)
+
+                    optimizer.zero_grad()
+                    y_pred = lstm_model(X_batch)
+                    loss = criterion(y_pred, y_batch)
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(lstm_model.parameters(), max_norm=1.0)
+                    optimizer.step()
+
+                    epoch_loss += loss.item()
+
+                epoch_loss /= len(loader)
+
+                if epoch_loss < best_loss:
+                    best_loss = epoch_loss
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+
+                if patience_counter >= patience:
+                    break
+
+            # LSTM预测
+            y_lstm_pred = predict_lstm(lstm_model, self.test_data, self.indicator, scaler, feature_cols, seq_length)
+
+            # 训练随机森林
+            rf_model = RandomForestRegressor(
+                n_estimators=rf_n_estimators,
+                max_depth=rf_max_depth,
+                min_samples_split=5,
+                min_samples_leaf=2,
+                random_state=42,
+                n_jobs=-1
+            )
+            rf_model.fit(X_train, y_train)
+
+            # RF预测
+            y_rf_pred = predict_rf(rf_model, self.test_data, self.indicator, feature_cols)
+
+            # 混合预测
+            y_hybrid_pred = hybrid_predict(y_lstm_pred, y_rf_pred, lstm_weight=lstm_weight)
+
+            # 评估
+            y_test = self.test_data[self.indicator].values
+            metrics = calculate_metrics(y_test[-len(y_hybrid_pred):], y_hybrid_pred, "")
+
+            if metrics is None:
+                return -np.inf
+
+            r2_score_val = metrics['R2']
+            logger.info(f"Trial {trial.number}: R²={r2_score_val:.4f}")
+
+            return r2_score_val
+
+        except Exception as e:
+            logger.error(f"Trial {trial.number} failed: {e}")
+            return -np.inf
+
+    def optimize(self):
+        """执行优化"""
+        logger.info(f"开始优化 {self.province} - {self.indicator}，共{self.n_trials}次试验")
+
+        sampler = TPESampler(seed=42)
+        self.study = optuna.create_study(
+            direction='maximize',
+            sampler=sampler
+        )
+
+        self.study.optimize(self.objective, n_trials=self.n_trials, show_progress_bar=True)
+
+        self.best_params = self.study.best_params
+        self.best_score = self.study.best_value
+
+        logger.info(f"优化完成！最佳R²={self.best_score:.4f}")
+        return self.best_params, self.best_score
+
+    def get_best_params(self):
+        """获取最佳参数"""
+        return self.best_params, self.best_score
+
 # ======================== 主程序 ========================
 
 def main():
     """主程序"""
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description='LSTM + 随机森林混合模型 - 省份级别时间序列预测')
+    parser.add_argument('--optimize', action='store_true', help='启用Optuna超参数优化')
+    parser.add_argument('--n-trials', type=int, default=20, help='优化试验次数 (默认: 20)')
+    parser.add_argument('--optimize-indicator', type=str, default='COD_mg_L', help='优化特定指标 (默认: COD_mg_L)')
+    parser.add_argument('--optimize-province', type=str, default=None, help='优化特定省份 (默认: 所有省份)')
+    args = parser.parse_args()
+
     print("\n" + "="*70)
     print("  LSTM + 随机森林混合模型 - 省份级别时间序列预测")
     print("="*70)
+
+    # 检查Optuna
+    if args.optimize and not OPTUNA_AVAILABLE:
+        print("❌ 错误: Optuna未安装")
+        print("   请运行: pip install optuna")
+        return
 
     # 加载数据
     print("\n📥 正在加载数据...")
@@ -460,96 +636,164 @@ def main():
     # 聚合到省份
     province_data = aggregate_to_province(data)
 
-    # 目标指标
-    target_indicators = [
-        'Water_Temperature_C', 'pH', 'Dissolved_Oxygen_mg_L',
-        'Conductivity_uS_cm', 'Turbidity_NTU', 'COD_mg_L', 'BOD_mg_L'
-    ]
+    if args.optimize:
+        # 优化模式
+        print("\n" + "="*70)
+        print("  🔧 启动Optuna超参数优化模式")
+        print("="*70)
 
-    # 存储结果
-    all_results = {}
+        indicator = args.optimize_indicator
+        provinces = [args.optimize_province] if args.optimize_province else province_data['Province'].unique()
 
-    for indicator in target_indicators:
-        print(f"\n{'='*70}")
-        print(f"🎯 处理指标: {indicator}")
-        print(f"{'='*70}")
+        optimization_results = {}
 
-        province_results = {}
-
-        # 按省份处理
-        for province in province_data['Province'].unique():  # 处理所有省份
-            print(f"\n  📍 省份: {province}")
+        for province in provinces:
+            print(f"\n{'='*70}")
+            print(f"📍 优化省份: {province}, 指标: {indicator}")
+            print(f"{'='*70}")
 
             try:
                 province_subset = province_data[province_data['Province'] == province]
 
-                # 准备数据
                 result = prepare_train_test_data(province_subset, indicator)
                 if result is None:
-                    print(f"    ⚠️  数据不足，跳过")
+                    print(f"  ⚠️  数据不足，跳过")
                     continue
 
                 train_data, test_data, all_data = result
-                y_test = test_data[indicator].values
 
-                # 训练LSTM
-                lstm_model, scaler, feature_cols = train_lstm_model(train_data, indicator, epochs=30)
+                # 创建优化器
+                optimizer = HybridModelOptimizer(train_data, test_data, indicator, province, n_trials=args.n_trials)
 
-                # LSTM预测
-                y_lstm_pred = predict_lstm(lstm_model, test_data, indicator, scaler, feature_cols)
+                # 执行优化
+                best_params, best_score = optimizer.optimize()
 
-                # 训练随机森林
-                rf_model, rf_feature_cols = train_rf_model(train_data, indicator)
-
-                # RF预测
-                y_rf_pred = predict_rf(rf_model, test_data, indicator, rf_feature_cols)
-
-                # 混合预测
-                y_hybrid_pred = hybrid_predict(y_lstm_pred, y_rf_pred, lstm_weight=0.5)
-
-                # 评估
-                print(f"\n    📊 模型评估:")
-                lstm_metrics = calculate_metrics(y_test[-len(y_lstm_pred):], y_lstm_pred, "LSTM")
-                rf_metrics = calculate_metrics(y_test[-len(y_rf_pred):], y_rf_pred, "随机森林")
-                hybrid_metrics = calculate_metrics(y_test[-len(y_hybrid_pred):], y_hybrid_pred, "混合模型")
-
-                province_results[province] = {
-                    'lstm': lstm_metrics,
-                    'rf': rf_metrics,
-                    'hybrid': hybrid_metrics
+                optimization_results[province] = {
+                    'best_params': best_params,
+                    'best_score': best_score
                 }
 
-                # 绘制图表
-                plot_predictions(test_data, y_test, y_lstm_pred, y_rf_pred, y_hybrid_pred, indicator, province)
+                # 保存优化结果
+                result_file = f"{OUTPUT_DIR}/Optuna_Optimization/{province}_{indicator}_optimization.json"
+                os.makedirs(os.path.dirname(result_file), exist_ok=True)
+                with open(result_file, 'w', encoding='utf-8') as f:
+                    json.dump({
+                        'province': province,
+                        'indicator': indicator,
+                        'best_params': best_params,
+                        'best_score': float(best_score),
+                        'n_trials': args.n_trials
+                    }, f, indent=2, ensure_ascii=False)
+
+                print(f"\n✅ 优化完成！")
+                print(f"   最佳R²: {best_score:.4f}")
+                print(f"   结果已保存: {result_file}")
 
             except Exception as e:
-                print(f"    ❌ 处理出错: {e}")
+                print(f"  ❌ 优化失败: {e}")
+                logger.error(f"优化 {province} 失败: {e}", exc_info=True)
                 continue
 
-        all_results[indicator] = province_results
+        # 生成优化总结报告
+        summary_file = f"{OUTPUT_DIR}/Optuna_Optimization/optimization_summary.txt"
+        with open(summary_file, 'w', encoding='utf-8') as f:
+            f.write(f"LSTM + 随机森林混合模型 - Optuna超参数优化总结\n")
+            f.write("="*70 + "\n")
+            f.write(f"优化指标: {indicator}\n")
+            f.write(f"试验次数: {args.n_trials}\n")
+            f.write(f"优化日期: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("="*70 + "\n\n")
 
-    # 生成总结报告
-    print("\n" + "="*70)
-    print("  📋 总结报告")
-    print("="*70)
+            for province, results in optimization_results.items():
+                f.write(f"\n【{province}】\n")
+                f.write(f"  最佳R²: {results['best_score']:.4f}\n")
+                f.write(f"  最佳参数:\n")
+                for param, value in results['best_params'].items():
+                    f.write(f"    - {param}: {value}\n")
 
-    report_path = f"{OUTPUT_DIR}/hybrid_model_report.txt"
-    with open(report_path, 'w', encoding='utf-8') as f:
-        f.write("LSTM + 随机森林混合模型 - 省份级别时间序列预测\n")
-        f.write("="*70 + "\n\n")
+        print(f"\n✅ 优化总结已保存: {summary_file}")
 
-        for indicator, province_results in all_results.items():
-            f.write(f"\n【{indicator}】\n")
-            f.write("-"*70 + "\n")
+    else:
+        # 标准预测模式
+        target_indicators = [
+            'Water_Temperature_C', 'pH', 'Dissolved_Oxygen_mg_L',
+            'Conductivity_uS_cm', 'Turbidity_NTU', 'COD_mg_L', 'BOD_mg_L'
+        ]
 
-            for province, results in province_results.items():
-                f.write(f"\n  {province}:\n")
-                f.write(f"    LSTM: RMSE={results['lstm']['RMSE']:.4f}, MAE={results['lstm']['MAE']:.4f}, R²={results['lstm']['R2']:.4f}\n")
-                f.write(f"    RF:   RMSE={results['rf']['RMSE']:.4f}, MAE={results['rf']['MAE']:.4f}, R²={results['rf']['R2']:.4f}\n")
-                f.write(f"    混合: RMSE={results['hybrid']['RMSE']:.4f}, MAE={results['hybrid']['MAE']:.4f}, R²={results['hybrid']['R2']:.4f}\n")
+        all_results = {}
 
-    print(f"\n✅ 报告已保存: {report_path}")
-    print(f"\n🎉 模型训练和预测完成!")
+        for indicator in target_indicators:
+            print(f"\n{'='*70}")
+            print(f"🎯 处理指标: {indicator}")
+            print(f"{'='*70}")
+
+            province_results = {}
+
+            for province in province_data['Province'].unique():
+                print(f"\n  📍 省份: {province}")
+
+                try:
+                    province_subset = province_data[province_data['Province'] == province]
+
+                    result = prepare_train_test_data(province_subset, indicator)
+                    if result is None:
+                        print(f"    ⚠️  数据不足，跳过")
+                        continue
+
+                    train_data, test_data, all_data = result
+                    y_test = test_data[indicator].values
+
+                    lstm_model, scaler, feature_cols = train_lstm_model(train_data, indicator, epochs=30)
+                    y_lstm_pred = predict_lstm(lstm_model, test_data, indicator, scaler, feature_cols)
+
+                    rf_model, rf_feature_cols = train_rf_model(train_data, indicator)
+                    y_rf_pred = predict_rf(rf_model, test_data, indicator, rf_feature_cols)
+
+                    y_hybrid_pred = hybrid_predict(y_lstm_pred, y_rf_pred, lstm_weight=0.5)
+
+                    print(f"\n    📊 模型评估:")
+                    lstm_metrics = calculate_metrics(y_test[-len(y_lstm_pred):], y_lstm_pred, "LSTM")
+                    rf_metrics = calculate_metrics(y_test[-len(y_rf_pred):], y_rf_pred, "随机森林")
+                    hybrid_metrics = calculate_metrics(y_test[-len(y_hybrid_pred):], y_hybrid_pred, "混合模型")
+
+                    province_results[province] = {
+                        'lstm': lstm_metrics,
+                        'rf': rf_metrics,
+                        'hybrid': hybrid_metrics
+                    }
+
+                    plot_predictions(test_data, y_test, y_lstm_pred, y_rf_pred, y_hybrid_pred, indicator, province)
+
+                except Exception as e:
+                    print(f"    ❌ 处理出错: {e}")
+                    logger.error(f"处理 {province} {indicator} 失败: {e}", exc_info=True)
+                    continue
+
+            all_results[indicator] = province_results
+
+        # 生成总结报告
+        print("\n" + "="*70)
+        print("  📋 总结报告")
+        print("="*70)
+
+        report_path = f"{OUTPUT_DIR}/hybrid_model_report.txt"
+        with open(report_path, 'w', encoding='utf-8') as f:
+            f.write("LSTM + 随机森林混合模型 - 省份级别时间序列预测\n")
+            f.write("="*70 + "\n\n")
+
+            for indicator, province_results in all_results.items():
+                f.write(f"\n【{indicator}】\n")
+                f.write("-"*70 + "\n")
+
+                for province, results in province_results.items():
+                    f.write(f"\n  {province}:\n")
+                    f.write(f"    LSTM: RMSE={results['lstm']['RMSE']:.4f}, MAE={results['lstm']['MAE']:.4f}, R²={results['lstm']['R2']:.4f}\n")
+                    f.write(f"    RF:   RMSE={results['rf']['RMSE']:.4f}, MAE={results['rf']['MAE']:.4f}, R²={results['rf']['R2']:.4f}\n")
+                    f.write(f"    混合: RMSE={results['hybrid']['RMSE']:.4f}, MAE={results['hybrid']['MAE']:.4f}, R²={results['hybrid']['R2']:.4f}\n")
+
+        print(f"\n✅ 报告已保存: {report_path}")
+
+    print(f"\n🎉 完成!")
     print(f"   输出目录: {OUTPUT_DIR}")
 
 if __name__ == "__main__":

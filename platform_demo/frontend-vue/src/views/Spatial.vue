@@ -145,40 +145,37 @@ const selectedProvince = ref('')
 const selectedIndicator = ref('Water_Quality_Index')
 const drawMode = ref('')
 
-const provinces = ref(['广东省', '浙江省', '江苏省', '山东省', '河南省', '四川省', '湖北省', '湖南省', '福建省', '安徽省'])
+const provinces = ref([
+  '北京', '广东', '河南', '湖北', '江苏',
+  '山东', '上海', '四川', '云南', '浙江'
+])
 
-// 中文省份名到后端数据的映射
-const provinceNameMap = {
-  '广东省': 'Guangdong',
-  '浙江省': 'Zhejiang',
-  '江苏省': 'Jiangsu',
-  '山东省': 'Shandong',
-  '河南省': 'Henan',
-  '四川省': 'Sichuan',
-  '湖北省': 'Hubei',
-  '湖南省': 'Hunan',
-  '福建省': 'Fujian',
-  '安徽省': 'Anhui',
+// 中文到英文的映射（用于API调用）
+const chineseToEnglish = {
   '北京': 'Beijing',
+  '广东': 'Guangdong',
+  '河南': 'Henan',
+  '湖北': 'Hubei',
+  '江苏': 'Jiangsu',
+  '山东': 'Shandong',
   '上海': 'Shanghai',
-  '云南省': 'Yunnan'
+  '四川': 'Sichuan',
+  '云南': 'Yunnan',
+  '浙江': 'Zhejiang'
 }
 
-// 反向映射：后端省份名到中文
-const backendToChineseMap = {
-  'Guangdong': '广东省',
-  'Zhejiang': '浙江省',
-  'Jiangsu': '江苏省',
-  'Shandong': '山东省',
-  'Henan': '河南省',
-  'Sichuan': '四川省',
-  'Hubei': '湖北省',
-  'Hunan': '湖南省',
-  'Fujian': '福建省',
-  'Anhui': '安徽省',
+// 英文到中文的映射（用于显示）
+const englishToChinese = {
   'Beijing': '北京',
+  'Guangdong': '广东',
+  'Henan': '河南',
+  'Hubei': '湖北',
+  'Jiangsu': '江苏',
+  'Shandong': '山东',
   'Shanghai': '上海',
-  'Yunnan': '云南省'
+  'Sichuan': '四川',
+  'Yunnan': '云南',
+  'Zhejiang': '浙江'
 }
 
 const statistics = ref({
@@ -345,12 +342,9 @@ const loadStations = async () => {
     if (response.data.success) {
       // Transform API data to match our structure
       stationsData = response.data.data.map(station => {
-        // 将后端省份名转换为中文
-        const chineseProvince = backendToChineseMap[station.province] || station.province
-
         return {
           station: station.name,
-          province: chineseProvince,
+          province: englishToChinese[station.province] || station.province,  // 转换为中文显示
           latitude: station.coordinates[0],  // coordinates is [lat, lng]
           longitude: station.coordinates[1],
           Water_Quality_Index: station.latest_wqi || 0,

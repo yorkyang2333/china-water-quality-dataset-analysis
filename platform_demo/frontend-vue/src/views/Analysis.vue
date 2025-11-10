@@ -90,26 +90,22 @@ import { waterQualityApi } from '@/api/waterQuality'
 
 const loading = ref(false)
 const provinces = ref([
-  '北京', '上海', '广东省', '江苏省', '浙江省',
-  '山东省', '河南省', '四川省', '湖北省', '湖南省',
-  '福建省', '安徽省', '云南省'
+  '北京', '广东', '河南', '湖北', '江苏',
+  '山东', '上海', '四川', '云南', '浙江'
 ])
 
-// 中文省份名到后端英文名的映射
-const provinceToEnglish = {
+// 中文到英文的映射（用于API调用）
+const chineseToEnglish = {
   '北京': 'Beijing',
+  '广东': 'Guangdong',
+  '河南': 'Henan',
+  '湖北': 'Hubei',
+  '江苏': 'Jiangsu',
+  '山东': 'Shandong',
   '上海': 'Shanghai',
-  '广东省': 'Guangdong',
-  '江苏省': 'Jiangsu',
-  '浙江省': 'Zhejiang',
-  '山东省': 'Shandong',
-  '河南省': 'Henan',
-  '四川省': 'Sichuan',
-  '湖北省': 'Hubei',
-  '湖南省': 'Hunan',
-  '福建省': 'Fujian',
-  '安徽省': 'Anhui',
-  '云南省': 'Yunnan'
+  '四川': 'Sichuan',
+  '云南': 'Yunnan',
+  '浙江': 'Zhejiang'
 }
 
 const filters = ref({
@@ -141,11 +137,9 @@ const initPieChart = async () => {
   pieChartInstance = echarts.init(pieChart.value)
 
   try {
-    // 转换省份名
-    const englishProvince = filters.value.province ?
-      (provinceToEnglish[filters.value.province] || filters.value.province) : ''
+    console.log('Fetching pollution distribution for:', filters.value.province)
 
-    console.log('Fetching pollution distribution for:', filters.value.province, '->', englishProvince)
+    const englishProvince = filters.value.province ? (chineseToEnglish[filters.value.province] || filters.value.province) : ''
 
     // 调用API获取污染等级分布
     const response = await waterQualityApi.getPollutionDistribution({
@@ -244,36 +238,16 @@ const initBarChart = async () => {
 
     if (response.data?.data?.provinces && Array.isArray(response.data.data.provinces)) {
       // 使用真实数据
-      const englishToChineseMap = {
-        'Beijing': '北京',
-        'Shanghai': '上海',
-        'Guangdong': '广东省',
-        'Jiangsu': '江苏省',
-        'Zhejiang': '浙江省',
-        'Shandong': '山东省',
-        'Henan': '河南省',
-        'Sichuan': '四川省',
-        'Hubei': '湖北省',
-        'Hunan': '湖南省',
-        'Fujian': '福建省',
-        'Anhui': '安徽省',
-        'Yunnan': '云南省'
-      }
-
-      // 获取选中的省份（转换为英文）
-      const selectedProvinceEnglish = filters.value.province ?
-        (provinceToEnglish[filters.value.province] || '') : ''
-
       // 首先获取所有数据
       let allData = response.data.data.provinces.map(p => ({
         province: p.province,
-        chineseName: englishToChineseMap[p.province] || p.province,
+        name: p.province,
         average: p.average
       }))
 
       // 如果选中了省份，把它排到最前面
-      if (selectedProvinceEnglish) {
-        const selectedIndex = allData.findIndex(p => p.province === selectedProvinceEnglish)
+      if (filters.value.province) {
+        const selectedIndex = allData.findIndex(p => p.province === filters.value.province)
         if (selectedIndex > -1) {
           const [selectedData] = allData.splice(selectedIndex, 1)
           allData.unshift(selectedData)
@@ -281,14 +255,14 @@ const initBarChart = async () => {
       }
 
       // 提取数据和颜色
-      provinceNames = allData.map(p => p.chineseName)
+      provinceNames = allData.map(p => p.name)
       provinceValues = allData.map(p => p.average)
 
       // 第一个是选中的省份，用特殊颜色，其他用默认颜色
       colors = allData.map((_, index) => index === 0 ? '#FF6B6B' : '#409EFF')
     } else {
       // 备用数据
-      provinceNames = provinces.value.slice(0, 10)
+      provinceNames = provinces.value
       provinceValues = provinceNames.map(() => 50 + Math.random() * 40)
       colors = provinceNames.map((_, index) => index === 0 ? '#FF6B6B' : '#409EFF')
     }
@@ -343,11 +317,9 @@ const initLineChart = async () => {
   lineChartInstance = echarts.init(lineChart.value)
 
   try {
-    // 转换省份名
-    const englishProvince = filters.value.province ?
-      (provinceToEnglish[filters.value.province] || filters.value.province) : ''
+    console.log('Fetching trend data for:', selectedIndicator.value, 'province:', filters.value.province)
 
-    console.log('Fetching trend data for:', selectedIndicator.value, 'province:', englishProvince)
+    const englishProvince = filters.value.province ? (chineseToEnglish[filters.value.province] || filters.value.province) : ''
 
     // 调用API获取趋势数据
     const response = await waterQualityApi.getTrends({
@@ -430,11 +402,9 @@ const initHeatmapChart = async () => {
   heatmapChartInstance = echarts.init(heatmapChart.value)
 
   try {
-    // 转换省份名
-    const englishProvince = filters.value.province ?
-      (provinceToEnglish[filters.value.province] || filters.value.province) : ''
+    console.log('Fetching correlation data for province:', filters.value.province)
 
-    console.log('Fetching correlation data for province:', englishProvince)
+    const englishProvince = filters.value.province ? (chineseToEnglish[filters.value.province] || filters.value.province) : ''
 
     // 调用API获取相关性数据
     const response = await waterQualityApi.getIndicatorCorrelation({

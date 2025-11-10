@@ -40,9 +40,12 @@ class HybridModelRunner:
         print(f"  {title}")
         print(f"{'─'*70}\n")
 
-    def run_province_model(self):
+    def run_province_model(self, optimize=False, n_trials=20, optimize_indicator='COD_mg_L', optimize_province=None):
         """运行省份级别模型"""
-        self.print_section("🌍 运行省份级别 LSTM+RF 混合模型")
+        if optimize:
+            self.print_section("🌍 运行省份级别 LSTM+RF 混合模型 (Optuna优化模式)")
+        else:
+            self.print_section("🌍 运行省份级别 LSTM+RF 混合模型")
 
         model_path = self.project_root / "timeseries_models_province_revised" / "lstm_rf_hybrid_province.py"
 
@@ -54,11 +57,17 @@ class HybridModelRunner:
             print(f"📂 模型位置: {model_path}")
             print(f"🚀 启动模型...\n")
 
+            cmd = [sys.executable, str(model_path)]
+            if optimize:
+                cmd.extend(['--optimize', '--n-trials', str(n_trials)])
+                cmd.extend(['--optimize-indicator', optimize_indicator])
+                if optimize_province:
+                    cmd.extend(['--optimize-province', optimize_province])
+
             start = time.time()
-            # 从项目根目录运行模型
             result = subprocess.run(
-                [sys.executable, str(model_path)],
-                cwd=str(self.project_root.parent),  # 从根目录运行
+                cmd,
+                cwd=str(self.project_root.parent),
                 capture_output=False
             )
 
@@ -81,9 +90,12 @@ class HybridModelRunner:
             self.results['province'] = {'status': 'error', 'error': str(e)}
             return False
 
-    def run_station_model(self):
+    def run_station_model(self, optimize=False, n_trials=15, optimize_indicator='pH', optimize_station=None):
         """运行站点级别模型"""
-        self.print_section("🏢 运行站点级别 LSTM+RF 混合模型")
+        if optimize:
+            self.print_section("🏢 运行站点级别 LSTM+RF 混合模型 (Optuna优化模式)")
+        else:
+            self.print_section("🏢 运行站点级别 LSTM+RF 混合模型")
 
         model_path = self.project_root / "timeseries_models_station_revised" / "lstm_rf_hybrid_station.py"
 
@@ -95,11 +107,17 @@ class HybridModelRunner:
             print(f"📂 模型位置: {model_path}")
             print(f"🚀 启动模型...\n")
 
+            cmd = [sys.executable, str(model_path)]
+            if optimize:
+                cmd.extend(['--optimize', '--n-trials', str(n_trials)])
+                cmd.extend(['--optimize-indicator', optimize_indicator])
+                if optimize_station:
+                    cmd.extend(['--optimize-station', optimize_station])
+
             start = time.time()
-            # 从项目根目录运行模型
             result = subprocess.run(
-                [sys.executable, str(model_path)],
-                cwd=str(self.project_root.parent),  # 从根目录运行
+                cmd,
+                cwd=str(self.project_root.parent),
                 capture_output=False
             )
 
@@ -211,14 +229,26 @@ class HybridModelRunner:
         print("\n✅ 依赖检查完成！")
         return True
 
-    def run(self, mode='all'):
+    def run(self, mode='all', optimize=False, n_trials_province=20, n_trials_station=15,
+            optimize_indicator_province='COD_mg_L', optimize_indicator_station='pH'):
         """主运行方法"""
-        self.print_header("LSTM + 随机森林混合模型 - 批量运行")
+        if optimize:
+            self.print_header("LSTM + 随机森林混合模型 - Optuna超参数优化模式")
+        else:
+            self.print_header("LSTM + 随机森林混合模型 - 批量运行")
 
         # 检查依赖
         if not self.check_dependencies():
             print("\n❌ 依赖不完整，请先安装所需库")
             return False
+
+        if optimize:
+            try:
+                import optuna
+                print("✅ Optuna已安装")
+            except ImportError:
+                print("❌ Optuna未安装，请运行: pip install optuna")
+                return False
 
         # 检查数据
         if not self.check_data():
@@ -231,11 +261,13 @@ class HybridModelRunner:
 
         success = True
         if mode in ['all', 'province']:
-            if not self.run_province_model():
+            if not self.run_province_model(optimize=optimize, n_trials=n_trials_province,
+                                          optimize_indicator=optimize_indicator_province):
                 success = False
 
         if mode in ['all', 'station']:
-            if not self.run_station_model():
+            if not self.run_station_model(optimize=optimize, n_trials=n_trials_station,
+                                         optimize_indicator=optimize_indicator_station):
                 success = False
 
         # 打印总结
@@ -248,21 +280,31 @@ def main():
     runner = HybridModelRunner()
 
     # 解析命令行参数
-    mode = 'all'
-    if len(sys.argv) > 1:
-        arg = sys.argv[1].lower()
-        if arg in ['province', 'station']:
-            mode = arg
-        elif arg in ['-h', '--help', 'help']:
-            print(__doc__)
-            sys.exit(0)
-        else:
-            print(f"❌ 未知参数: {arg}")
-            print(__doc__)
-            sys.exit(1)
+    import argparse
+    parser = argparse.ArgumentParser(description='LSTM + 随机森林混合模型 - 批量运行脚本')
+    parser.add_argument('mode', nargs='?', default='all', choices=['all', 'province', 'station'],
+                       help='运行模式: all/province/station (默认: all)')
+    parser.add_argument('--optimize', action='store_true', help='启用Optuna超参数优化')
+    parser.add_argument('--n-trials-province', type=int, default=20,
+                       help='省份级别优化试验次数 (默认: 20)')
+    parser.add_argument('--n-trials-station', type=int, default=15,
+                       help='站点级别优化试验次数 (默认: 15)')
+    parser.add_argument('--optimize-indicator-province', type=str, default='COD_mg_L',
+                       help='省份级别优化指标 (默认: COD_mg_L)')
+    parser.add_argument('--optimize-indicator-station', type=str, default='pH',
+                       help='站点级别优化指标 (默认: pH)')
+
+    args = parser.parse_args()
 
     # 运行
-    success = runner.run(mode)
+    success = runner.run(
+        mode=args.mode,
+        optimize=args.optimize,
+        n_trials_province=args.n_trials_province,
+        n_trials_station=args.n_trials_station,
+        optimize_indicator_province=args.optimize_indicator_province,
+        optimize_indicator_station=args.optimize_indicator_station
+    )
     sys.exit(0 if success else 1)
 
 if __name__ == "__main__":

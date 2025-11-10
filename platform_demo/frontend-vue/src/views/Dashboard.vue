@@ -15,6 +15,7 @@
           @change="handleProvinceChange"
           style="width: 180px"
         >
+          <el-option label="全部" value="" />
           <el-option
             v-for="province in provinces"
             :key="province"
@@ -239,7 +240,7 @@ const waterQualityStore = useWaterQualityStore()
 const loadingStore = useLoadingStore()
 
 // 响应式数据
-const selectedProvince = ref('北京')
+const selectedProvince = ref('')  // 默认为空，显示全部省份数据
 const dateRange = ref([new Date('2023-01-01'), new Date('2023-12-31')])
 const trendIndicator = ref('Water_Quality_Index')
 const pollutionChart = ref(null)
@@ -263,25 +264,22 @@ const warningAlerts = computed(() => waterQualityStore.warningAlerts)
 const totalAlerts = computed(() => waterQualityStore.totalAlerts)
 
 const provinces = computed(() => [
-  '北京', '上海', '广东省', '江苏省', '浙江省',
-  '山东省', '河南省', '四川省', '湖北省', '湖南省'
+  '北京', '广东', '河南', '湖北', '江苏',
+  '山东', '上海', '四川', '云南', '浙江'
 ])
 
-// 中文省份名到后端英文名的映射
-const provinceToEnglish = {
+// 中文到英文的映射（用于API调用）
+const chineseToEnglish = {
   '北京': 'Beijing',
+  '广东': 'Guangdong',
+  '河南': 'Henan',
+  '湖北': 'Hubei',
+  '江苏': 'Jiangsu',
+  '山东': 'Shandong',
   '上海': 'Shanghai',
-  '广东省': 'Guangdong',
-  '江苏省': 'Jiangsu',
-  '浙江省': 'Zhejiang',
-  '山东省': 'Shandong',
-  '河南省': 'Henan',
-  '四川省': 'Sichuan',
-  '湖北省': 'Hubei',
-  '湖南省': 'Hunan',
-  '福建省': 'Fujian',
-  '安徽省': 'Anhui',
-  '云南省': 'Yunnan'
+  '四川': 'Sichuan',
+  '云南': 'Yunnan',
+  '浙江': 'Zhejiang'
 }
 
 const recentAlerts = computed(() => {
@@ -298,12 +296,12 @@ const recentAlerts = computed(() => {
 // 方法
 const handleProvinceChange = async (province) => {
   console.log('Province changed to:', province)
-  // 转换中文省份名为英文
-  const englishProvince = provinceToEnglish[province] || province
-  console.log('Converted to English:', englishProvince)
 
   loadingStore.setPageLoading(true)
   try {
+    // 转换中文省份名为英文用于API调用
+    const englishProvince = province ? (chineseToEnglish[province] || province) : ''
+
     // 重新加载所有数据
     await Promise.all([
       waterQualityStore.fetchStations(),
@@ -420,11 +418,9 @@ const updatePollutionChart = async () => {
   if (!pollutionChartInstance) return
 
   try {
-    // 转换中文省份名为英文
-    const englishProvince = selectedProvince.value ?
-      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+    console.log('Updating pollution chart for province:', selectedProvince.value)
 
-    console.log('Updating pollution chart for province:', selectedProvince.value, '->', englishProvince)
+    const englishProvince = selectedProvince.value ? (chineseToEnglish[selectedProvince.value] || selectedProvince.value) : ''
 
     const result = await waterQualityStore.fetchPollutionDistribution({
       province: englishProvince
@@ -459,12 +455,10 @@ const updateTrendChart = async () => {
   if (!trendChartInstance) return
 
   try {
-    // 转换中文省份名为英文
-    const englishProvince = selectedProvince.value ?
-      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
-
-    console.log('Updating trend chart for province:', selectedProvince.value, '->', englishProvince)
+    console.log('Updating trend chart for province:', selectedProvince.value)
     console.log('Indicator:', trendIndicator.value)
+
+    const englishProvince = selectedProvince.value ? (chineseToEnglish[selectedProvince.value] || selectedProvince.value) : ''
 
     const result = await waterQualityStore.getTrends({
       indicator: trendIndicator.value,
@@ -513,17 +507,31 @@ const updateCharts = async () => {
 const loadInitialData = async () => {
   loadingStore.setGlobalLoading(true)
   try {
-    // 转换中文省份名为英文
-    const englishProvince = provinceToEnglish[selectedProvince.value] || selectedProvince.value
-    console.log('Loading initial data for province:', selectedProvince.value, '->', englishProvince)
+    console.log('Loading initial data for province:', selectedProvince.value)
+
+    const englishProvince = selectedProvince.value ? (chineseToEnglish[selectedProvince.value] || selectedProvince.value) : ''
 
     // 使用默认省份加载初始数据
     await Promise.all([
-      waterQualityStore.fetchStations(),
-      waterQualityStore.fetchStatistics(englishProvince),
-      waterQualityStore.fetchRealtimeData(englishProvince),
-      waterQualityStore.fetchAlerts(englishProvince),
-      loadStatisticsTrend(englishProvince)
+      waterQualityStore.fetchStations().catch(e => {
+        console.warn('Failed to fetch stations:', e)
+        return []
+      }),
+      waterQualityStore.fetchStatistics(englishProvince).catch(e => {
+        console.warn('Failed to fetch statistics:', e)
+        return {}
+      }),
+      waterQualityStore.fetchRealtimeData(englishProvince).catch(e => {
+        console.warn('Failed to fetch realtime data:', e)
+        return []
+      }),
+      waterQualityStore.fetchAlerts(englishProvince).catch(e => {
+        console.warn('Failed to fetch alerts:', e)
+        return []
+      }),
+      loadStatisticsTrend(englishProvince).catch(e => {
+        console.warn('Failed to load statistics trend:', e)
+      })
     ])
     console.log('Initial statistics loaded:', statistics.value)
   } catch (error) {

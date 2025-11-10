@@ -38,11 +38,7 @@
 
       <el-table :data="displayAlerts" style="width: 100%">
         <el-table-column prop="station_name" label="监测站点" width="200" />
-        <el-table-column prop="province" label="省份" width="120">
-          <template #default="{ row }">
-            {{ backendToChineseMap[row.province] || row.province }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="province" label="省份" width="120" />
         <el-table-column prop="message" label="告警信息" />
         <el-table-column prop="level" label="级别" width="100">
           <template #default="{ row }">
@@ -110,40 +106,37 @@ const loading = ref(false)
 const selectedProvince = ref('')
 const realtimeData = ref([])
 
-const provinces = ref(['广东省', '浙江省', '江苏省', '山东省', '河南省', '四川省', '湖北省', '湖南省', '福建省', '安徽省', '北京', '上海', '云南省'])
+const provinces = ref([
+  '北京', '广东', '河南', '湖北', '江苏',
+  '山东', '上海', '四川', '云南', '浙江'
+])
 
-// 中文省份名到后端英文名的映射
-const provinceToEnglish = {
+// 中文到英文的映射（用于API调用）
+const chineseToEnglish = {
   '北京': 'Beijing',
+  '广东': 'Guangdong',
+  '河南': 'Henan',
+  '湖北': 'Hubei',
+  '江苏': 'Jiangsu',
+  '山东': 'Shandong',
   '上海': 'Shanghai',
-  '广东省': 'Guangdong',
-  '江苏省': 'Jiangsu',
-  '浙江省': 'Zhejiang',
-  '山东省': 'Shandong',
-  '河南省': 'Henan',
-  '四川省': 'Sichuan',
-  '湖北省': 'Hubei',
-  '湖南省': 'Hunan',
-  '福建省': 'Fujian',
-  '安徽省': 'Anhui',
-  '云南省': 'Yunnan'
+  '四川': 'Sichuan',
+  '云南': 'Yunnan',
+  '浙江': 'Zhejiang'
 }
 
-// 反向映射：后端省份名到中文
-const backendToChineseMap = {
+// 英文到中文的映射（用于显示）
+const englishToChinese = {
   'Beijing': '北京',
+  'Guangdong': '广东',
+  'Henan': '河南',
+  'Hubei': '湖北',
+  'Jiangsu': '江苏',
+  'Shandong': '山东',
   'Shanghai': '上海',
-  'Guangdong': '广东省',
-  'Jiangsu': '江苏省',
-  'Zhejiang': '浙江省',
-  'Shandong': '山东省',
-  'Henan': '河南省',
-  'Sichuan': '四川省',
-  'Hubei': '湖北省',
-  'Hunan': '湖南省',
-  'Fujian': '福建省',
-  'Anhui': '安徽省',
-  'Yunnan': '云南省'
+  'Sichuan': '四川',
+  'Yunnan': '云南',
+  'Zhejiang': '浙江'
 }
 
 const onlineStations = computed(() => realtimeData.value.filter(d => d.status === 'normal').length)
@@ -167,11 +160,9 @@ const getQualityType = (index) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    // 转换中文省份名为英文
-    const englishProvince = selectedProvince.value ?
-      (provinceToEnglish[selectedProvince.value] || selectedProvince.value) : ''
+    console.log('Fetching monitoring data for province:', selectedProvince.value)
 
-    console.log('Fetching monitoring data for province:', selectedProvince.value, '->', englishProvince)
+    const englishProvince = selectedProvince.value ? (chineseToEnglish[selectedProvince.value] || selectedProvince.value) : ''
 
     // 同时获取站点数据和告警信息
     await Promise.all([
@@ -184,12 +175,11 @@ const fetchData = async () => {
 
     console.log('Loaded stations:', stations.length)
 
-    // 转换数据格式用于表格显示，并转换省份名为中文
+    // 转换数据格式用于表格显示
     let filteredStations = stations.map(item => {
-      const chineseProvince = backendToChineseMap[item.province] || item.province
       return {
         station: item.name || '未知站点',
-        province: chineseProvince,
+        province: englishToChinese[item.province] || item.province,  // 转换为中文显示
         waterQualityIndex: item.latest_wqi || 0,
         cod: (Math.random() * 30).toFixed(2), // TODO: 需要后端提供实际数据
         ph: (6 + Math.random() * 2).toFixed(1),
@@ -202,7 +192,8 @@ const fetchData = async () => {
 
     // 省份筛选
     if (selectedProvince.value) {
-      filteredStations = filteredStations.filter(item => item.province === selectedProvince.value)
+      const chineseProvince = selectedProvince.value
+      filteredStations = filteredStations.filter(item => item.province === chineseProvince)
       console.log('After province filter:', filteredStations.length)
     }
 

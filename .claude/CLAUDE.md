@@ -297,6 +297,28 @@ pip install xgboost
 
 ## 📝 版本历史
 
+- **v2.5** (2025-11-10) - Claude Code
+  - ⭐⭐⭐ 新增 LSTM + RandomForest 混合模型 + Optuna 超参数优化
+  - 新增 4 个 REST API 端点 (`/api/model/hybrid/*`)
+  - 支持 11 个超参数自动优化
+  - 为 `/models` 下的混合模型脚本添加调参功能
+  - 新增平台集成测试脚本 `test_hybrid_api.py`
+  - **新增前端时间序列预测模块** (Prediction.vue 新增标签页)
+    - 支持 LSTM+RF 混合模型训练
+    - 支持 Optuna 超参数优化
+    - 实时显示模型性能指标
+    - 支持按省份或监测站进行精细预测
+  - **新增污染等级预测的输入值范围验证**
+    - 宽松范围限制（约为实际数据范围的1.5-2倍）
+    - 超出范围的值 ❌：中断预测，要求用户修改
+    - 偏离预期范围的值 ⚠️：显示警告，允许用户选择继续或修改
+    - 每个输入框显示合理范围提示
+  - **标准化前端省份列表**
+    - 统一所有 Vue 组件使用 10 个英文省份名称
+    - 修复了 Dashboard.vue、Analysis.vue、Monitoring.vue、Spatial.vue、Quality.vue 的省份列表
+    - 省份列表标准化为：Beijing, Guangdong, Henan, Hubei, Jiangsu, Shandong, Shanghai, Sichuan, Yunnan, Zhejiang
+    - 移除了所有不存在的省份映射（Fujian, Anhui, Hunan）
+
 - **v2.4** (2025-10-31) - Claude Code
   - ⭐⭐ 新增季节性特征分析模块（SARIMA方法）
   - 新增3个分类模型（CatBoost、LightGBM、KNN）
@@ -316,9 +338,58 @@ pip install xgboost
 - **v2.0** (2025-01-05) - Gemini Agent
   - 初始版本
 
+## 📋 编码规则 & 项目约定
+
+### ⚠️ 重要规则
+
+1. **始终用中文写内容和输出**
+   - 🇨🇳 前端界面、变量名注释、API返回信息全部使用中文
+   - 🇨🇳 省份显示为中文（北京、广东、河南等），不带"省"字
+   - 🇨🇳 与用户的所有交互信息必须是中文
+   - ✅ 内部API传参可以用英文（如 province=Beijing），但显示给用户的都是中文
+
+2. **不要创建说明文档**
+   - ❌ 不要创建新的 `.md` 说明文件
+   - ✅ 所有说明、改动、功能只在本 `CLAUDE.md` 里记录
+   - ✅ 代码注释已足够清晰，无需额外文档
+
+3. **API 集成**
+   - 新增 API 端点必须在 `backend/app.py` 中集成
+   - 每个端点需要登录认证 (`@login_required`)
+   - 完整的错误处理和日志记录
+
+4. **模型开发**
+   - 优化模型放在 `backend/models/` 目录
+   - 原始模型脚本放在 `/models` 目录，支持调参功能
+   - 使用 Optuna 进行超参数优化
+
+### LSTM + RF 混合模型相关文件
+
+| 文件 | 位置 | 功能 |
+|------|------|------|
+| lstm_rf_hybrid.py | `backend/models/` | 核心模型类（502行） |
+| lstm_rf_hybrid_province.py | `models/timeseries_models_province_revised/` | 省份级模型 + Optuna 调参 |
+| lstm_rf_hybrid_station.py | `models/timeseries_models_station_revised/` | 站点级模型 + Optuna 调参 |
+| test_hybrid_api.py | `platform_demo/` | 平台 API 测试脚本 |
+
+### 新增 API 端点（v2.5）
+
+```
+POST   /api/model/hybrid/train       - 训练混合模型
+POST   /api/model/hybrid/optimize    - Optuna 超参数优化
+POST   /api/model/hybrid/predict     - 使用模型预测
+GET    /api/model/hybrid/status      - 获取模型状态
+```
+
+所有端点需要登录认证，支持参数：
+- `indicator`: 目标指标名称
+- `station`: 监测站（可选）
+- `province`: 省份名称（可选）
+- `n_trials`: Optuna 试验次数（default: 10）
+
 ---
 
 **创建日期**: 2025-01-05
-**最后更新**: 2025-10-31
-**维护者**: Claude Code (v2.3-v2.4), Gemini Agent (v2.0-v2.2)
-**版本**: 2.4 (新增季节性分析 + 更多分类模型)
+**最后更新**: 2025-11-10
+**维护者**: Claude Code (v2.3-v2.5), Gemini Agent (v2.0-v2.2)
+**版本**: 2.5 (LSTM+RF混合模型 + Optuna调参 + 平台集成)

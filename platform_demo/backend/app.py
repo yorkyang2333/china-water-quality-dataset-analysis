@@ -31,6 +31,7 @@ from data.data_service import DataService
 from data.quality_analyzer import DataQualityAnalyzer
 from data.valid_ranges import check_all_values, check_value_in_range
 from models.seasonality_analyzer import SeasonalityAnalyzer, analyze_water_quality_seasonality
+from models.lstm_rf_hybrid import LSTMRFHybridPredictor
 
 # 设置静态文件夹（前端文件）
 frontend_folder = os.path.join(os.path.dirname(current_dir), 'frontend')
@@ -107,6 +108,16 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     quality_analyzer = None
+
+# 初始化LSTM+RF混合模型预测器
+try:
+    hybrid_predictor = LSTMRFHybridPredictor()
+    print(f"✓ LSTM+RF Hybrid Predictor initialized")
+except Exception as e:
+    print(f"❌ ERROR initializing Hybrid Predictor: {e}")
+    import traceback
+    traceback.print_exc()
+    hybrid_predictor = None
 
 
 def _serialize_user(user: dict) -> dict:
@@ -1009,6 +1020,272 @@ def get_seasonality_quick():
             'success': False,
             'error': str(e)
         }), 500
+
+
+# ============= LSTM+RF混合模型 API =============
+
+@app.route('/api/model/hybrid/train', methods=['POST'])
+@login_required
+def train_hybrid_model():
+    """
+    训练LSTM+RF混合模型
+    参数：
+        - indicator: 目标指标名称
+        - station: 监测站点（可选，默认为所有站点的汇总数据）
+        - province: 省份（可选，用于数据过滤）
+    """
+    try:
+        if hybrid_predictor is None:
+            return jsonify({
+                'success': False,
+                'error': '混合模型预测器未初始化'
+            }), 500
+
+        payload = request.get_json() or {}
+        indicator = payload.get('indicator', 'COD_mg_L')
+        station = payload.get('station')
+        province = payload.get('province')
+
+        print(f"\n{'='*60}")
+        print(f"API /model/hybrid/train called")
+        print(f"  Indicator: {indicator}")
+        print(f"  Station: {station}")
+        print(f"  Province: {province}")
+
+        # 准备数据
+        df = data_service.df.copy()
+        if province:
+            df = df[df['Province'] == province]
+        if station:
+            df = df[df['Monitoring_Station'] == station]
+
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.sort_values('Date')
+
+        if indicator not in df.columns:
+            return jsonify({
+                'success': False,
+                'error': f'指标 {indicator} 不存在'
+            }), 400
+
+        # 分割训练/测试集（80/20）
+        split_idx = int(len(df) * 0.8)
+        train_df = df.iloc[:split_idx].copy()
+        test_df = df.iloc[split_idx:].copy()
+
+        print(f"  Train size: {len(train_df)}, Test size: {len(test_df)}")
+
+        # 训练模型
+        metrics = hybrid_predictor.train(train_df, test_df, indicator, {
+            'hidden_size': 64,
+            'num_layers': 2,
+            'dropout': 0.2,
+            'learning_rate': 0.001,
+            'batch_size': 16,
+            'epochs': 30,
+            'seq_length': 10,
+            'rf_n_estimators': 100,
+            'rf_max_depth': 20,
+            'rf_min_samples_split': 2,
+            'lstm_weight': 0.5
+        })
+
+        print(f"  Metrics: RMSE={metrics['rmse']:.4f}, R²={metrics['r2']:.4f}")
+        print(f"{'='*60}\n")
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'rmse': metrics['rmse'],
+                'mae': metrics['mae'],
+                'r2': metrics['r2'],
+                'mse': metrics['mse'],
+                'sample_predictions': metrics['y_pred'][:10] if 'y_pred' in metrics else []
+            }
+        })
+
+    except Exception as e:
+        print(f"ERROR in /model/hybrid/train: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/model/hybrid/optimize', methods=['POST'])
+@login_required
+def optimize_hybrid_model():
+    """
+    使用Optuna优化LSTM+RF混合模型的超参数
+    参数：
+        - indicator: 目标指标名称
+        - station: 监测站点（可选）
+        - province: 省份（可选）
+        - n_trials: 优化试验次数（默认10）
+    """
+    try:
+        if hybrid_predictor is None:
+            return jsonify({
+                'success': False,
+                'error': '混合模型预测器未初始化'
+            }), 500
+
+        try:
+            import optuna
+        except ImportError:
+            return jsonify({
+                'success': False,
+                'error': 'Optuna未安装，请运行: pip install optuna'
+            }), 400
+
+        payload = request.get_json() or {}
+        indicator = payload.get('indicator', 'COD_mg_L')
+        station = payload.get('station')
+        province = payload.get('province')
+        n_trials = payload.get('n_trials', 10)
+
+        print(f"\n{'='*60}")
+        print(f"API /model/hybrid/optimize called")
+        print(f"  Indicator: {indicator}")
+        print(f"  N_trials: {n_trials}")
+
+        # 准备数据
+        df = data_service.df.copy()
+        if province:
+            df = df[df['Province'] == province]
+        if station:
+            df = df[df['Monitoring_Station'] == station]
+
+        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df = df.sort_values('Date')
+
+        # 分割训练/测试集
+        split_idx = int(len(df) * 0.8)
+        train_df = df.iloc[:split_idx].copy()
+        test_df = df.iloc[split_idx:].copy()
+
+        # 优化超参数
+        result = hybrid_predictor.optimize_hyperparams(train_df, test_df, indicator, n_trials)
+
+        print(f"  Best R²: {result['best_r2']:.4f}")
+        print(f"  Best params: {result['best_params']}")
+        print(f"{'='*60}\n")
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'best_r2': result['best_r2'],
+                'best_params': result['best_params'],
+                'metrics': {
+                    'rmse': result['metrics']['rmse'],
+                    'mae': result['metrics']['mae'],
+                    'r2': result['metrics']['r2'],
+                    'mse': result['metrics']['mse']
+                }
+            }
+        })
+
+    except Exception as e:
+        print(f"ERROR in /model/hybrid/optimize: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/model/hybrid/predict', methods=['POST'])
+@login_required
+def predict_hybrid_model():
+    """
+    使用已训练的混合模型进行预测
+    参数：
+        - input_data: 输入特征数据（DataFrame格式的JSON）
+    """
+    try:
+        if hybrid_predictor is None or hybrid_predictor.lstm_model is None:
+            return jsonify({
+                'success': False,
+                'error': '模型未训练，请先训练模型'
+            }), 400
+
+        payload = request.get_json() or {}
+        input_data = payload.get('input_data')
+
+        if not input_data:
+            return jsonify({
+                'success': False,
+                'error': '缺少输入数据'
+            }), 400
+
+        # 转换为DataFrame
+        df = pd.DataFrame(input_data)
+
+        # 预测
+        predictions = hybrid_predictor.predict(df)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'predictions': predictions.tolist(),
+                'mean': float(np.mean(predictions)),
+                'std': float(np.std(predictions))
+            }
+        })
+
+    except Exception as e:
+        print(f"ERROR in /model/hybrid/predict: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/model/hybrid/status', methods=['GET'])
+def get_hybrid_model_status():
+    """获取混合模型的状态和性能指标"""
+    try:
+        if hybrid_predictor is None:
+            return jsonify({
+                'success': True,
+                'data': {
+                    'trained': False,
+                    'message': '混合模型未初始化'
+                }
+            })
+
+        is_trained = hybrid_predictor.lstm_model is not None
+
+        if not is_trained:
+            return jsonify({
+                'success': True,
+                'data': {
+                    'trained': False,
+                    'message': '混合模型未训练'
+                }
+            })
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'trained': True,
+                'hyperparams': hybrid_predictor.hyperparams,
+                'metrics': hybrid_predictor.metrics,
+                'device': str(hybrid_predictor.device)
+            }
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 
 if __name__ == '__main__':
     print("\n" + "="*60)
