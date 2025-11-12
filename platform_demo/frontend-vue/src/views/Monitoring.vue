@@ -245,6 +245,10 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-weight: 600;
+}
+
 .update-time {
   text-align: center;
 }

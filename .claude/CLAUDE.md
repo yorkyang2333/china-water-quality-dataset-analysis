@@ -39,14 +39,6 @@ china-water-quality-dataset-analysis/
 │   │   ├── classification_lightgbm.py           # LightGBM
 │   │   └── classification_knn.py                # K近邻
 │   │
-│   ├── timeseries_models_station/       # 时间序列模型 - 监测站级别（旧版）
-│   │   ├── arima_station_prediction_cpu.py
-│   │   ├── sarima_station_prediction_cpu.py
-│   │   ├── prophet_station_prediction_cpu.py
-│   │   ├── ar_station_prediction_cpu.py
-│   │   ├── lstm_station_prediction_*.py
-│   │   └── timeseries_station_prediction.py
-│   │
 │   ├── timeseries_models_province/      # 时间序列模型 - 省份级别（旧版）
 │   │   ├── arima_province_prediction.py
 │   │   ├── sarima_province_prediction.py
@@ -54,23 +46,19 @@ china-water-quality-dataset-analysis/
 │   │   ├── ar_province_prediction.py
 │   │   └── lstm_province_prediction*.py
 │   │
-│   ├── timeseries_models_station_revised/  # ⭐⭐ 改进版时间序列 - Station级别
-│   │   ├── arima_station_revised.py
-│   │   ├── sarima_station_revised.py
-│   │   ├── prophet_station_revised.py
-│   │   ├── lstm_station_revised_auto_gpu.py        # 自动GPU加速
-│   │   ├── lstm_station_optimized_auto_gpu.py      # 优化版LSTM
-│   │   ├── timeseries_station_prediction_revised.py
-│   │   └── run_all.py                              # 批量运行脚本
-│   │
-│   ├── timeseries_models_province_revised/ # ⭐⭐ 改进版时间序列 - Province级别
+│   ├── timeseries_models_province_revised/ # ⭐⭐⭐ 改进版时间序列 - Province级别（主要使用）
 │   │   ├── arima_province_revised.py
 │   │   ├── sarima_province_revised.py
 │   │   ├── prophet_province_revised.py
 │   │   ├── ar_province_revised.py
 │   │   ├── lstm_province_revised_auto_gpu.py       # 自动GPU加速
 │   │   ├── lstm_province_optimized_auto_gpu.py     # 优化版LSTM
+│   │   ├── lstm_rf_hybrid_province.py              # ⭐⭐⭐ LSTM+RF混合模型（最新）
 │   │   └── run_all.py                              # 批量运行脚本
+│   │
+│   ├── archived/                         # 📦 归档模型（不再维护）
+│   │   ├── timeseries_models_station/           # Station级别模型（旧版）
+│   │   └── timeseries_models_station_revised/   # Station级别模型（改进版）
 │   │
 │   └── backup_prediction_attempts_crosssectional/  # 横截面预测尝试（备份）
 │       └── ... (多个实验性脚本)
@@ -297,12 +285,59 @@ pip install xgboost
 
 ## 📝 版本历史
 
+- **v2.5.1** (2025-11-12) - Claude Code
+  - ⭐⭐⭐ **混合模型优化（参考 revise.md v1 建议）**
+    - 修改 LSTM 输入特征：去掉当期原始 indicator，只用滞后与派生特征
+    - 更换 scaler 从 MinMaxScaler 到 StandardScaler（对分布漂移更稳健）
+    - 减小 dropout 从 0.2 到 0.1
+    - 调整 seq_length 默认值从 10 到 7（短窗口更适合不规则采样）
+    - 增大 RF 容量：n_estimators=300, max_depth=30, min_samples_split=2, min_samples_leaf=1
+    - 实现自适应融合权重：在验证集上学习最优权重，替代固定 0.5
+    - 修复文件：`lstm_rf_hybrid_province.py`
+  - ⭐⭐⭐ **三大关键补丁（参考 revise.md v2）**
+    - **补丁A - 统一评估切片**：修复 RF 对齐 bug，所有模型评估使用同一段真值 `y_test[seq_length : seq_length + n_common]`
+    - **补丁B - 重训最终模型**：学完权重后，用 train+val 全量数据重训最终模型，充分利用 2023 全年数据
+    - **补丁C - 带偏置岭回归**：融合函数改用岭回归 + 偏置项，解决系统性偏差，公式 `y = w_lstm*lstm + w_rf*rf + bias`
+    - **预期效果**：修复"图像与指标不一致"问题，R² 由负转零/正
+  - 📦 **归档 Station 级别模型**
+    - 将所有 Station 级别模型移至 `models/archived/` 目录
+    - 今后仅关注和维护 Province 级别模型
+    - 原因：Province 数据更稳定，维护成本更低，实用价值更高
+  - 🔧 **编码规范**
+    - 新增规则：代码中禁止使用 emoji，使用文本标签替代（[OK], [ERROR] 等）
+    - 原因：避免 Windows GBK 编码导致的 UnicodeEncodeError
+
 - **v2.5** (2025-11-10) - Claude Code
   - ⭐⭐⭐ 新增 LSTM + RandomForest 混合模型 + Optuna 超参数优化
   - 新增 4 个 REST API 端点 (`/api/model/hybrid/*`)
   - 支持 11 个超参数自动优化
   - 为 `/models` 下的混合模型脚本添加调参功能
   - 新增平台集成测试脚本 `test_hybrid_api.py`
+  - **⭐⭐ LSTM 模型优化（参考 lstm_station_optimized_auto_gpu.py）**
+    - 添加 LayerNorm 提高训练稳定性
+    - 改进的全连接层结构（hidden_size // 2）
+    - CosineAnnealingLR 学习率调度（T_max=50, eta_min=1e-6）
+    - 优化的早停策略：
+      - 正常训练 patience=30，min_delta=1e-4
+      - Optuna 试验 patience=20，min_delta=1e-4（更快收敛）
+    - 增加 epochs 范围至 30-150（Optuna 搜索）
+    - 同步优化 `lstm_rf_hybrid_station.py`、`lstm_rf_hybrid_province.py` 和 `backend/models/lstm_rf_hybrid.py`
+    - 修复 tkinter 错误：设置 matplotlib 使用非交互式后端（Agg）
+    - 添加训练进度显示（Patience 计数器）
+  - **⭐⭐⭐ 混合模型关键修复（参考 revise.md）**
+    - **时间步对齐**：修复 LSTM (预测 t+1) 与 RF (预测 t) 的融合错位问题
+    - **特征泄漏修复**：差分和滚动统计特征使用严格过去值 (shift(1))
+    - **验证集早停**：LSTM 训练引入独立验证集（85%/15% 时间切分）
+    - **可视化修复**：plot_predictions 使用 seq_length 而非固定 -10
+    - **评估对齐**：所有模型评估使用正确的时间索引对齐
+    - 修复文件：`lstm_rf_hybrid_province.py`（完整修复）
+  - **⭐⭐⭐ 数据分布漂移对策（针对 2024 R²=-1.09）**
+    - **gap_days 特征**：处理不等间隔采样（1-14天），LSTM 知道"这一步隔了几天"
+    - **sin/cos 循环特征**：替代单一数值月/日，更好建模季节性周期
+    - **SmoothL1Loss (Huber)**：替代 MSELoss，对异常值和重尾分布更稳健
+    - **学习型融合权重**：使用验证集最小二乘学习权重，替代固定 0.5
+    - **station_count 特征**：记录每日参与聚合的监测站数，捕获采样构成漂移
+    - 针对问题：2023→2024 分布漂移（KS检验显著，方差翻倍）
   - **新增前端时间序列预测模块** (Prediction.vue 新增标签页)
     - 支持 LSTM+RF 混合模型训练
     - 支持 Optuna 超参数优化
@@ -363,13 +398,32 @@ pip install xgboost
    - 原始模型脚本放在 `/models` 目录，支持调参功能
    - 使用 Optuna 进行超参数优化
 
+5. **⭐⭐⭐ Station级别模型归档规则（v2.5.1 新增）**
+   - ❌ **不再开发和维护** Station级别（监测站级别）的时间序列模型
+   - ✅ **仅关注 Province级别**（省份级别）的时间序列模型
+   - 📦 所有Station模型已归档至 `models/archived/` 目录
+   - 🎯 **原因**：
+     - Province级别数据更稳定，聚合后噪声更小
+     - 180个监测站数据维护成本高，Province级别只需关注10个省份
+     - 实际应用中省份级别预测更有实用价值
+   - ⚠️ **重要**：任何涉及Station级别的需求，都应引导转向Province级别实现
+
+6. **❌ 代码中不要使用 Emoji**
+   - ❌ **禁止在 Python 代码的 print 语句中使用 emoji 符号**（如 📥🔧📍🎯🎉 等）
+   - ✅ **使用文本标签替代**：`[OK]`, `[ERROR]`, `[WARN]`, `[INFO]`, `[DONE]`, `[TARGET]`, `[PROVINCE]`
+   - 🎯 **原因**：
+     - Windows 系统的 GBK 编码不支持大部分 emoji
+     - 会导致 `UnicodeEncodeError` 运行时错误
+     - 文本标签更稳定、更兼容
+   - ⚠️ **重要**：本 CLAUDE.md 文档里可以使用 emoji（Markdown 支持），但代码文件中绝对不能使用
+
 ### LSTM + RF 混合模型相关文件
 
 | 文件 | 位置 | 功能 |
 |------|------|------|
-| lstm_rf_hybrid.py | `backend/models/` | 核心模型类（502行） |
-| lstm_rf_hybrid_province.py | `models/timeseries_models_province_revised/` | 省份级模型 + Optuna 调参 |
-| lstm_rf_hybrid_station.py | `models/timeseries_models_station_revised/` | 站点级模型 + Optuna 调参 |
+| lstm_rf_hybrid.py | `backend/models/` | 核心模型类（用于平台API） |
+| lstm_rf_hybrid_province.py | `models/timeseries_models_province_revised/` | ⭐⭐⭐ 省份级模型 + Optuna 调参（主要使用） |
+| ~~lstm_rf_hybrid_station.py~~ | ~~`models/archived/`~~ | ❌ 已归档，不再维护 |
 | test_hybrid_api.py | `platform_demo/` | 平台 API 测试脚本 |
 
 ### 新增 API 端点（v2.5）
@@ -390,6 +444,6 @@ GET    /api/model/hybrid/status      - 获取模型状态
 ---
 
 **创建日期**: 2025-01-05
-**最后更新**: 2025-11-10
-**维护者**: Claude Code (v2.3-v2.5), Gemini Agent (v2.0-v2.2)
-**版本**: 2.5 (LSTM+RF混合模型 + Optuna调参 + 平台集成)
+**最后更新**: 2025-11-12
+**维护者**: Claude Code (v2.3-v2.5.1), Gemini Agent (v2.0-v2.2)
+**版本**: 2.5.1 (混合模型优化 + Station模型归档)

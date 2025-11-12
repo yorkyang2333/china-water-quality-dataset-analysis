@@ -595,4 +595,8 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
 }
+
+.card-header span {
+  font-weight: 600;
+}
 </style>

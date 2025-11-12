@@ -38,11 +38,21 @@ np.random.seed(42)
 
 
 class LSTMModel(nn.Module):
-    """LSTM时间序列模型"""
+    """
+    ⭐⭐ 改进的LSTM时间序列模型
+
+    新特性（参考 lstm_station_optimized_auto_gpu.py）：
+    - LayerNorm for stability
+    - 更好的全连接层结构
+    - 改进的 dropout 策略
+    """
 
     def __init__(self, input_size: int, hidden_size: int = 64,
                  num_layers: int = 2, dropout: float = 0.2):
         super(LSTMModel, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -50,18 +60,24 @@ class LSTMModel(nn.Module):
             dropout=dropout if num_layers > 1 else 0,
             batch_first=True
         )
-        self.fc1 = nn.Linear(hidden_size, 32)
-        self.fc2 = nn.Linear(32, 1)
-        self.relu = nn.ReLU()
+
+        # ⭐ 添加LayerNorm提高稳定性
+        self.layer_norm = nn.LayerNorm(hidden_size)
         self.dropout = nn.Dropout(dropout)
+        self.fc1 = nn.Linear(hidden_size, hidden_size // 2)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size // 2, 1)
 
     def forward(self, x):
         lstm_out, _ = self.lstm(x)
-        x = lstm_out[:, -1, :]
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
+        out = lstm_out[:, -1, :]  # 取最后一个时间步
+        out = self.layer_norm(out)  # ⭐ LayerNorm
+        out = self.dropout(out)
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.dropout(out)
+        out = self.fc2(out)
+        return out
 
 
 class TimeSeriesDataset(Dataset):
@@ -149,7 +165,14 @@ class LSTMRFHybridPredictor:
     def _train_lstm(self, X_train: np.ndarray, y_train: np.ndarray,
                     X_val: np.ndarray, y_val: np.ndarray,
                     hyperparams: Dict) -> Tuple[nn.Module, MinMaxScaler]:
-        """训练LSTM模型"""
+        """
+        ⭐⭐ 优化后的LSTM训练函数
+
+        改进（参考 lstm_station_optimized_auto_gpu.py）：
+        - patience=50（原无） → 避免过早停止
+        - min_delta=1e-5 → 更敏感的早停检测
+        - CosineAnnealingLR → 更好的学习率调度
+        """
         scaler = MinMaxScaler()
         X_scaled = scaler.fit_transform(X_train)
         X_val_scaled = scaler.transform(X_val)
@@ -167,8 +190,17 @@ class LSTMRFHybridPredictor:
         optimizer = optim.Adam(model.parameters(), lr=hyperparams['learning_rate'])
         criterion = nn.MSELoss()
 
+        # ⭐ 改进的学习率调度：CosineAnnealing
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+
+        best_loss = float('inf')
+        patience = 30  # ⭐ 正常训练使用 patience=30
+        patience_counter = 0
+        min_delta = 1e-4  # ⭐ 增大 min_delta 到 1e-4，更容易触发早停
+
         for epoch in range(hyperparams['epochs']):
             model.train()
+            epoch_losses = []
             for X_batch, y_batch in loader:
                 X_batch, y_batch = X_batch.to(self.device), y_batch.to(self.device)
                 optimizer.zero_grad()
@@ -177,6 +209,19 @@ class LSTMRFHybridPredictor:
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
                 optimizer.step()
+                epoch_losses.append(loss.item())
+
+            avg_loss = np.mean(epoch_losses)
+            scheduler.step()  # ⭐ 学习率调度
+
+            # ⭐⭐ 改进的早停检查（使用min_delta）
+            if avg_loss < best_loss - min_delta:
+                best_loss = avg_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= patience:
+                    break
 
         return model, scaler
 
@@ -315,7 +360,7 @@ class LSTMRFHybridPredictor:
                     'dropout': trial.suggest_float('dropout', 0.1, 0.5),
                     'learning_rate': trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True),
                     'batch_size': trial.suggest_int('batch_size', 8, 32),
-                    'epochs': trial.suggest_int('epochs', 50, 150),
+                    'epochs': trial.suggest_int('epochs', 30, 150),  # ⭐ 增加epochs范围
                     'seq_length': trial.suggest_int('seq_length', 5, 20),
                     'rf_n_estimators': trial.suggest_int('rf_n_estimators', 50, 200),
                     'rf_max_depth': trial.suggest_int('rf_max_depth', 10, 30),

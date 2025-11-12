@@ -428,6 +428,10 @@ onMounted(() => {
   align-items: center;
 }
 
+.card-header span {
+  font-weight: 600;
+}
+
 .action-text {
   cursor: pointer;
   margin-right: 12px;

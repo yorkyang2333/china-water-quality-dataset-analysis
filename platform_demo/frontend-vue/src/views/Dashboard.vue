@@ -4,7 +4,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">数据概览</h1>
-        <p class="page-subtitle">全国水质监测数据实时监控</p>
+        <p class="page-subtitle">全国水质监测数据实时监控 | {{ currentMonth }}</p>
       </div>
 
       <div class="header-actions">
@@ -48,8 +48,8 @@
           <div class="stat-trend" :class="stationCountTrend >= 0 ? 'up' : 'down'">
             <el-icon v-if="stationCountTrend >= 0"><Top /></el-icon>
             <el-icon v-else><Bottom /></el-icon>
-            <span v-if="stationCountTrend >= 0">+{{ stationCountTrend }}% 本月新增</span>
-            <span v-else>{{ stationCountTrend }}% 本月减少</span>
+            <span v-if="stationCountTrend >= 0">+{{ stationCountTrend }}% {{ comparisonCurrentMonth || '本月' }}新增</span>
+            <span v-else>{{ stationCountTrend }}% {{ comparisonCurrentMonth || '本月' }}减少</span>
           </div>
         </el-card>
       </el-col>
@@ -64,8 +64,8 @@
           <div class="stat-trend" :class="excellentCountTrend >= 0 ? 'up' : 'down'">
             <el-icon v-if="excellentCountTrend >= 0"><Top /></el-icon>
             <el-icon v-else><Bottom /></el-icon>
-            <span v-if="excellentCountTrend >= 0">+{{ excellentCountTrend }}% 较上月</span>
-            <span v-else>{{ excellentCountTrend }}% 较上月</span>
+            <span v-if="excellentCountTrend >= 0">+{{ excellentCountTrend }}% 较{{ comparisonPreviousMonth || '上月' }}</span>
+            <span v-else>{{ excellentCountTrend }}% 较{{ comparisonPreviousMonth || '上月' }}</span>
           </div>
         </el-card>
       </el-col>
@@ -80,8 +80,8 @@
           <div class="stat-trend" :class="warningStationsTrend >= 0 ? 'up' : 'down'">
             <el-icon v-if="warningStationsTrend >= 0"><Top /></el-icon>
             <el-icon v-else><Bottom /></el-icon>
-            <span v-if="warningStationsTrend >= 0">+{{ warningStationsTrend }}% 较上月</span>
-            <span v-else>{{ warningStationsTrend }}% 较上月</span>
+            <span v-if="warningStationsTrend >= 0">+{{ warningStationsTrend }}% 较{{ comparisonPreviousMonth || '上月' }}</span>
+            <span v-else>{{ warningStationsTrend }}% 较{{ comparisonPreviousMonth || '上月' }}</span>
           </div>
         </el-card>
       </el-col>
@@ -97,7 +97,7 @@
             <el-icon v-if="criticalStationsTrend >= 0"><Top /></el-icon>
             <el-icon v-else><Bottom /></el-icon>
             <span v-if="criticalStationsTrend >= 0">+{{ criticalStationsTrend }}% 需关注</span>
-            <span v-else>{{ criticalStationsTrend }}% 已改善</span>
+            <span v-else>{{ criticalStationsTrend }}% 已改善(较{{ comparisonPreviousMonth || '上月' }})</span>
           </div>
         </el-card>
       </el-col>
@@ -252,6 +252,10 @@ const excellentCountTrend = ref(0)
 const warningStationsTrend = ref(0)
 const criticalStationsTrend = ref(0)
 
+// 对比月份（从API获取）
+const comparisonPreviousMonth = ref('')
+const comparisonCurrentMonth = ref('')
+
 // 图表实例
 let pollutionChartInstance = null
 let trendChartInstance = null
@@ -267,6 +271,13 @@ const provinces = computed(() => [
   '北京', '广东', '河南', '湖北', '江苏',
   '山东', '上海', '四川', '云南', '浙江'
 ])
+
+const currentMonth = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  return `${year}年${month}月`
+})
 
 // 中文到英文的映射（用于API调用）
 const chineseToEnglish = {
@@ -551,6 +562,11 @@ const loadStatisticsTrend = async (province = '') => {
       excellentCountTrend.value = result.data.excellent_count_change
       warningStationsTrend.value = result.data.warning_stations_change
       criticalStationsTrend.value = result.data.critical_stations_change
+
+      // 保存对比月份
+      comparisonPreviousMonth.value = result.data.previous_month || ''
+      comparisonCurrentMonth.value = result.data.current_month || ''
+
       console.log('Statistics trend loaded:', result.data)
       console.log(`对比周期: ${result.data.previous_month} → ${result.data.current_month}`)
     }

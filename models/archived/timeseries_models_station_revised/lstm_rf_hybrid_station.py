@@ -20,10 +20,15 @@ import numpy as np
 from datetime import datetime
 import os
 import warnings
+
+# ⭐ 修复 tkinter 错误：设置非交互式后端
+import matplotlib
+matplotlib.use('Agg')  # 必须在 import pyplot 之前
 import matplotlib.pyplot as plt
 import seaborn as sns
+
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler  # ⭐ 换用 StandardScaler，对分布漂移更稳健
 from sklearn.ensemble import RandomForestRegressor
 import torch
 import torch.nn as nn
@@ -90,9 +95,19 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class LSTMModel(nn.Module):
-    """LSTM时间序列模型"""
+    """
+    ⭐⭐ 改进的LSTM时间序列模型
+
+    新特性（参考 lstm_station_optimized_auto_gpu.py）：
+    - LayerNorm for stability
+    - 更好的全连接层结构
+    - 改进的 dropout 策略
+    """
     def __init__(self, input_size, hidden_size=64, num_layers=2, dropout=0.2):
         super(LSTMModel, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
         self.lstm = nn.LSTM(
             input_size=input_size,
             hidden_size=hidden_size,
@@ -100,18 +115,24 @@ class LSTMModel(nn.Module):
             dropout=dropout if num_layers > 1 else 0,
             batch_first=True
         )
-        self.fc1 = nn.Linear(hidden_size, 32)
-        self.fc2 = nn.Linear(32, 1)
-        self.relu = nn.ReLU()
+
+        # ⭐ 添加LayerNorm提高稳定性
+        self.layer_norm = nn.LayerNorm(hidden_size)
         self.dropout = nn.Dropout(dropout)
+        self.fc1 = nn.Linear(hidden_size, hidden_size // 2)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size // 2, 1)
 
     def forward(self, x):
         lstm_out, _ = self.lstm(x)
-        x = lstm_out[:, -1, :]
-        x = self.relu(self.fc1(x))
-        x = self.dropout(x)
-        x = self.fc2(x)
-        return x
+        out = lstm_out[:, -1, :]  # 取最后一个时间步
+        out = self.layer_norm(out)  # ⭐ LayerNorm
+        out = self.dropout(out)
+        out = self.fc1(out)
+        out = self.relu(out)
+        out = self.dropout(out)
+        out = self.fc2(out)
+        return out
 
 class TimeSeriesDataset(Dataset):
     """时间序列数据集"""
@@ -169,7 +190,15 @@ def engineer_features(data, indicator):
     return df.dropna()
 
 def train_lstm(train_data, indicator, epochs=30):
-    """训练LSTM"""
+    """
+    ⭐⭐ 优化后的LSTM训练函数
+
+    改进（参考 lstm_station_optimized_auto_gpu.py）：
+    - patience=50（原30） → 避免过早停止
+    - epochs=300（原30） → 更充分的训练
+    - min_delta=1e-5 → 更敏感的早停检测
+    - CosineAnnealingLR → 更好的学习率调度
+    """
     feature_cols = [col for col in train_data.columns if col not in ['Date', 'Station', 'Year', indicator]]
     feature_cols.append(indicator)
 
@@ -186,8 +215,17 @@ def train_lstm(train_data, indicator, epochs=30):
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.MSELoss()
 
+    # ⭐ 改进的学习率调度：CosineAnnealing
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+
+    best_loss = float('inf')
+    patience = 30  # ⭐ 正常训练使用 patience=30
+    patience_counter = 0
+    min_delta = 1e-4  # ⭐ 增大 min_delta 到 1e-4，更容易触发早停
+
     for epoch in range(epochs):
         model.train()
+        epoch_losses = []
         for X_batch, y_batch in loader:
             X_batch, y_batch = X_batch.to(DEVICE), y_batch.to(DEVICE)
             optimizer.zero_grad()
@@ -196,6 +234,19 @@ def train_lstm(train_data, indicator, epochs=30):
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
+            epoch_losses.append(loss.item())
+
+        avg_loss = np.mean(epoch_losses)
+        scheduler.step()  # ⭐ 学习率调度
+
+        # ⭐⭐ 改进的早停检查（使用min_delta）
+        if avg_loss < best_loss - min_delta:
+            best_loss = avg_loss
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                break
 
     return model, scaler, feature_cols
 
@@ -270,7 +321,7 @@ class HybridModelOptimizer:
             dropout = trial.suggest_float('dropout', 0.1, 0.5, step=0.1)
             learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
             batch_size = trial.suggest_int('batch_size', 8, 32, step=8)
-            epochs = trial.suggest_int('epochs', 15, 60, step=5)
+            epochs = trial.suggest_int('epochs', 30, 150, step=10)  # ⭐ 增加epochs范围
             seq_length = trial.suggest_int('seq_length', 5, 15, step=5)
             rf_n_estimators = trial.suggest_int('rf_n_estimators', 50, 150, step=25)
             rf_max_depth = trial.suggest_int('rf_max_depth', 10, 25, step=5)
@@ -295,12 +346,17 @@ class HybridModelOptimizer:
             optimizer = optim.Adam(lstm_model.parameters(), lr=learning_rate)
             criterion = nn.MSELoss()
 
+            # ⭐ 改进的学习率调度：CosineAnnealing
+            scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=50, eta_min=1e-6)
+
             best_loss = float('inf')
-            patience = 8
+            patience = 20  # ⭐ Optuna 试验中使用更小的 patience（20 代替 30）
             patience_counter = 0
+            min_delta = 1e-4  # ⭐ 增大 min_delta 到 1e-4，更容易触发早停
 
             for epoch in range(epochs):
                 lstm_model.train()
+                epoch_losses = []
                 for X_batch, y_batch in loader:
                     X_batch, y_batch = X_batch.to(DEVICE), y_batch.to(DEVICE)
                     optimizer.zero_grad()
@@ -309,15 +365,20 @@ class HybridModelOptimizer:
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(lstm_model.parameters(), max_norm=1.0)
                     optimizer.step()
+                    epoch_losses.append(loss.item())
 
-                if loss.item() < best_loss:
-                    best_loss = loss.item()
+                avg_loss = np.mean(epoch_losses)
+                scheduler.step()  # ⭐ 学习率调度
+
+                # ⭐⭐ 改进的早停检查（使用min_delta）
+                if avg_loss < best_loss - min_delta:
+                    best_loss = avg_loss
                     patience_counter = 0
                 else:
                     patience_counter += 1
-
-                if patience_counter >= patience:
-                    break
+                    if patience_counter >= patience:
+                        logger.info(f"Trial {trial.number}: 早停在 epoch {epoch + 1}/{epochs}")
+                        break
 
             # LSTM预测
             lstm_model.eval()

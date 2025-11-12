@@ -119,7 +119,7 @@
             <el-card class="prediction-card equal-height-card" v-loading="timeseriesLoading">
               <template #header>
                 <div class="card-header">
-                  <span>🧠 LSTM + RandomForest混合模型</span>
+                  <span>LSTM + RandomForest混合模型</span>
                 </div>
               </template>
 
@@ -163,11 +163,11 @@
 
                 <el-form-item>
                   <el-button type="primary" @click="trainTimeseriesModel" :loading="timeseriesLoading">
-                    <span v-if="!timeseriesLoading">🚀 训练模型</span>
+                    <span v-if="!timeseriesLoading">训练模型</span>
                     <span v-else>训练中...</span>
                   </el-button>
                   <el-button @click="optimizeTimeseriesModel" :loading="timeseriesLoading" style="margin-left: 10px;">
-                    <span v-if="!timeseriesLoading">⚡ 优化超参数</span>
+                    <span v-if="!timeseriesLoading">优化超参数</span>
                     <span v-else>优化中...</span>
                   </el-button>
                   <el-button @click="resetTimeseriesForm">重置</el-button>
@@ -180,7 +180,7 @@
             <el-card class="info-card equal-height-card">
               <template #header>
                 <div class="card-header">
-                  <span>🎯 模型说明</span>
+                  <span>模型说明</span>
                 </div>
               </template>
 
@@ -205,21 +205,21 @@
 
               <div style="font-size: 12px; line-height: 1.8; color: #606266;">
                 <div style="margin-bottom: 15px;">
-                  <strong style="color: #303133;">📊 模型特点：</strong>
+                  <strong style="color: #303133;">模型特点：</strong>
                   <div>• LSTM：捕捉时间序列的长期依赖关系</div>
                   <div>• RandomForest：学习特征之间的复杂非线性关系</div>
                   <div>• 混合融合：50% LSTM + 50% RF 加权平均</div>
                 </div>
 
                 <div style="margin-bottom: 15px;">
-                  <strong style="color: #303133;">⚙️ 可优化的超参数：</strong>
+                  <strong style="color: #303133;">可优化的超参数：</strong>
                   <div>• LSTM参数：隐层大小、层数、Dropout等</div>
                   <div>• RandomForest：树数量、最大深度等</div>
                   <div>• 融合权重：LSTM和RF的最优融合比例</div>
                 </div>
 
                 <div style="padding: 10px; background: #FFF7E6; border-left: 3px solid #FF9800; border-radius: 2px; color: #E6A23C;">
-                  <strong>💡 提示：</strong> 首次训练可能需要1-5分钟，优化需要5-30分钟，建议在后台运行。
+                  <strong>提示：</strong> 首次训练可能需要1-5分钟，优化需要5-30分钟，建议在后台运行。
                 </div>
               </div>
             </el-card>
@@ -232,7 +232,7 @@
             <el-card>
               <template #header>
                 <div class="card-header">
-                  <span>📈 模型性能指标</span>
+                  <span>模型性能指标</span>
                 </div>
               </template>
 
@@ -278,7 +278,7 @@
               <el-divider v-if="timeseriesResult.best_params" style="margin: 20px 0;" />
 
               <div v-if="timeseriesResult.best_params" style="font-size: 12px;">
-                <strong style="color: #303133; display: block; margin-bottom: 10px;">⚙️ 优化的超参数：</strong>
+                <strong style="color: #303133; display: block; margin-bottom: 10px;">优化的超参数：</strong>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
                   <div v-for="(value, key) in timeseriesResult.best_params" :key="key"
                        style="padding: 8px; background: #F5F7FA; border-radius: 4px; font-size: 11px;">
@@ -548,7 +548,7 @@ const showRangeWarning = (warnings) => {
   }
 
   warningContent += '<div style="padding: 10px; background: #F0F9FF; border-left: 3px solid #409EFF; border-radius: 2px; color: #606266; font-size: 11px;">'
-  warningContent += '💡 <strong>提示：</strong> 请检查输入值是否正确，如有超出范围的值请修改后重新预测。'
+  warningContent += '<strong>提示：</strong> 请检查输入值是否正确，如有超出范围的值请修改后重新预测。'
   warningContent += '</div>'
   warningContent += '</div>'
 
@@ -670,7 +670,7 @@ const doPrediction = async () => {
           </div>
 
           <div style="padding: 15px; background: #FFF7E6; border-left: 4px solid #FF9800; border-radius: 4px; text-align: left; font-size: 13px; color: #333;">
-            <div style="margin-bottom: 8px;"><strong>📊 污染等级说明</strong></div>
+            <div style="margin-bottom: 8px;"><strong>污染等级说明</strong></div>
             <div style="line-height: 1.8;">
               <div>• 优秀（Excellent）: 最佳水质状况</div>
               <div>• 良好（Good）: 水质良好，可安全利用</div>
@@ -786,7 +786,7 @@ const trainTimeseriesModel = async () => {
           </div>
 
           <div style="padding: 15px; background: #FFF7E6; border-left: 4px solid #FF9800; border-radius: 4px; text-align: left; font-size: 12px; color: #333;">
-            <strong>💡 模型说明</strong>
+            <strong>模型说明</strong>
             <div style="margin-top: 8px; line-height: 1.6;">
               <div>• R² > 0.8: 模型拟合效果优秀</div>
               <div>• RMSE: 均方根误差越小越好</div>
@@ -827,7 +827,7 @@ const optimizeTimeseriesModel = async () => {
 
   timeseriesLoading.value = true
   ElMessage.loading({
-    message: '⚡ 正在优化超参数，请耐心等待...',
+    message: '正在优化超参数，请耐心等待...',
     duration: 0
   })
 
@@ -892,7 +892,7 @@ const optimizeTimeseriesModel = async () => {
           </div>
 
           <div style="padding: 15px; background: #FFF7E6; border-left: 4px solid #FF9800; border-radius: 4px; text-align: left; font-size: 12px; color: #333;">
-            <strong>⚙️ 优化的超参数：</strong>
+            <strong>优化的超参数：</strong>
             <div style="margin-top: 10px; line-height: 1.8; font-size: 11px;">
               ${Object.entries(data.data.best_params).map(([key, val]) =>
                 `<div>• ${key}: ${typeof val === 'number' ? val.toFixed(2) : val}</div>`
@@ -993,7 +993,7 @@ const analyzeSeasonality = async () => {
           </div>
 
           <div style="padding: 15px; background: #FFF7E6; border-left: 4px solid #FF9800; border-radius: 4px; text-align: left; font-size: 13px; color: #333;">
-            <div style="margin-bottom: 8px;"><strong>📊 分析说明</strong></div>
+            <div style="margin-bottom: 8px;"><strong>分析说明</strong></div>
             <div>• 季节性强度 &gt; 50%: 水质指标具有明显的季节性特征</div>
             <div>• 季节性强度 ≤ 50%: 水质指标季节性特征不明显</div>
           </div>
@@ -1047,6 +1047,10 @@ const analyzeSeasonality = async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card-header span {
+  font-weight: 600;
 }
 
 .result-container {
