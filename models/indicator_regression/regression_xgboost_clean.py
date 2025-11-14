@@ -34,7 +34,7 @@ print("  Clean XGBoost Regression (No Data Leakage)")
 print("="*80)
 
 # 创建输出目录
-OUTPUT_DIR = "../../models_outputs/indicator_regression_clean"
+OUTPUT_DIR = "models_outputs/indicator_regression_clean"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # 1. 加载数据
