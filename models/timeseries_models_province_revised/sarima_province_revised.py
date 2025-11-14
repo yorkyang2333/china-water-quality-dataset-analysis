@@ -28,6 +28,7 @@ SARIMA时间序列预测 - 按省份建模
 
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -46,12 +47,8 @@ warnings.filterwarnings('ignore')
 # 设置随机种子
 np.random.seed(42)
 
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
-
 OUTPUT_DIR = 'Outputs/SARIMA_Province_2023Train_2024Valid_Province'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 
 def calculate_metrics(y_true, y_pred):
     """Calculate accuracy metrics"""
@@ -69,7 +66,6 @@ def calculate_metrics(y_true, y_pred):
         'Sample_Size': len(y_true)
     }
 
-
 def check_stationarity(timeseries):
     """检查时间序列的平稳性"""
     try:
@@ -78,7 +74,6 @@ def check_stationarity(timeseries):
         return p_value < 0.05, p_value
     except:
         return False, 1.0
-
 
 def find_best_sarima_params(timeseries, seasonal_period=12):
     """
@@ -150,7 +145,6 @@ def find_best_sarima_params(timeseries, seasonal_period=12):
             break
 
     return best_params, best_aic, best_model
-
 
 def build_timeseries_sarima(province_data, indicator, auto_params=True):
     """
@@ -280,7 +274,6 @@ def build_timeseries_sarima(province_data, indicator, auto_params=True):
     except Exception:
         return None
 
-
 def predict_province(df, province):
     """为单个省份预测所有指标（聚合所有监测站数据）"""
     province_data = df[df['Province'] == province].copy()
@@ -310,7 +303,6 @@ def predict_province(df, province):
             results[indicator] = result
 
     return results if results else None
-
 
 def process_all_provinces(df):
     """处理所有省份"""
@@ -360,7 +352,6 @@ def process_all_provinces(df):
     print(f"\n成功建模的省份: {successful_provinces}/{len(provinces)}")
 
     return all_results
-
 
 def visualize_province(province, province_info, output_dir):
     """可视化单个省份的预测结果"""
@@ -414,7 +405,6 @@ def visualize_province(province, province_info, output_dir):
     filename = f'{output_dir}/{province}.png'
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def generate_report(all_results, output_dir):
     """生成综合报告"""
@@ -578,7 +568,6 @@ def generate_report(all_results, output_dir):
 
     print(f"\n✓ 报告已保存: {report_path}")
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -623,7 +612,6 @@ def main():
     print(f"✓ 结果保存在: {OUTPUT_DIR}/")
     print(f"  - 报告: report.txt")
     print(f"  - 图表: {len(all_results)} 个省份的可视化\n")
-
 
 if __name__ == "__main__":
     main()

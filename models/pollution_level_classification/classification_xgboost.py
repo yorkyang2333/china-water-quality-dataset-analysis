@@ -1,4 +1,5 @@
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -11,8 +12,6 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.preprocessing import LabelEncoder
 
 # 设置中文字体
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS']
-plt.rcParams['axes.unicode_minus'] = False
 
 def train_xgboost_model(input_csv, output_dir):
     """

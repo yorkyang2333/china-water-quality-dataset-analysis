@@ -26,6 +26,7 @@ python debug_beijing_v7_enhanced.py
 版本：v7.0 (Enhanced Optimizations)
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -50,7 +51,6 @@ optuna.logging.set_verbosity(optuna.logging.WARNING)
 torch.manual_seed(42)
 np.random.seed(42)
 
-
 def get_device():
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -65,16 +65,11 @@ def get_device():
         print(f"✓ 使用CPU")
     return device
 
-
 DEVICE = get_device()
-
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 OUTPUT_DIR = 'Outputs/DEBUG_Beijing_v7_Enhanced'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/acf_plots", exist_ok=True)
-
 
 def calculate_metrics(y_true, y_pred):
     """计算评估指标"""
@@ -91,7 +86,6 @@ def calculate_metrics(y_true, y_pred):
         'R2': r2_score(y_true, y_pred),
         'Sample_Size': len(y_true)
     }
-
 
 def plot_acf_analysis(series, indicator, output_dir):
     """ACF分析可视化"""
@@ -138,7 +132,6 @@ def plot_acf_analysis(series, indicator, output_dir):
     print(f"    📊 ACF诊断: {diagnosis} (最大|ACF|={max_acf:.3f})")
 
     return max_acf
-
 
 def build_multivariate_daily_series(province_df, target_indicator, feature_indicators):
     """
@@ -254,7 +247,6 @@ def build_multivariate_daily_series(province_df, target_indicator, feature_indic
             target_col_idx,
             feature_cols)
 
-
 class MultivariateLSTMModel(nn.Module):
     """
     🔥🔥🔥 v7.0 增强版：带残差连接的多变量LSTM
@@ -317,7 +309,6 @@ class MultivariateLSTMModel(nn.Module):
         # 🔥 残差连接：y_pred = y[t] + delta
         return last_target + delta
 
-
 class TimeSeriesDataset(Dataset):
     def __init__(self, X, y):
         self.X = torch.FloatTensor(X)
@@ -329,7 +320,6 @@ class TimeSeriesDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-
 def create_multivariate_sequences(X_data, y_data, seq_length):
     """创建多变量序列"""
     X_seq, y_seq = [], []
@@ -339,13 +329,11 @@ def create_multivariate_sequences(X_data, y_data, seq_length):
 
     return np.array(X_seq), np.array(y_seq)
 
-
 def calculate_naive_baseline(y_train, y_val):
     """Naive baseline: y[t] = y[t-1]"""
     y_val_pred = np.roll(y_val, 1)
     y_val_pred[0] = y_train[-1] if len(y_train) > 0 else y_val[0]
     return mean_squared_error(y_val, y_val_pred)
-
 
 def calculate_ma7_baseline(y_train, y_val):
     """7日滚动均值baseline"""
@@ -355,7 +343,6 @@ def calculate_ma7_baseline(y_train, y_val):
     ma7_pred = np.mean(y_train[-7:])
     y_val_pred = np.full_like(y_val, ma7_pred)
     return mean_squared_error(y_val, y_val_pred)
-
 
 def calculate_seasonal_naive(y_train, y_val):
     """
@@ -374,7 +361,6 @@ def calculate_seasonal_naive(y_train, y_val):
         y_val_pred[:7] = y_train[-1] if len(y_train) > 0 else y_val[0]
 
     return mean_squared_error(y_val, y_val_pred)
-
 
 def train_lstm_model(X_train, y_train, X_val, y_val, device, target_col_idx=0,
                      hidden_size=128, num_layers=2, dropout=0.15,
@@ -513,7 +499,6 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device, target_col_idx=0,
 
     return model, history, best_baseline
 
-
 def objective(trial, X_train_sc, y_train_sc, device, target_col_idx):
     """Optuna目标函数（v7.0增强版）"""
     seq_len = trial.suggest_categorical('seq_len', [5, 10, 15, 20, 25, 30])
@@ -560,7 +545,6 @@ def objective(trial, X_train_sc, y_train_sc, device, target_col_idx):
         raise optuna.TrialPruned()
 
     return best_val
-
 
 def visualize_comparison(train_dates, y_train, test_dates, y_test, y_pred,
                          metrics, params, indicator, output_dir, max_acf):
@@ -629,7 +613,6 @@ def visualize_comparison(train_dates, y_train, test_dates, y_test, y_pred,
     plt.close()
 
     print(f"    📊 预测图: {filename}")
-
 
 def debug_single_indicator(beijing_df, target_indicator, feature_indicators):
     """调试单个指标（v7.0增强版）"""
@@ -778,7 +761,6 @@ def debug_single_indicator(beijing_df, target_indicator, feature_indicators):
 
     return metrics
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -872,7 +854,6 @@ def main():
 
     print(f"\n✓ 所有输出保存至: {OUTPUT_DIR}/")
     print("="*80)
-
 
 if __name__ == "__main__":
     main()

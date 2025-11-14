@@ -1,3 +1,4 @@
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,8 +10,6 @@ import os
 warnings.filterwarnings('ignore')
 
 # Set Chinese font
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 # Set plot style
 sns.set_style("whitegrid")
@@ -19,7 +18,6 @@ sns.set_palette("husl")
 # Create output directory
 OUTPUT_DIR = 'Outputs/EDA'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 
 def load_data(filepath):
     """Load preprocessed data"""
@@ -38,7 +36,6 @@ def load_data(filepath):
                                       else 'Winter')
 
     return df
-
 
 def basic_statistics(df):
     """1. Basic data statistics"""
@@ -75,7 +72,6 @@ def basic_statistics(df):
     plt.close()
     print(f"\nSaved: {OUTPUT_DIR}/01_basic_statistics.png")
 
-
 def analyze_water_quality_indicators(df):
     """2. Water quality indicators distribution analysis"""
     print("\n" + "="*80)
@@ -105,7 +101,6 @@ def analyze_water_quality_indicators(df):
     plt.savefig(f'{OUTPUT_DIR}/02_indicators_distribution.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/02_indicators_distribution.png")
-
 
 def analyze_pollution_by_region(df):
     """3. Regional pollution analysis"""
@@ -161,7 +156,6 @@ def analyze_pollution_by_region(df):
     plt.savefig(f'{OUTPUT_DIR}/03_regional_analysis.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/03_regional_analysis.png")
-
 
 def analyze_temporal_trends(df):
     """4. Temporal trend analysis"""
@@ -231,7 +225,6 @@ def analyze_temporal_trends(df):
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/04_temporal_analysis.png")
 
-
 def analyze_pollution_causes(df):
     """5. Pollution cause correlation analysis"""
     print("\n" + "="*80)
@@ -269,7 +262,6 @@ def analyze_pollution_causes(df):
     print(f"\nTop 5 Indicators Correlated with Water Quality Index:")
     for i, (indicator, corr) in enumerate(wqi_corr.head().items(), 1):
         print(f"{i}. {indicator}: {corr:.3f}")
-
 
 def analyze_pollutant_impact(df):
     """6. Impact of pollutants on water quality index"""
@@ -316,7 +308,6 @@ def analyze_pollutant_impact(df):
     plt.savefig(f'{OUTPUT_DIR}/06_pollutant_impact.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/06_pollutant_impact.png")
-
 
 def analyze_heavy_metal_pollution(df):
     """7. Heavy metal pollution analysis"""
@@ -381,7 +372,6 @@ def analyze_heavy_metal_pollution(df):
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/07_heavy_metal_analysis.png")
 
-
 def analyze_nutrient_pollution(df):
     """8. Nutrient pollution analysis (eutrophication)"""
     print("\n" + "="*80)
@@ -444,7 +434,6 @@ def analyze_nutrient_pollution(df):
     plt.savefig(f'{OUTPUT_DIR}/08_nutrient_pollution.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/08_nutrient_pollution.png")
-
 
 def analyze_organic_pollution(df):
     """9. Organic pollution analysis"""
@@ -509,7 +498,6 @@ def analyze_organic_pollution(df):
     plt.savefig(f'{OUTPUT_DIR}/09_organic_pollution.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/09_organic_pollution.png")
-
 
 def analyze_physical_parameters(df):
     """10. Physical parameters analysis"""
@@ -581,7 +569,6 @@ def analyze_physical_parameters(df):
     plt.savefig(f'{OUTPUT_DIR}/10_physical_parameters.png', dpi=300, bbox_inches='tight')
     plt.close()
     print(f"Saved: {OUTPUT_DIR}/10_physical_parameters.png")
-
 
 def analyze_time_series_feasibility(df):
     """11. Time series prediction feasibility analysis"""
@@ -736,7 +723,6 @@ def analyze_time_series_feasibility(df):
     print(f"  Avg data density: {avg_density:.2f} points/day")
     print(f"\n  ⚠️  CONCLUSION: Dataset is NOT suitable for time series prediction!")
 
-
 def generate_summary_report(df):
     """12. Generate summary report"""
     print("\n" + "="*80)
@@ -834,7 +820,6 @@ def generate_summary_report(df):
     print(report_text)
     print(f"\nSaved: {OUTPUT_DIR}/00_summary_report.txt")
 
-
 def main():
     """Main function"""
     print("\n" + "="*80)
@@ -886,7 +871,6 @@ def main():
             if i in files:
                 print(f"  - {files[i]}")
     print("\n" + "="*80 + "\n")
-
 
 if __name__ == '__main__':
     main()

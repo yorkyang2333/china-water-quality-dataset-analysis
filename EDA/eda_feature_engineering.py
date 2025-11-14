@@ -1,4 +1,5 @@
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -6,8 +7,6 @@ import matplotlib.pyplot as plt
 import os
 
 # 设置中文字体，确保图表能正确显示中文
-plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS']
-plt.rcParams['axes.unicode_minus'] = False
 
 def create_new_features(df):
     """

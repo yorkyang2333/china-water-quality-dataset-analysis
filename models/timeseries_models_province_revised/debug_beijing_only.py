@@ -20,6 +20,7 @@ python debug_beijing_only.py
 日期：2025-10-31
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -43,7 +44,6 @@ optuna.logging.set_verbosity(optuna.logging.WARNING)
 torch.manual_seed(42)
 np.random.seed(42)
 
-
 def get_device():
     """自动检测设备"""
     if torch.cuda.is_available():
@@ -57,15 +57,10 @@ def get_device():
         print(f"✓ 使用CPU")
     return device
 
-
 DEVICE = get_device()
-
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 OUTPUT_DIR = 'Outputs/DEBUG_Beijing_Only'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 
 def calculate_metrics(y_true, y_pred):
     """计算评估指标"""
@@ -82,7 +77,6 @@ def calculate_metrics(y_true, y_pred):
         'R2': r2_score(y_true, y_pred),
         'Sample_Size': len(y_true)
     }
-
 
 def visualize_data_aggregation(df_raw, df_daily, indicator, output_dir):
     """
@@ -126,7 +120,6 @@ def visualize_data_aggregation(df_raw, df_daily, indicator, output_dir):
     plt.close()
 
     print(f"    📊 聚合对比图已保存: {filename}")
-
 
 def build_daily_series_debug(province_df, indicator, output_dir):
     """
@@ -185,7 +178,6 @@ def build_daily_series_debug(province_df, indicator, output_dir):
 
     return daily_continuous.index, y_train_sc, y_test_sc, y_train, y_test, scaler
 
-
 class FixedLSTMModel(nn.Module):
     """修复版LSTM模型"""
     def __init__(self, input_size=1, hidden_size=128, num_layers=2, dropout=0.15):
@@ -225,7 +217,6 @@ class FixedLSTMModel(nn.Module):
         out = self.norm(out)
         return self.head(out)
 
-
 class TimeSeriesDataset(Dataset):
     def __init__(self, X, y):
         self.X = torch.FloatTensor(X)
@@ -237,7 +228,6 @@ class TimeSeriesDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-
 def create_sequences(data, seq_length):
     """创建序列"""
     X, y = [], []
@@ -246,13 +236,11 @@ def create_sequences(data, seq_length):
         y.append(data[i+seq_length])
     return np.array(X).reshape(-1, seq_length, 1), np.array(y)
 
-
 def calculate_naive_baseline(y_train, y_val):
     """Naive baseline"""
     y_val_pred = np.roll(y_val, 1)
     y_val_pred[0] = y_train[-1] if len(y_train) > 0 else y_val[0]
     return mean_squared_error(y_val, y_val_pred)
-
 
 def train_lstm_model(X_train, y_train, X_val, y_val, device,
                      hidden_size=128, num_layers=2, dropout=0.15,
@@ -339,7 +327,6 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device,
 
     return model, history, baseline_mse
 
-
 def objective(trial, y_train_sc, y_test_sc, device):
     """Optuna目标函数"""
     seq_len = trial.suggest_categorical('seq_len', [5, 10, 15, 20, 25, 30])
@@ -383,7 +370,6 @@ def objective(trial, y_train_sc, y_test_sc, device):
 
     return best_val
 
-
 def visualize_training_history(history, indicator, output_dir):
     """可视化训练历史"""
     plt.figure(figsize=(10, 5))
@@ -403,7 +389,6 @@ def visualize_training_history(history, indicator, output_dir):
     plt.close()
 
     print(f"    📊 训练历史图已保存: {filename}")
-
 
 def visualize_prediction(train_dates, y_train, test_dates, y_test, y_pred,
                          metrics, params, indicator, output_dir):
@@ -446,7 +431,6 @@ def visualize_prediction(train_dates, y_train, test_dates, y_test, y_pred,
     plt.close()
 
     print(f"    📊 预测结果图已保存: {filename}")
-
 
 def debug_single_indicator(beijing_df, indicator):
     """调试单个指标"""
@@ -539,7 +523,6 @@ def debug_single_indicator(beijing_df, indicator):
 
     return metrics
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -585,7 +568,6 @@ def main():
 
     print(f"\n✓ 所有输出已保存至: {OUTPUT_DIR}/")
     print("="*80)
-
 
 if __name__ == "__main__":
     main()

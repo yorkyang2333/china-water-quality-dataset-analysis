@@ -27,6 +27,7 @@ pip install torch pandas numpy scikit-learn matplotlib
 日期：2025-10-25
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -71,8 +72,6 @@ def get_device():
 DEVICE = get_device()
 
 # 配置中文字体支持
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 # 输出目录配置
 OUTPUT_DIR = 'Outputs/LSTM_2023Only_Province_GPU'
@@ -82,7 +81,6 @@ os.makedirs(f"{OUTPUT_DIR}/Province_Plots", exist_ok=True)
 # 全局配置参数
 SEQUENCE_LENGTH = 5   # ⭐ 降低时间序列窗口长度（原30，对2024年数据太长）
 MIN_SAMPLES = 40      # 最小样本数要求
-
 
 def calculate_metrics(y_true, y_pred):
     """计算回归评估指标"""
@@ -99,7 +97,6 @@ def calculate_metrics(y_true, y_pred):
         'R2': r2_score(y_true, y_pred),
         'Sample_Size': len(y_true)
     }
-
 
 class LSTMModel(nn.Module):
     """
@@ -136,7 +133,6 @@ class LSTMModel(nn.Module):
         out = self.fc2(out)
         return out
 
-
 class TimeSeriesDataset(Dataset):
     """PyTorch时间序列数据集"""
     def __init__(self, X, y):
@@ -149,7 +145,6 @@ class TimeSeriesDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-
 def create_sequences(data, seq_length):
     """创建时间序列窗口数据"""
     X, y = [], []
@@ -157,7 +152,6 @@ def create_sequences(data, seq_length):
         X.append(data[i:i+seq_length])
         y.append(data[i+seq_length])
     return np.array(X).reshape(-1, seq_length, 1), np.array(y)
-
 
 def train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=200, batch_size=16, patience=20):
     """
@@ -240,7 +234,6 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device, epochs=200, batch_s
     if best_model_state is not None:
         model.load_state_dict(best_model_state)
     return model, history
-
 
 def predict_indicator(province_data, indicator, device, train_ratio=0.8):
     """
@@ -331,7 +324,6 @@ def predict_indicator(province_data, indicator, device, train_ratio=0.8):
         'test_size': len(y_test_orig)
     }
 
-
 def predict_province(province_data, province_name, device):
     """
     ⭐ 修改：预测所有16个水质指标（⭐ 仅使用2023年数据）
@@ -371,7 +363,6 @@ def predict_province(province_data, province_name, device):
 
     return results
 
-
 def process_all_provinces(df, device):
     """处理所有省份（按省份聚合）"""
     print("\n" + "="*80)
@@ -406,7 +397,6 @@ def process_all_provinces(df, device):
 
     print(f"\n成功: {successful}/{len(provinces)}")
     return all_results
-
 
 def visualize_province(province_key, province_info, output_dir):
     """可视化单个省份的预测结果（多指标折线图）"""
@@ -461,7 +451,6 @@ def visualize_province(province_key, province_info, output_dir):
     filename = f'{output_dir}/Province_Plots/{province_key}.png'
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def generate_report(all_results, output_dir, device):
     """生成综合报告"""
@@ -562,7 +551,6 @@ def generate_report(all_results, output_dir, device):
 
     print(f"\n✓ 报告已保存: {report_path}")
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -604,7 +592,6 @@ def main():
     print("="*80)
     print(f"\n✓ 成功建模: {len(all_results)} 个省份")
     print(f"✓ 结果保存: {OUTPUT_DIR}/\n")
-
 
 if __name__ == "__main__":
     main()

@@ -12,6 +12,7 @@ Time Series Visualization and EDA
 日期：2025-10-25
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,8 +23,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # 设置中文字体支持
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 # 设置绘图风格
 sns.set_style("whitegrid")

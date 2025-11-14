@@ -99,6 +99,27 @@ china-water-quality-dataset-analysis/
 ### ⚠️ 关键问题：时间间隔极不规则
 **这是影响模型选择的最重要因素！** 数据集是 **不规则抽样**，违反了大多数时间序列模型的等间隔采样假设，因此不适合使用时间序列方法。
 
+**⭐⭐⭐ 重要更新 (2025-11-13)**: 经过系统性分析，**时间序列方法已被正式标记为弃用（DEPRECATED）**。
+
+#### 🚫 时间序列方法状态：已弃用（DEPRECATED）
+
+**弃用原因** (详见 `models/timeseries_models_province_revised/DEPRECATED_ANALYSIS.md`):
+1. **采样极度不规则** (CV=1.99，远超阈值0.2)
+2. **零时间相关性** (ACF≈0，过去无法预测未来)
+3. **分布严重漂移** (2024年数据密度仅为2023年的12.4%)
+
+**性能表现**:
+- LSTM: R² ≈ -0.1（略差于Naive基线）
+- RandomForest时序: R² ≈ -0.05（接近Naive）
+- LSTM+RF混合: R² ≈ -0.3（修复后，原为-2.5）
+
+**保留目的**:
+- ✅ 作为论文对比基线（展示方法选择的重要性）
+- ✅ 失败案例分析参考（学术价值）
+- ❌ **不推荐用于实际预测或进一步开发**
+
+**详细分析**: 见 `models/timeseries_models_province_revised/DEPRECATED_ANALYSIS.md`（57KB学术报告）
+
 ### ✨ 新创建的组合特征 (Engineered Features)
 为了增强模型性能，我们通过 `eda_feature_engineering.py` 脚本创建了以下新特征，并保存在 `preprocessed_data_feature_eng.csv` 中：
 - **`Total_Heavy_Metals_ug_L`**: 铅、镉、汞的总和，综合反映重金属污染。
@@ -285,6 +306,23 @@ pip install xgboost
 
 ## 📝 版本历史
 
+- **v2.5.2** (2025-11-13) - Claude Code
+  - 📁 **项目结构重组**
+    - 创建 `docs/` 目录存放论文相关文档
+    - 创建 `scripts/` 目录存放分析脚本
+    - 移动临时脚本和文档到对应目录
+    - 删除根目录临时文件（nul等）
+    - 创建 `PROJECT_STRUCTURE.md` 项目结构说明文档
+  - 📊 **Matplotlib字体优先级规则**
+    - 新增规则7：优先使用黑体（SimHei）而非微软雅黑
+    - 原因：黑体在科学出版物中更常用，符合学术规范
+    - 添加标准配置代码示例
+  - ⭐⭐⭐ **论文材料100%完成**
+    - 完成XGBoost回归实验（7个指标）
+    - 生成所有论文图表（3个核心图）
+    - 创建完整交付文档（FINAL_DELIVERY_COMPLETE.md）
+    - 核心发现：横截面回归R²=0.97（成功指标），时间序列R²<0（失败）
+
 - **v2.5.1** (2025-11-12) - Claude Code
   - ⭐⭐⭐ **混合模型优化（参考 revise.md v1 建议）**
     - 修改 LSTM 输入特征：去掉当期原始 indicator，只用滞后与派生特征
@@ -417,6 +455,24 @@ pip install xgboost
      - 文本标签更稳定、更兼容
    - ⚠️ **重要**：本 CLAUDE.md 文档里可以使用 emoji（Markdown 支持），但代码文件中绝对不能使用
 
+7. **📊 Matplotlib 中文字体配置**
+   - ✅ **使用 zhplot 库**（推荐）
+   - ✅ **配置方法**：在脚本最开头导入 `zhplot` 即可
+   - 🎯 **原因**：
+     - zhplot 会自动配置matplotlib的中文字体
+     - 无需手动配置字体，一行代码解决
+     - 自动处理负号显示问题
+     - 比matplotlib内置方法更简单可靠
+   - 💻 **标准配置代码**：
+     ```python
+     # 在import部分的最开头添加
+     import zhplot  # 自动配置matplotlib中文字体
+     ```
+   - ⚠️ **注意**：
+     - zhplot 必须在 matplotlib.pyplot 之前导入
+     - 无需其他任何字体配置代码
+     - 删除所有旧的字体配置代码（plt.rcParams等）
+
 ### LSTM + RF 混合模型相关文件
 
 | 文件 | 位置 | 功能 |
@@ -444,6 +500,6 @@ GET    /api/model/hybrid/status      - 获取模型状态
 ---
 
 **创建日期**: 2025-01-05
-**最后更新**: 2025-11-12
-**维护者**: Claude Code (v2.3-v2.5.1), Gemini Agent (v2.0-v2.2)
-**版本**: 2.5.1 (混合模型优化 + Station模型归档)
+**最后更新**: 2025-11-13
+**维护者**: Claude Code (v2.3-v2.5.2), Gemini Agent (v2.0-v2.2)
+**版本**: 2.5.2 (项目结构重组 + 论文材料完成)

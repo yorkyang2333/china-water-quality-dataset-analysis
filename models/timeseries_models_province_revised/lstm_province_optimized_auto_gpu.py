@@ -48,6 +48,7 @@ pip install torch pandas numpy scikit-learn matplotlib optuna
 版本：v3.0 (Enhanced - Solve Flat Prediction Problem)
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -89,16 +90,12 @@ def get_device():
 
 DEVICE = get_device()
 
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
-
 OUTPUT_DIR = 'Outputs/LSTM_2023Only_Province_GPU_Optimized'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/Province_Plots", exist_ok=True)
 os.makedirs(f"{OUTPUT_DIR}/Saved_Models", exist_ok=True)
 
 MIN_SAMPLES = 40
-
 
 def calculate_metrics(y_true, y_pred):
     """计算回归评估指标"""
@@ -115,7 +112,6 @@ def calculate_metrics(y_true, y_pred):
         'R2': r2_score(y_true, y_pred),
         'Sample_Size': len(y_true)
     }
-
 
 class ImprovedLSTMModel(nn.Module):
     """
@@ -189,7 +185,6 @@ class ImprovedLSTMModel(nn.Module):
         out = self.fc3(out)
         return out
 
-
 class TimeSeriesDataset(Dataset):
     """PyTorch时间序列数据集"""
     def __init__(self, X, y):
@@ -202,7 +197,6 @@ class TimeSeriesDataset(Dataset):
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
 
-
 def create_sequences(data, seq_length):
     """创建时间序列窗口数据"""
     X, y = [], []
@@ -210,7 +204,6 @@ def create_sequences(data, seq_length):
         X.append(data[i:i+seq_length])
         y.append(data[i+seq_length])
     return np.array(X).reshape(-1, seq_length, 1), np.array(y)
-
 
 def train_lstm_model(X_train, y_train, X_val, y_val, device,
                      hidden_size=128, num_layers=2, dropout=0.2,
@@ -306,7 +299,6 @@ def train_lstm_model(X_train, y_train, X_val, y_val, device,
 
     return model, history
 
-
 def objective(trial, X_train, y_train, X_val, y_val, device):
     """
     ⭐⭐⭐ Optuna目标函数（强化版）
@@ -337,7 +329,6 @@ def objective(trial, X_train, y_train, X_val, y_val, device):
 
     # 返回验证集最佳loss
     return min(history['val_loss'])
-
 
 def predict_indicator_with_tuning(province_data, indicator, device, province_name, train_ratio=0.8):
     """
@@ -487,7 +478,6 @@ def predict_indicator_with_tuning(province_data, indicator, device, province_nam
         'model_file': model_filename
     }
 
-
 def visualize_single_indicator(province_name, indicator, result, output_dir):
     """
     ⭐⭐ NEW: 为单个指标立即生成可视化图表
@@ -553,7 +543,6 @@ def visualize_single_indicator(province_name, indicator, result, output_dir):
 
     print(f"      📊 图表已保存: {filename}")
 
-
 def predict_province(province_data, province_name, device):
     """预测所有16个水质指标（Province级别）- ⭐⭐ 每完成一个指标立即生成图表"""
     province_data = province_data.copy()
@@ -592,7 +581,6 @@ def predict_province(province_data, province_name, device):
 
     return results
 
-
 def process_all_provinces(df, device):
     """处理所有省份"""
     print("\n" + "="*80)
@@ -624,7 +612,6 @@ def process_all_provinces(df, device):
 
     print(f"\n成功: {successful}/{len(provinces)}")
     return all_results
-
 
 def visualize_province(province_key, province_info, output_dir):
     """可视化单个省份的预测结果"""
@@ -679,7 +666,6 @@ def visualize_province(province_key, province_info, output_dir):
     filename = f'{output_dir}/Province_Plots/{province_key}.png'
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def generate_report(all_results, output_dir, device):
     """生成综合报告"""
@@ -794,7 +780,6 @@ def generate_report(all_results, output_dir, device):
 
     print(f"\n✓ 报告已保存: {report_path}")
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -836,7 +821,6 @@ def main():
     print(f"✓ 结果保存: {OUTPUT_DIR}/")
     print(f"✓ 图表保存: {OUTPUT_DIR}/Province_Plots/<省份名>/<指标名>.png")
     print(f"✓ 模型保存: {OUTPUT_DIR}/Saved_Models/\n")
-
 
 if __name__ == "__main__":
     main()

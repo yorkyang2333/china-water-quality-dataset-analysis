@@ -23,6 +23,7 @@ Prophet时间序列预测 - 按省份建模
 
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -46,12 +47,8 @@ warnings.filterwarnings('ignore')
 # 设置随机种子
 np.random.seed(42)
 
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
-
 OUTPUT_DIR = 'Outputs/Prophet_2023Only_Province'
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
 
 def calculate_metrics(y_true, y_pred):
     """Calculate accuracy metrics"""
@@ -68,7 +65,6 @@ def calculate_metrics(y_true, y_pred):
         'R2': r2_score(y_true, y_pred),
         'Sample_Size': len(y_true)
     }
-
 
 def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
     """
@@ -205,7 +201,6 @@ def build_timeseries_prophet(province_data, indicator, train_ratio=0.8):
     except Exception:
         return None
 
-
 def predict_province(df, province):
     """为单个省份预测所有指标（聚合所有监测站数据，仅使用2023年）"""
     province_data = df[df['Province'] == province].copy()
@@ -244,7 +239,6 @@ def predict_province(df, province):
             results[indicator] = result
 
     return results if results else None
-
 
 def process_all_provinces(df):
     """处理所有省份"""
@@ -293,7 +287,6 @@ def process_all_provinces(df):
     print(f"\n成功建模的省份: {successful_provinces}/{len(provinces)}")
 
     return all_results
-
 
 def visualize_province(province, province_info, output_dir):
     """可视化单个省份的预测结果"""
@@ -348,7 +341,6 @@ def visualize_province(province, province_info, output_dir):
     filename = f'{output_dir}/{province}.png'
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def generate_report(all_results, output_dir):
     """生成综合报告"""
@@ -490,7 +482,6 @@ def generate_report(all_results, output_dir):
 
     print(f"\n✓ 报告已保存: {report_path}")
 
-
 def main():
     """主函数"""
     print("="*80)
@@ -535,7 +526,6 @@ def main():
     print(f"✓ 结果保存在: {OUTPUT_DIR}/")
     print(f"  - 报告: report.txt")
     print(f"  - 图表: {len(all_results)} 个省份的可视化\n")
-
 
 if __name__ == "__main__":
     main()

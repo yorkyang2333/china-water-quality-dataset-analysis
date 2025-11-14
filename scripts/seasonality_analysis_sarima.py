@@ -28,6 +28,7 @@ Seasonality Analysis of Water Quality Factors using SARIMA
 创建日期：2025-10-31
 """
 
+import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,8 +47,6 @@ from scipy import stats
 warnings.filterwarnings('ignore')
 
 # 设置中文字体
-plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'SimHei', 'DejaVu Sans']
-plt.rcParams['axes.unicode_minus'] = False
 
 # 设置随机种子
 np.random.seed(42)
@@ -59,7 +58,6 @@ os.makedirs(f'{OUTPUT_DIR}/decomposition', exist_ok=True)
 os.makedirs(f'{OUTPUT_DIR}/acf_pacf', exist_ok=True)
 os.makedirs(f'{OUTPUT_DIR}/seasonal_patterns', exist_ok=True)
 
-
 # 水质指标列表
 WATER_QUALITY_INDICATORS = [
     'Water_Temperature_C', 'pH', 'Dissolved_Oxygen_mg_L',
@@ -69,7 +67,6 @@ WATER_QUALITY_INDICATORS = [
     'Heavy_Metals_Pb_ug_L', 'Heavy_Metals_Cd_ug_L',
     'Heavy_Metals_Hg_ug_L', 'Coliform_Count_CFU_100mL'
 ]
-
 
 def prepare_timeseries(df, indicator, groupby='Province', resample_freq='M'):
     """
@@ -114,7 +111,6 @@ def prepare_timeseries(df, indicator, groupby='Province', resample_freq='M'):
 
     return timeseries_dict
 
-
 def calculate_seasonality_strength(decomposition):
     """
     计算季节性强度指标
@@ -144,7 +140,6 @@ def calculate_seasonality_strength(decomposition):
     except:
         return 0.0
 
-
 def calculate_trend_strength(decomposition):
     """
     计算趋势强度指标
@@ -172,7 +167,6 @@ def calculate_trend_strength(decomposition):
         return strength
     except:
         return 0.0
-
 
 def decompose_seasonality(timeseries, method='stl', period=12):
     """
@@ -208,7 +202,6 @@ def decompose_seasonality(timeseries, method='stl', period=12):
     except Exception as e:
         print(f"  ⚠ 分解失败: {str(e)}")
         return None
-
 
 def fit_sarima_for_seasonality(timeseries, period=12):
     """
@@ -262,7 +255,6 @@ def fit_sarima_for_seasonality(timeseries, period=12):
     except:
         return None
 
-
 def test_stationarity(timeseries):
     """
     平稳性检验（ADF和KPSS双检验）
@@ -287,7 +279,6 @@ def test_stationarity(timeseries):
         return is_stationary, adf_pvalue, kpss_pvalue
     except:
         return False, 1.0, 0.0
-
 
 def visualize_decomposition(timeseries, decomposition, title, filename):
     """
@@ -327,7 +318,6 @@ def visualize_decomposition(timeseries, decomposition, title, filename):
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
 
-
 def visualize_acf_pacf(timeseries, title, filename, lags=40):
     """
     可视化ACF和PACF图
@@ -347,7 +337,6 @@ def visualize_acf_pacf(timeseries, title, filename, lags=40):
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def visualize_seasonal_pattern(seasonal_components, title, filename):
     """
@@ -378,7 +367,6 @@ def visualize_seasonal_pattern(seasonal_components, title, filename):
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
-
 
 def analyze_indicator_seasonality(df, indicator, groupby='Province'):
     """
@@ -463,7 +451,6 @@ def analyze_indicator_seasonality(df, indicator, groupby='Province'):
     visualize_seasonal_pattern(seasonal_components, indicator, pattern_filename)
 
     return results
-
 
 def generate_summary_report(all_results, output_dir):
     """
@@ -600,7 +587,6 @@ def generate_summary_report(all_results, output_dir):
 
     print(f"\n✓ 报告已保存: {report_path}")
 
-
 def create_heatmap_seasonality(all_results, output_dir):
     """
     创建季节性强度热力图
@@ -672,7 +658,6 @@ def create_heatmap_seasonality(all_results, output_dir):
     plt.close()
 
     print(f"✓ 热力图已保存: {filename}")
-
 
 def main():
     """主函数"""
@@ -754,7 +739,6 @@ def main():
             print(f"  {i}. {indicator}: {strength:.3f}")
 
     print("\n" + "="*80 + "\n")
-
 
 if __name__ == "__main__":
     main()
