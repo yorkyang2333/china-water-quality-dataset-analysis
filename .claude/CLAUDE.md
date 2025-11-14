@@ -306,6 +306,63 @@ pip install xgboost
 
 ## 📝 版本历史
 
+- **v2.6** (2025-11-14) - Claude Code
+  - ⚠️⚠️⚠️ **数据泄露问题修复** (CRITICAL)
+    - 发现并修复regression_xgboost_improved.py中的严重数据泄露
+    - 11个泄露特征直接使用了预测目标（log_Ammonia_N相关性0.996）
+    - 有泄露版R²=0.9993是虚假的，真实性能R²=-0.037
+    - 创建无泄露版本：regression_xgboost_clean.py
+    - 生成完整对比报告：docs/DATA_LEAKAGE_FINAL_REPORT.md
+    - 在improved脚本顶部添加严重警告和适用场景说明
+
+  - 📊 **新增EDA功能**
+    - 时空分布分析（scripts/spatial_distribution_analysis.py）
+      * 省际差异ANOVA检验：仅浊度显著差异
+      * K-means聚类：10省分为3个水质类别
+      * PCA降维可视化（解释43.1%方差）
+    - 时间分布分析（scripts/temporal_distribution_analysis.py）
+      * 关键发现：2024年采样密度仅为2023年的12.4%
+      * KS检验：5个指标发生显著分布漂移
+      * 这解释了为何时间序列方法失败（R²<0）
+    - 贝叶斯网络（scripts/bayesian_network_analysis.py）
+      * 构建专家知识网络：17条因果关系
+      * 基于物理化学原理（温度→DO、氮循环、有机物降解等）
+      * 网络结构可视化
+
+  - 🔧 **新增编码规则8：数据泄露检测规则**
+    - ❌ 特征工程时禁止使用预测目标的任何变换
+    - ✅ 创建特征前检查：该特征是否依赖未来值？
+    - ✅ 计算特征与目标的相关性，r>0.7需审查
+    - ⚠️ 例外：缺失值填补场景可使用泄露特征（需明确标注）
+    - 📋 泄露检测checklist：
+      * 特征是否包含目标值本身？
+      * 特征是否是目标值的数学变换（log、sqrt、exp等）？
+      * 特征计算公式中是否出现目标变量名？
+      * 特征与目标相关性是否异常高（>0.7）？
+      * 在未来预测场景下，该特征是否可获得？
+
+  - 📝 **更新特征工程模块**
+    - feature_engineering_advanced.py 新增3个函数：
+      * get_clean_features(): 返回4个无泄露特征
+      * get_leaky_features(): 返回11个泄露特征及泄露源
+      * engineer_clean_features(): 生成无泄露特征数据集
+
+  - 📁 **新增文件**
+    - models/indicator_regression/regression_xgboost_clean.py
+    - docs/DATA_LEAKAGE_FINAL_REPORT.md (22KB完整报告)
+    - scripts/spatial_distribution_analysis.py
+    - scripts/temporal_distribution_analysis.py
+    - scripts/bayesian_network_analysis.py
+    - Outputs/Spatial_Distribution_Analysis/ (7个文件)
+    - Outputs/Temporal_Distribution_Analysis/ (5个文件)
+    - Outputs/Bayesian_Network_Analysis/ (2个文件)
+
+  - 🎯 **论文关键更新**
+    - 必须报告无泄露版真实性能（R²=-0.037）
+    - 有泄露版仅适用于缺失值填补场景
+    - 时间序列失败有系统性证据（ACF=0.03, CV=1.99, 分布漂移）
+    - 成功方法：分类99.5%、化学污染物回归R²=0.97
+
 - **v2.5.2** (2025-11-13) - Claude Code
   - 📁 **项目结构重组**
     - 创建 `docs/` 目录存放论文相关文档

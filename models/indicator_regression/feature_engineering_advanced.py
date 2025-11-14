@@ -218,3 +218,90 @@ if __name__ == "__main__":
     print(f"\n[OK] 保存扩展数据集: {output_path}")
 
     print("\n[DONE] 特征工程测试完成")
+
+
+def get_clean_features():
+    """
+    返回无泄露高级特征列表（用于真实预测场景）
+
+    这些特征不包含预测目标值或其变换，可安全用于：
+    - 未来预测
+    - 假设场景分析
+    - 学术论文报告
+
+    返回：
+        list: 4个无泄露特征名称
+    """
+    return [
+        'DO_saturation_mg_L',      # 仅依赖水温（无泄露）
+        'Alkalinity_proxy',        # 仅依赖电导率（无泄露）
+        'Ionic_strength_proxy',    # 仅依赖电导率（无泄露）
+        'Organic_acid_proxy'       # COD - BOD（无泄露）
+    ]
+
+
+def get_leaky_features():
+    """
+    返回有泄露高级特征列表（仅用于缺失值填补场景）
+
+    警告：这些特征包含预测目标值或其变换，不可用于未来预测！
+
+    适用场景：
+    - 同时刻缺失值填补（已知目标值的变换）
+    - 传感器故障时的值估算
+
+    返回：
+        dict: {特征名: 泄露源}
+    """
+    return {
+        'log_Ammonia_N': 'Ammonia_N_mg_L',  # 直接对数变换目标
+        'DO_saturation_percent': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
+        'DO_deficit_mg_L': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
+        'DO_BOD_ratio': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
+        'Ammonia_TN_ratio': 'Ammonia_N_mg_L',  # 包含氨氮目标
+        'Total_Inorganic_N_mg_L': 'Ammonia_N_mg_L',  # 包含氨氮目标
+        'Nitrate_Ammonia_ratio': 'Ammonia_N_mg_L',  # 分母包含氨氮目标
+        'Organic_N_mg_L': 'Ammonia_N_mg_L',  # 间接包含氨氮目标
+        'H_concentration': 'pH',  # 直接变换pH目标
+        'DO_COD_ratio': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
+        'Nitrate_Nitrite_ratio': None  # 无泄露（但依赖其他指标）
+    }
+
+
+def engineer_clean_features(df):
+    """
+    生成仅包含无泄露特征的数据集（用于学术研究和真实预测）
+
+    参数：
+        df: 输入数据框（必须包含基础指标）
+
+    返回：
+        df: 添加了4个无泄露特征的数据框
+        features: 无泄露特征列表
+    """
+    print("\n[FEATURE ENGINEERING - CLEAN VERSION]")
+    print("生成无泄露高级特征（仅4个）...")
+
+    # 1. DO饱和度（Weiss公式）- 仅依赖水温
+    T = df['Water_Temperature_C']
+    df['DO_saturation_mg_L'] = 14.652 - 0.41022*T + 0.007991*T**2 - 0.000077774*T**3
+    print("  [OK] DO_saturation_mg_L (依赖: 水温)")
+
+    # 2. 碱度代理 - 仅依赖电导率
+    df['Alkalinity_proxy'] = df['Conductivity_uS_cm'] * 0.6
+    print("  [OK] Alkalinity_proxy (依赖: 电导率)")
+
+    # 3. 离子强度代理 - 仅依赖电导率
+    df['Ionic_strength_proxy'] = df['Conductivity_uS_cm'] / 1000
+    print("  [OK] Ionic_strength_proxy (依赖: 电导率)")
+
+    # 4. 有机酸代理 - COD - BOD
+    df['Organic_acid_proxy'] = df['COD_mg_L'] - df['BOD_mg_L']
+    df['Organic_acid_proxy'] = df['Organic_acid_proxy'].clip(lower=0)
+    print("  [OK] Organic_acid_proxy (依赖: COD, BOD)")
+
+    clean_features = get_clean_features()
+    print(f"\n[OK] 无泄露特征生成完成: {len(clean_features)} 个")
+    print(f"    特征列表: {clean_features}")
+
+    return df, clean_features

@@ -32,6 +32,7 @@ from data.quality_analyzer import DataQualityAnalyzer
 from data.valid_ranges import check_all_values, check_value_in_range
 from models.seasonality_analyzer import SeasonalityAnalyzer, analyze_water_quality_seasonality
 from models.lstm_rf_hybrid import LSTMRFHybridPredictor
+from models.scenario_analysis import ScenarioAnalyzer
 
 # 设置静态文件夹（前端文件）
 frontend_folder = os.path.join(os.path.dirname(current_dir), 'frontend')
@@ -118,6 +119,16 @@ except Exception as e:
     import traceback
     traceback.print_exc()
     hybrid_predictor = None
+
+# 初始化场景分析器
+try:
+    scenario_analyzer = ScenarioAnalyzer()
+    print(f"✓ Scenario Analyzer initialized")
+except Exception as e:
+    print(f"❌ ERROR initializing Scenario Analyzer: {e}")
+    import traceback
+    traceback.print_exc()
+    scenario_analyzer = None
 
 
 def _serialize_user(user: dict) -> dict:
@@ -483,6 +494,108 @@ def predict_water_quality():
         return jsonify({
             'success': True,
             'data': result
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/predict/scenario', methods=['POST'])
+def predict_scenario():
+    """
+    假设场景分析
+    模拟某个污染物浓度变化，预测其他指标的影响
+
+    输入示例：
+    {
+        "province": "Beijing",
+        "baseline_values": {...14个指标...},  // 可选，不提供则使用省份历史均值
+        "changes": {"COD_mg_L": -30, "BOD_mg_L": -30}  // 百分比变化
+    }
+    """
+    try:
+        if scenario_analyzer is None:
+            return jsonify({
+                'success': False,
+                'error': 'Scenario analyzer not initialized'
+            }), 503
+
+        input_data = request.get_json()
+        province = input_data.get('province', 'Beijing')
+        changes = input_data.get('changes', {})
+
+        # 获取基线值（用户提供或使用省份历史均值）
+        baseline_values = input_data.get('baseline_values')
+        if not baseline_values:
+            baseline_values = scenario_analyzer.get_baseline_for_province(province)
+
+        # 执行场景分析
+        result = scenario_analyzer.analyze_scenario(
+            province=province,
+            baseline_values=baseline_values,
+            changes=changes
+        )
+
+        return jsonify({
+            'success': True,
+            'data': result
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/predict/scenario/baseline', methods=['GET'])
+def get_scenario_baseline():
+    """
+    获取指定省份的基线值（历史均值）
+
+    参数：province (query string)
+    """
+    try:
+        if scenario_analyzer is None:
+            return jsonify({
+                'success': False,
+                'error': 'Scenario analyzer not initialized'
+            }), 503
+
+        province = request.args.get('province', 'Beijing')
+        baseline = scenario_analyzer.get_baseline_for_province(province)
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'province': province,
+                'baseline': baseline
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/predict/scenario/presets', methods=['GET'])
+def get_scenario_presets():
+    """
+    获取预设场景列表
+    """
+    try:
+        if scenario_analyzer is None:
+            return jsonify({
+                'success': False,
+                'error': 'Scenario analyzer not initialized'
+            }), 503
+
+        presets = scenario_analyzer.get_preset_scenarios()
+
+        return jsonify({
+            'success': True,
+            'data': presets
         })
     except Exception as e:
         return jsonify({
