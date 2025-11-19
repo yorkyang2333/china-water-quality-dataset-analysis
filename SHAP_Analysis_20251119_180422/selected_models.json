@@ -1,0 +1,16 @@
+{
+  "classification": {
+    "best_model": "LightGBM",
+    "accuracy": 0.7800322061191627,
+    "total_score": 0.8680193236714976,
+    "model_path": "C:\\Users\\YY\\Documents\\china-water-quality-dataset-analysis\\Outputs\\SHAP_Analysis_20251119_180422\\LightGBM_model.pkl"
+  },
+  "regression": {
+    "best_model": "XGBoost_Regression_Clean",
+    "avg_r2": -0.13241233096013763,
+    "total_score": 0.6627939181124743,
+    "model_path": "C:\\Users\\YY\\Documents\\china-water-quality-dataset-analysis\\Outputs\\SHAP_Analysis_20251119_180422\\XGBoost_Regression_Clean_model.pkl"
+  },
+  "output_dir": "C:\\Users\\YY\\Documents\\china-water-quality-dataset-analysis\\Outputs\\SHAP_Analysis_20251119_180422",
+  "timestamp": "2025-11-19T18:04:30.362551"
+}
