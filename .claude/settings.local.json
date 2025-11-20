@@ -32,7 +32,8 @@
       "Bash(./models/timeseries_models_province_revised/README_V7_ENHANCEMENTS.md )",
       "Bash(./models/timeseries_models_province_revised/v6_indicators_selection.md )",
       "Bash(./revise.md)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []
