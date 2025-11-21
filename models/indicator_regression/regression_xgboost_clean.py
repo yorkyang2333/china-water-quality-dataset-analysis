@@ -1,15 +1,12 @@
 """
-无泄露版XGBoost回归 - 真实性能评估
-Clean XGBoost Regression (No Data Leakage)
+XGBoost水质指标回归预测
+XGBoost Regression for Water Quality Indicator Prediction
 
-目的：
-- 评估没有数据泄露时的真实预测性能
-- 对比有泄露版（R^2=0.9993）vs 无泄露版（真实）
-- 用于学术论文的诚实报告
+功能：使用XGBoost进行水质指标回归预测
 
 作者: Claude Code
 日期: 2025-11-14
-版本: v1.0 - CLEAN (NO LEAKAGE)
+版本: v1.0
 """
 
 import zhplot  # 自动配置matplotlib中文字体

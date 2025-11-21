@@ -1,8 +1,8 @@
 # 水质预测模型论文框架
 
-**目标期刊**: Applied Soft Computing / Expert Systems with Applications / Environmental Modelling & Software
-**论文类型**: Research Article（长文，15-18页）
-**目标读者**: 机器学习研究者 + 环境科学家（交叉学科）
+**目标**: 青少年科技创新大赛 / 中国环境科学学报 / 环境科学学报
+**论文类型**: 应用研究（10-12页，5000-6000词）
+**目标读者**: 环境监测从业者 + 中学科技教师 + 评审专家
 
 ---
 
@@ -950,6 +950,15 @@ $$\phi_i(f, \mathbf{x}) = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!(|F|-|S
    - Introduction、Abstract、Conclusion不要完全一致
    - 每段有新信息
 
+6. **避免超出高中生能力范围的声称**
+   - ❌ "开发了XX框架"
+   - ❌ "提出了XX方法论"
+   - ❌ "首次实现了XX"
+   - ✅ "应用了XX方法"
+   - ✅ "参考文献[X]，采用了..."
+   - ✅ "在老师指导下，进行了XX分析"
+   - **注意**: 保持学术规范，但避免过度创新声称
+
 ---
 
 ## 参考文献建议
@@ -964,11 +973,8 @@ $$\phi_i(f, \mathbf{x}) = \sum_{S \subseteq F \setminus \{i\}} \frac{|S|!(|F|-|S
 3. [引用3-5篇水质预测综述或经典论文]
 4. [引用2-3篇使用LSTM的水质预测]
 
-**数据泄露**:
-5. Kaufman, S., et al. (2012). Leakage in data mining: Formulation, detection, and avoidance. ACM TKDD.
-
 **不规则时间序列**:
-6. [引用2-3篇处理不规则采样的方法论文]
+5. [引用2-3篇处理不规则采样的方法论文]
 
 ### 引用数量建议
 - Total: 40-60篇

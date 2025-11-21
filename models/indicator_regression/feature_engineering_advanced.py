@@ -240,34 +240,6 @@ def get_clean_features():
     ]
 
 
-def get_leaky_features():
-    """
-    返回有泄露高级特征列表（仅用于缺失值填补场景）
-
-    警告：这些特征包含预测目标值或其变换，不可用于未来预测！
-
-    适用场景：
-    - 同时刻缺失值填补（已知目标值的变换）
-    - 传感器故障时的值估算
-
-    返回：
-        dict: {特征名: 泄露源}
-    """
-    return {
-        'log_Ammonia_N': 'Ammonia_N_mg_L',  # 直接对数变换目标
-        'DO_saturation_percent': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
-        'DO_deficit_mg_L': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
-        'DO_BOD_ratio': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
-        'Ammonia_TN_ratio': 'Ammonia_N_mg_L',  # 包含氨氮目标
-        'Total_Inorganic_N_mg_L': 'Ammonia_N_mg_L',  # 包含氨氮目标
-        'Nitrate_Ammonia_ratio': 'Ammonia_N_mg_L',  # 分母包含氨氮目标
-        'Organic_N_mg_L': 'Ammonia_N_mg_L',  # 间接包含氨氮目标
-        'H_concentration': 'pH',  # 直接变换pH目标
-        'DO_COD_ratio': 'Dissolved_Oxygen_mg_L',  # 包含DO目标
-        'Nitrate_Nitrite_ratio': None  # 无泄露（但依赖其他指标）
-    }
-
-
 def engineer_clean_features(df):
     """
     生成仅包含无泄露特征的数据集（用于学术研究和真实预测）
