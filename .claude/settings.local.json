@@ -38,7 +38,8 @@
       "Bash(find:*)",
       "Bash(pip install:*)",
       "Bash(sort:*)",
-      "Bash(pip show:*)"
+      "Bash(pip show:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
