@@ -12,21 +12,24 @@ Time Series Visualization and EDA
 日期：2025-10-25
 """
 
-import zhplot  # 自动配置matplotlib中文字体
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import seaborn as sns
 from datetime import datetime
 import os
 import warnings
 warnings.filterwarnings('ignore')
 
-# 设置中文字体支持
-
-# 设置绘图风格
+# 设置绘图风格（必须在字体配置之前）
 sns.set_style("whitegrid")
 sns.set_palette("husl")
+
+# 配置中文字体 - 使用黑体（SimHei）
+# 注意：必须在 seaborn.set_style() 之后设置，否则会被覆盖
+matplotlib.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'Microsoft YaHei', 'PingFang SC', 'STHeiti']
+matplotlib.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
 # 创建输出目录
 OUTPUT_DIR = "Outputs/Timeseries_EDA"
@@ -113,10 +116,10 @@ for station in df['Monitoring_Station'].unique():
         all_intervals.extend(intervals.tolist())
 
 axes[0, 0].hist(all_intervals, bins=50, color='skyblue', edgecolor='black', alpha=0.7)
-axes[0, 0].set_xlabel('Time Interval (Days)', fontsize=12)
-axes[0, 0].set_ylabel('Frequency', fontsize=12)
-axes[0, 0].set_title('Distribution of Sampling Intervals', fontsize=13, fontweight='bold')
-axes[0, 0].axvline(np.mean(all_intervals), color='red', linestyle='--', linewidth=2, label=f'Mean: {np.mean(all_intervals):.1f} days')
+axes[0, 0].set_xlabel('时间间隔（天）', fontsize=12)
+axes[0, 0].set_ylabel('频率', fontsize=12)
+axes[0, 0].set_title('采样间隔分布', fontsize=13, fontweight='bold')
+axes[0, 0].axvline(np.mean(all_intervals), color='red', linestyle='--', linewidth=2, label=f'平均值: {np.mean(all_intervals):.1f} 天')
 axes[0, 0].legend()
 
 # 2.2 各站点的平均采样间隔
@@ -124,21 +127,21 @@ top_stations = interval_df.nlargest(20, 'Mean_Interval_Days')
 axes[0, 1].barh(range(len(top_stations)), top_stations['Mean_Interval_Days'], color='coral')
 axes[0, 1].set_yticks(range(len(top_stations)))
 axes[0, 1].set_yticklabels(top_stations['Station'], fontsize=8)
-axes[0, 1].set_xlabel('Mean Interval (Days)', fontsize=12)
-axes[0, 1].set_title('Top 20 Stations with Longest Mean Intervals', fontsize=13, fontweight='bold')
+axes[0, 1].set_xlabel('平均间隔（天）', fontsize=12)
+axes[0, 1].set_title('平均间隔最长的前20个站点', fontsize=13, fontweight='bold')
 
 # 2.3 采样数量分布
 axes[1, 0].hist(interval_df['Sample_Count'], bins=30, color='lightgreen', edgecolor='black', alpha=0.7)
-axes[1, 0].set_xlabel('Number of Samples per Station', fontsize=12)
-axes[1, 0].set_ylabel('Frequency', fontsize=12)
-axes[1, 0].set_title('Distribution of Sample Counts', fontsize=13, fontweight='bold')
+axes[1, 0].set_xlabel('每个站点的采样数量', fontsize=12)
+axes[1, 0].set_ylabel('频率', fontsize=12)
+axes[1, 0].set_title('采样数量分布', fontsize=13, fontweight='bold')
 
 # 2.4 采样间隔标准差（反映不规则性）
 axes[1, 1].scatter(interval_df['Mean_Interval_Days'], interval_df['Std_Interval_Days'],
                    alpha=0.6, s=interval_df['Sample_Count']*3, c='purple')
-axes[1, 1].set_xlabel('Mean Interval (Days)', fontsize=12)
-axes[1, 1].set_ylabel('Std Deviation of Intervals (Days)', fontsize=12)
-axes[1, 1].set_title('Interval Irregularity (bubble size = sample count)', fontsize=13, fontweight='bold')
+axes[1, 1].set_xlabel('平均间隔（天）', fontsize=12)
+axes[1, 1].set_ylabel('间隔标准差（天）', fontsize=12)
+axes[1, 1].set_title('间隔不规则性（气泡大小=采样数量）', fontsize=13, fontweight='bold')
 
 plt.tight_layout()
 plt.savefig(f"{OUTPUT_DIR}/Summary_Plots/01_sampling_interval_analysis.png", dpi=300, bbox_inches='tight')
@@ -163,7 +166,7 @@ for idx, indicator in enumerate(key_indicators):
     col = idx % 3
 
     axes[row, col].plot(monthly_avg.index, monthly_avg[indicator], marker='o', linewidth=2, markersize=4)
-    axes[row, col].set_xlabel('Date', fontsize=11)
+    axes[row, col].set_xlabel('日期', fontsize=11)
     axes[row, col].set_ylabel(indicator, fontsize=11)
     axes[row, col].set_title(f'{indicator}', fontsize=12, fontweight='bold')
     axes[row, col].grid(True, alpha=0.3)
@@ -195,9 +198,9 @@ for indicator in comparison_indicators:
         ax.plot(province_monthly.index, province_monthly, marker='o', linewidth=2,
                 markersize=3, label=province, alpha=0.7)
 
-    ax.set_xlabel('Date', fontsize=12)
+    ax.set_xlabel('日期', fontsize=12)
     ax.set_ylabel(indicator, fontsize=12)
-    ax.set_title(f'{indicator} - Provincial Comparison (Monthly Average)', fontsize=14, fontweight='bold')
+    ax.set_title(f'{indicator} - 省份对比（月度平均）', fontsize=14, fontweight='bold')
     ax.legend(loc='best', fontsize=10)
     ax.grid(True, alpha=0.3)
     plt.xticks(rotation=45)
@@ -234,7 +237,7 @@ for idx, station in enumerate(stations, 1):
 
         axes[row, col].plot(station_data['Date'], station_data[indicator],
                            marker='o', linewidth=1.5, markersize=4, color='steelblue')
-        axes[row, col].set_xlabel('Date', fontsize=9)
+        axes[row, col].set_xlabel('日期', fontsize=9)
         axes[row, col].set_ylabel(indicator, fontsize=9)
         axes[row, col].set_title(f'{indicator}', fontsize=10, fontweight='bold')
         axes[row, col].grid(True, alpha=0.3)

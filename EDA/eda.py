@@ -9,11 +9,13 @@ import os
 
 warnings.filterwarnings('ignore')
 
-# Set Chinese font
-
 # Set plot style
 sns.set_style("whitegrid")
 sns.set_palette("husl")
+
+# Set Chinese font explicitly after seaborn
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
 
 # Create output directory
 OUTPUT_DIR = 'Outputs/EDA'
@@ -58,13 +60,13 @@ def basic_statistics(df):
     colors = ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6']
     axes[0].pie(pollution_counts.values, labels=pollution_counts.index, autopct='%1.1f%%',
                 colors=colors, startangle=90)
-    axes[0].set_title('Distribution of Pollution Levels', fontsize=14, fontweight='bold')
+    axes[0].set_title('污染等级分布', fontsize=14, fontweight='bold')
 
     # Province data distribution
     province_counts = df['Province'].value_counts().head(10)
     axes[1].barh(province_counts.index, province_counts.values, color='steelblue')
-    axes[1].set_xlabel('Number of Records')
-    axes[1].set_title('Top 10 Provinces by Record Count', fontsize=14, fontweight='bold')
+    axes[1].set_xlabel('记录数量')
+    axes[1].set_title('记录数量最多的前10个省份', fontsize=14, fontweight='bold')
     axes[1].invert_yaxis()
 
     plt.tight_layout()
@@ -93,8 +95,8 @@ def analyze_water_quality_indicators(df):
         if indicator in df.columns:
             axes[idx].hist(df[indicator].dropna(), bins=50, color='skyblue', edgecolor='black', alpha=0.7)
             axes[idx].set_xlabel(indicator.replace('_', ' '), fontsize=9)
-            axes[idx].set_ylabel('Frequency', fontsize=9)
-            axes[idx].set_title(f'Distribution of {indicator.replace("_", " ")}', fontsize=10, fontweight='bold')
+            axes[idx].set_ylabel('频率', fontsize=9)
+            axes[idx].set_title(f'{indicator.replace("_", " ")} 分布', fontsize=10, fontweight='bold')
             axes[idx].grid(axis='y', alpha=0.3)
 
     plt.tight_layout()
@@ -113,10 +115,10 @@ def analyze_pollution_by_region(df):
     # 3.1 Average water quality index by province
     province_wqi = df.groupby('Province')['Water_Quality_Index'].mean().sort_values(ascending=False).head(15)
     axes[0, 0].barh(province_wqi.index, province_wqi.values, color='coral')
-    axes[0, 0].set_xlabel('Average Water Quality Index', fontsize=11)
-    axes[0, 0].set_title('Top 15 Provinces by Average Water Quality Index', fontsize=12, fontweight='bold')
+    axes[0, 0].set_xlabel('平均水质指数', fontsize=11)
+    axes[0, 0].set_title('平均水质指数最高的前15个省份', fontsize=12, fontweight='bold')
     axes[0, 0].invert_yaxis()
-    axes[0, 0].axvline(x=50, color='red', linestyle='--', alpha=0.5, label='Moderate Threshold')
+    axes[0, 0].axvline(x=50, color='red', linestyle='--', alpha=0.5, label='中等阈值')
     axes[0, 0].legend()
 
     # 3.2 Pollution level distribution by city
@@ -126,9 +128,9 @@ def analyze_pollution_by_region(df):
     city_pollution_top.plot(kind='bar', stacked=True, ax=axes[0, 1],
                             color=['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6'])
     axes[0, 1].set_xlabel('City', fontsize=11)
-    axes[0, 1].set_ylabel('Number of Records', fontsize=11)
-    axes[0, 1].set_title('Pollution Level Distribution by City (Top 10)', fontsize=12, fontweight='bold')
-    axes[0, 1].legend(title='Pollution Level', bbox_to_anchor=(1.05, 1), loc='upper left')
+    axes[0, 1].set_ylabel('记录数量', fontsize=11)
+    axes[0, 1].set_title('前10个城市的污染等级分布', fontsize=12, fontweight='bold')
+    axes[0, 1].legend(title='污染等级', bbox_to_anchor=(1.05, 1), loc='upper left')
     axes[0, 1].tick_params(axis='x', rotation=45)
 
     # 3.3 Province pollution level percentage
@@ -136,8 +138,8 @@ def analyze_pollution_by_region(df):
         lambda x: (x == 'Very Poor').sum() / len(x) * 100
     ).sort_values(ascending=False).head(15)
     axes[1, 0].barh(province_pollution_pct.index, province_pollution_pct.values, color='crimson')
-    axes[1, 0].set_xlabel('Percentage of Very Poor Quality (%)', fontsize=11)
-    axes[1, 0].set_title('Top 15 Provinces by Very Poor Water Quality Rate', fontsize=12, fontweight='bold')
+    axes[1, 0].set_xlabel('极差水质百分比 (%)', fontsize=11)
+    axes[1, 0].set_title('极差水质比率最高的前15个省份', fontsize=12, fontweight='bold')
     axes[1, 0].invert_yaxis()
 
     # 3.4 Average heavy metal concentration by city
@@ -147,9 +149,9 @@ def analyze_pollution_by_region(df):
     top_10_cities_hm = city_heavy_metals.sum(axis=1).sort_values(ascending=False).head(10).index
     city_heavy_metals.loc[top_10_cities_hm].plot(kind='bar', ax=axes[1, 1], width=0.8)
     axes[1, 1].set_xlabel('City', fontsize=11)
-    axes[1, 1].set_ylabel('Average Concentration (ug/L)', fontsize=11)
-    axes[1, 1].set_title('Top 10 Cities by Average Heavy Metal Concentration', fontsize=12, fontweight='bold')
-    axes[1, 1].legend(title='Heavy Metal', labels=['Pb', 'Cd', 'Hg'])
+    axes[1, 1].set_ylabel('平均浓度 (ug/L)', fontsize=11)
+    axes[1, 1].set_title('平均重金属浓度最高的前10个城市', fontsize=12, fontweight='bold')
+    axes[1, 1].legend(title='重金属', labels=['铅', '镉', '汞'])
     axes[1, 1].tick_params(axis='x', rotation=45)
 
     plt.tight_layout()
@@ -171,8 +173,8 @@ def analyze_temporal_trends(df):
                     markersize=8, color='darkblue')
     axes[0, 0].fill_between(monthly_wqi.index, monthly_wqi.values, alpha=0.3)
     axes[0, 0].set_xlabel('Month', fontsize=11)
-    axes[0, 0].set_ylabel('Average Water Quality Index', fontsize=11)
-    axes[0, 0].set_title('Monthly Average Water Quality Index', fontsize=12, fontweight='bold')
+    axes[0, 0].set_ylabel('平均水质指数', fontsize=11)
+    axes[0, 0].set_title('月度平均水质指数', fontsize=12, fontweight='bold')
     axes[0, 0].grid(True, alpha=0.3)
     axes[0, 0].set_xticks(range(1, 13))
 
@@ -183,9 +185,9 @@ def analyze_temporal_trends(df):
     season_pollution.plot(kind='bar', ax=axes[0, 1],
                           color=['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6'])
     axes[0, 1].set_xlabel('Season', fontsize=11)
-    axes[0, 1].set_ylabel('Number of Records', fontsize=11)
-    axes[0, 1].set_title('Seasonal Pollution Level Distribution', fontsize=12, fontweight='bold')
-    axes[0, 1].legend(title='Pollution Level')
+    axes[0, 1].set_ylabel('记录数量', fontsize=11)
+    axes[0, 1].set_title('季节性污染等级分布', fontsize=12, fontweight='bold')
+    axes[0, 1].legend(title='污染等级')
     axes[0, 1].tick_params(axis='x', rotation=0)
 
     # 4.3 Monthly pollutant concentration trends
@@ -195,8 +197,8 @@ def analyze_temporal_trends(df):
         axes[1, 0].plot(monthly_avg.index, monthly_avg.values, marker='o',
                        label=pollutant.replace('_', ' '), linewidth=2)
     axes[1, 0].set_xlabel('Month', fontsize=11)
-    axes[1, 0].set_ylabel('Average Concentration (mg/L)', fontsize=11)
-    axes[1, 0].set_title('Monthly Trends of Key Pollutants', fontsize=12, fontweight='bold')
+    axes[1, 0].set_ylabel('平均浓度 (mg/L)', fontsize=11)
+    axes[1, 0].set_title('主要污染物月度趋势', fontsize=12, fontweight='bold')
     axes[1, 0].legend()
     axes[1, 0].grid(True, alpha=0.3)
     axes[1, 0].set_xticks(range(1, 13))
@@ -207,14 +209,14 @@ def analyze_temporal_trends(df):
     x = np.arange(len(season_order))
     width = 0.35
     axes[1, 1].bar(x - width/2, season_temp_do['Water_Temperature_C'], width,
-                   label='Temperature (C)', color='orange', alpha=0.8)
+                   label='温度 (C)', color='orange', alpha=0.8)
     ax2 = axes[1, 1].twinx()
     ax2.bar(x + width/2, season_temp_do['Dissolved_Oxygen_mg_L'], width,
-            label='Dissolved Oxygen (mg/L)', color='lightblue', alpha=0.8)
+            label='溶解氧 (mg/L)', color='lightblue', alpha=0.8)
     axes[1, 1].set_xlabel('Season', fontsize=11)
-    axes[1, 1].set_ylabel('Temperature (C)', fontsize=11, color='orange')
-    ax2.set_ylabel('Dissolved Oxygen (mg/L)', fontsize=11, color='blue')
-    axes[1, 1].set_title('Seasonal Temperature vs Dissolved Oxygen', fontsize=12, fontweight='bold')
+    axes[1, 1].set_ylabel('温度 (C)', fontsize=11, color='orange')
+    ax2.set_ylabel('溶解氧 (mg/L)', fontsize=11, color='blue')
+    axes[1, 1].set_title('季节温度 vs 溶解氧', fontsize=12, fontweight='bold')
     axes[1, 1].set_xticks(x)
     axes[1, 1].set_xticklabels(season_order)
     axes[1, 1].legend(loc='upper left')
@@ -278,9 +280,9 @@ def analyze_pollutant_impact(df):
         ('Total_Nitrogen_mg_L', 'Total Nitrogen (mg/L)'),
         ('Total_Phosphorus_mg_L', 'Total Phosphorus (mg/L)'),
         ('Ammonia_N_mg_L', 'Ammonia-N (mg/L)'),
-        ('Dissolved_Oxygen_mg_L', 'Dissolved Oxygen (mg/L)'),
+        ('Dissolved_Oxygen_mg_L', '溶解氧 (mg/L)'),
         ('pH', 'pH'),
-        ('Turbidity_NTU', 'Turbidity (NTU)'),
+        ('Turbidity_NTU', '浊度 (NTU)'),
         ('Coliform_Count_CFU_100mL', 'Coliform Count (CFU/100mL)')
     ]
 
@@ -296,10 +298,10 @@ def analyze_pollutant_impact(df):
             z = np.polyfit(x, y, 1)
             p = np.poly1d(z)
             x_line = np.linspace(x.min(), x.max(), 100)
-            axes[idx].plot(x_line, p(x_line), "r--", linewidth=2, label=f'Trend: y={z[0]:.2f}x+{z[1]:.2f}')
+            axes[idx].plot(x_line, p(x_line), "r--", linewidth=2, label=f'趋势线: y={z[0]:.2f}x+{z[1]:.2f}')
 
             axes[idx].set_xlabel(label, fontsize=10)
-            axes[idx].set_ylabel('Water Quality Index', fontsize=10)
+            axes[idx].set_ylabel('水质指数', fontsize=10)
             axes[idx].set_title(f'Impact of {label} on WQI', fontsize=11, fontweight='bold')
             axes[idx].legend(fontsize=8)
             axes[idx].grid(True, alpha=0.3)
@@ -333,10 +335,10 @@ def analyze_heavy_metal_pollution(df):
     hm_by_pollution = df.groupby('Pollution_Level')[heavy_metals].mean()
     hm_by_pollution = hm_by_pollution.reindex(pollution_levels)
     hm_by_pollution.plot(kind='bar', ax=axes[0, 1], color=['#e74c3c', '#f39c12', '#3498db'])
-    axes[0, 1].set_xlabel('Pollution Level', fontsize=11)
-    axes[0, 1].set_ylabel('Average Concentration (ug/L)', fontsize=11)
+    axes[0, 1].set_xlabel('污染等级', fontsize=11)
+    axes[0, 1].set_ylabel('平均浓度 (ug/L)', fontsize=11)
     axes[0, 1].set_title('Heavy Metals by Pollution Level', fontsize=12, fontweight='bold')
-    axes[0, 1].legend(labels=['Pb', 'Cd', 'Hg'])
+    axes[0, 1].legend(labels=['铅', '镉', '汞'])
     axes[0, 1].tick_params(axis='x', rotation=45)
 
     # 7.3 Relationship between heavy metals
@@ -390,7 +392,7 @@ def analyze_nutrient_pollution(df):
     axes[0, 0].set_title('Nitrogen vs Phosphorus Concentration', fontsize=12, fontweight='bold')
     axes[0, 0].grid(True, alpha=0.3)
     cbar = plt.colorbar(axes[0, 0].collections[0], ax=axes[0, 0])
-    cbar.set_label('Water Quality Index', fontsize=10)
+    cbar.set_label('水质指数', fontsize=10)
 
     # 8.2 Nutrients vs season
     nutrients = ['Total_Nitrogen_mg_L', 'Total_Phosphorus_mg_L', 'Nitrate_mg_L', 'Ammonia_N_mg_L']
@@ -400,9 +402,9 @@ def analyze_nutrient_pollution(df):
 
     season_nutrients.plot(kind='bar', ax=axes[0, 1], width=0.8)
     axes[0, 1].set_xlabel('Season', fontsize=11)
-    axes[0, 1].set_ylabel('Average Concentration (mg/L)', fontsize=11)
-    axes[0, 1].set_title('Seasonal Nutrient Variations', fontsize=12, fontweight='bold')
-    axes[0, 1].legend(labels=['Total N', 'Total P', 'Nitrate', 'Ammonia-N'], fontsize=9)
+    axes[0, 1].set_ylabel('平均浓度 (mg/L)', fontsize=11)
+    axes[0, 1].set_title('季节性营养物变化', fontsize=12, fontweight='bold')
+    axes[0, 1].legend(labels=['总氮', '总磷', '硝酸盐', '氨氮'], fontsize=9)
     axes[0, 1].tick_params(axis='x', rotation=0)
     axes[0, 1].grid(axis='y', alpha=0.3)
 
@@ -418,16 +420,16 @@ def analyze_nutrient_pollution(df):
 
     axes[1, 0].pie(risk_counts.values, labels=risk_counts.index, autopct='%1.1f%%',
                    colors=colors_risk, startangle=90)
-    axes[1, 0].set_title('Eutrophication Risk Distribution', fontsize=12, fontweight='bold')
+    axes[1, 0].set_title('富营养化风险分布', fontsize=12, fontweight='bold')
 
     # 8.4 Average nutrient concentration by province
     province_nutrients = df.groupby('Province')[['Total_Nitrogen_mg_L', 'Total_Phosphorus_mg_L']].mean()
     top_provinces = province_nutrients.sum(axis=1).sort_values(ascending=False).head(10)
     province_nutrients.loc[top_provinces.index].plot(kind='barh', ax=axes[1, 1],
                                                       color=['#3498db', '#e74c3c'])
-    axes[1, 1].set_xlabel('Average Concentration (mg/L)', fontsize=11)
-    axes[1, 1].set_title('Top 10 Provinces by Nutrient Concentration', fontsize=12, fontweight='bold')
-    axes[1, 1].legend(labels=['Total N', 'Total P'])
+    axes[1, 1].set_xlabel('平均浓度 (mg/L)', fontsize=11)
+    axes[1, 1].set_title('营养物浓度最高的前10个省份', fontsize=12, fontweight='bold')
+    axes[1, 1].legend(labels=['总氮', '总磷'])
     axes[1, 1].invert_yaxis()
 
     plt.tight_layout()
@@ -448,23 +450,23 @@ def analyze_organic_pollution(df):
                       c=df['Water_Quality_Index'], cmap='RdYlGn_r', alpha=0.6, s=30)
     axes[0, 0].set_xlabel('BOD (mg/L)', fontsize=11)
     axes[0, 0].set_ylabel('COD (mg/L)', fontsize=11)
-    axes[0, 0].set_title('BOD vs COD Relationship', fontsize=12, fontweight='bold')
+    axes[0, 0].set_title('BOD vs COD 关系', fontsize=12, fontweight='bold')
     axes[0, 0].grid(True, alpha=0.3)
 
     # Add diagonal reference line (theoretically COD > BOD)
     max_val = max(df['BOD_mg_L'].max(), df['COD_mg_L'].max())
-    axes[0, 0].plot([0, max_val], [0, max_val], 'r--', alpha=0.5, label='COD = BOD')
+    axes[0, 0].plot([0, max_val], [0, max_val], 'r--', alpha=0.5, label='COD = BOD 参考线')
     axes[0, 0].legend()
 
     # 9.2 COD/BOD ratio distribution
     df['COD_BOD_Ratio'] = df['COD_mg_L'] / (df['BOD_mg_L'] + 0.001)
     axes[0, 1].hist(df['COD_BOD_Ratio'].clip(upper=10), bins=50,
                     color='lightcoral', edgecolor='black', alpha=0.7)
-    axes[0, 1].set_xlabel('COD/BOD Ratio', fontsize=11)
-    axes[0, 1].set_ylabel('Frequency', fontsize=11)
-    axes[0, 1].set_title('COD/BOD Ratio Distribution', fontsize=12, fontweight='bold')
+    axes[0, 1].set_xlabel('COD/BOD 比值', fontsize=11)
+    axes[0, 1].set_ylabel('频率', fontsize=11)
+    axes[0, 1].set_title('COD/BOD 比值分布', fontsize=12, fontweight='bold')
     axes[0, 1].axvline(x=2.5, color='red', linestyle='--', alpha=0.7,
-                      label='Typical ratio for domestic wastewater')
+                      label='生活污水典型比值')
     axes[0, 1].legend()
     axes[0, 1].grid(axis='y', alpha=0.3)
 
@@ -472,8 +474,8 @@ def analyze_organic_pollution(df):
     axes[1, 0].scatter(df['COD_mg_L'], df['Dissolved_Oxygen_mg_L'],
                       alpha=0.5, s=30, color='steelblue')
     axes[1, 0].set_xlabel('COD (mg/L)', fontsize=11)
-    axes[1, 0].set_ylabel('Dissolved Oxygen (mg/L)', fontsize=11)
-    axes[1, 0].set_title('Organic Pollution vs Dissolved Oxygen', fontsize=12, fontweight='bold')
+    axes[1, 0].set_ylabel('溶解氧 (mg/L)', fontsize=11)
+    axes[1, 0].set_title('有机污染 vs 溶解氧', fontsize=12, fontweight='bold')
     axes[1, 0].grid(True, alpha=0.3)
 
     # Add trend line
@@ -489,8 +491,8 @@ def analyze_organic_pollution(df):
     top_cities_organic = city_organic.sum(axis=1).sort_values(ascending=False).head(10)
     city_organic.loc[top_cities_organic.index].plot(kind='barh', ax=axes[1, 1],
                                                      color=['#e74c3c', '#f39c12'])
-    axes[1, 1].set_xlabel('Average Concentration (mg/L)', fontsize=11)
-    axes[1, 1].set_title('Top 10 Cities by Organic Pollution', fontsize=12, fontweight='bold')
+    axes[1, 1].set_xlabel('平均浓度 (mg/L)', fontsize=11)
+    axes[1, 1].set_title('有机污染最严重的前10个城市', fontsize=12, fontweight='bold')
     axes[1, 1].legend(labels=['COD', 'BOD'])
     axes[1, 1].invert_yaxis()
 
@@ -510,10 +512,10 @@ def analyze_physical_parameters(df):
     # 10.1 pH distribution and relationship with water quality index
     axes[0, 0].scatter(df['pH'], df['Water_Quality_Index'], alpha=0.5, s=30, color='mediumseagreen')
     axes[0, 0].set_xlabel('pH', fontsize=11)
-    axes[0, 0].set_ylabel('Water Quality Index', fontsize=11)
-    axes[0, 0].set_title('pH vs Water Quality Index', fontsize=12, fontweight='bold')
-    axes[0, 0].axvline(x=7, color='blue', linestyle='--', alpha=0.5, label='Neutral pH')
-    axes[0, 0].axvspan(6.5, 8.5, alpha=0.1, color='green', label='Optimal range')
+    axes[0, 0].set_ylabel('水质指数', fontsize=11)
+    axes[0, 0].set_title('pH vs 水质指数', fontsize=12, fontweight='bold')
+    axes[0, 0].axvline(x=7, color='blue', linestyle='--', alpha=0.5, label='中性 pH')
+    axes[0, 0].axvspan(6.5, 8.5, alpha=0.1, color='green', label='最佳范围')
     axes[0, 0].legend()
     axes[0, 0].grid(True, alpha=0.3)
 
@@ -525,9 +527,9 @@ def analyze_physical_parameters(df):
     bp = axes[0, 1].boxplot(turbidity_by_pollution, labels=pollution_levels, patch_artist=True)
     for patch, color in zip(bp['boxes'], ['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6']):
         patch.set_facecolor(color)
-    axes[0, 1].set_xlabel('Pollution Level', fontsize=11)
-    axes[0, 1].set_ylabel('Turbidity (NTU)', fontsize=11)
-    axes[0, 1].set_title('Turbidity Distribution by Pollution Level', fontsize=12, fontweight='bold')
+    axes[0, 1].set_xlabel('污染等级', fontsize=11)
+    axes[0, 1].set_ylabel('浊度 (NTU)', fontsize=11)
+    axes[0, 1].set_title('不同污染等级的浊度分布', fontsize=12, fontweight='bold')
     axes[0, 1].tick_params(axis='x', rotation=45)
     axes[0, 1].grid(axis='y', alpha=0.3)
 
@@ -542,7 +544,7 @@ def analyze_physical_parameters(df):
     colors_do = ['#2ecc71', '#f39c12', '#e74c3c']
 
     bars = axes[1, 0].bar(do_order, do_counts.values, color=colors_do)
-    axes[1, 0].set_ylabel('Number of Records', fontsize=11)
+    axes[1, 0].set_ylabel('记录数量', fontsize=11)
     axes[1, 0].set_title('Dissolved Oxygen Status Distribution', fontsize=12, fontweight='bold')
     axes[1, 0].grid(axis='y', alpha=0.3)
 
@@ -559,7 +561,7 @@ def analyze_physical_parameters(df):
 
     bars = axes[1, 1].bar(pollution_levels, conductivity_by_pollution.values,
                          color=['#2ecc71', '#3498db', '#f39c12', '#e74c3c', '#9b59b6'])
-    axes[1, 1].set_xlabel('Pollution Level', fontsize=11)
+    axes[1, 1].set_xlabel('污染等级', fontsize=11)
     axes[1, 1].set_ylabel('Average Conductivity (uS/cm)', fontsize=11)
     axes[1, 1].set_title('Conductivity by Pollution Level', fontsize=12, fontweight='bold')
     axes[1, 1].tick_params(axis='x', rotation=45)
@@ -585,7 +587,7 @@ def analyze_time_series_feasibility(df):
     axes[0, 0].axvline(x=30, color='red', linestyle='--', linewidth=2, label='LSTM Min (30)')
     axes[0, 0].axvline(x=50, color='orange', linestyle='--', linewidth=2, label='Recommended (50)')
     axes[0, 0].set_xlabel('Number of Data Points per Station', fontsize=11)
-    axes[0, 0].set_ylabel('Number of Stations', fontsize=11)
+    axes[0, 0].set_ylabel('站点数量', fontsize=11)
     axes[0, 0].set_title('Distribution of Data Points per Monitoring Station', fontsize=12, fontweight='bold')
     axes[0, 0].legend()
     axes[0, 0].grid(axis='y', alpha=0.3)
@@ -600,9 +602,9 @@ def analyze_time_series_feasibility(df):
     date_ranges['days'] = (date_ranges['max'] - date_ranges['min']).dt.days
 
     axes[0, 1].hist(date_ranges['days'].values, bins=50, color='skyblue', edgecolor='black', alpha=0.7)
-    axes[0, 1].set_xlabel('Time Span (Days)', fontsize=11)
-    axes[0, 1].set_ylabel('Number of Stations', fontsize=11)
-    axes[0, 1].set_title('Time Span Distribution per Station', fontsize=12, fontweight='bold')
+    axes[0, 1].set_xlabel('时间跨度 (天)', fontsize=11)
+    axes[0, 1].set_ylabel('站点数量', fontsize=11)
+    axes[0, 1].set_title('每个站点的时间跨度分布', fontsize=12, fontweight='bold')
     axes[0, 1].grid(axis='y', alpha=0.3)
 
     textstr = f'Mean: {date_ranges["days"].mean():.1f} days\nMedian: {date_ranges["days"].median():.1f} days'
@@ -613,10 +615,10 @@ def analyze_time_series_feasibility(df):
     station_density = station_counts / (date_ranges['days'] + 1)
 
     axes[0, 2].hist(station_density.values, bins=50, color='lightgreen', edgecolor='black', alpha=0.7)
-    axes[0, 2].axvline(x=1, color='red', linestyle='--', linewidth=2, label='1 point/day (ideal)')
-    axes[0, 2].set_xlabel('Data Density (points/day)', fontsize=11)
-    axes[0, 2].set_ylabel('Number of Stations', fontsize=11)
-    axes[0, 2].set_title('Data Density per Station', fontsize=12, fontweight='bold')
+    axes[0, 2].axvline(x=1, color='red', linestyle='--', linewidth=2, label='1点/天 (理想)')
+    axes[0, 2].set_xlabel('数据密度 (点/天)', fontsize=11)
+    axes[0, 2].set_ylabel('站点数量', fontsize=11)
+    axes[0, 2].set_title('每个站点的数据密度', fontsize=12, fontweight='bold')
     axes[0, 2].legend()
     axes[0, 2].grid(axis='y', alpha=0.3)
 
@@ -636,11 +638,11 @@ def analyze_time_series_feasibility(df):
 
     bars = axes[1, 0].bar(range(len(models)), counts, color=colors, alpha=0.7)
     axes[1, 0].axhline(y=len(station_counts), color='red', linestyle='--',
-                       linewidth=2, label=f'Total: {len(station_counts)}')
+                       linewidth=2, label=f'总计: {len(station_counts)}')
     axes[1, 0].set_xticks(range(len(models)))
     axes[1, 0].set_xticklabels(models, rotation=45, ha='right')
-    axes[1, 0].set_ylabel('Number of Qualified Stations', fontsize=11)
-    axes[1, 0].set_title('Stations Meeting Time Series Model Requirements', fontsize=12, fontweight='bold')
+    axes[1, 0].set_ylabel('合格站点数量', fontsize=11)
+    axes[1, 0].set_title('满足时间序列模型要求的站点', fontsize=12, fontweight='bold')
     axes[1, 0].legend()
     axes[1, 0].grid(axis='y', alpha=0.3)
 
@@ -664,8 +666,8 @@ def analyze_time_series_feasibility(df):
         axes[1, 1].plot(station_data['Date'], station_data['Water_Quality_Index'],
                        marker='o', linestyle='-', linewidth=1, markersize=4, color='darkblue')
         axes[1, 1].set_xlabel('Date', fontsize=11)
-        axes[1, 1].set_ylabel('Water Quality Index', fontsize=11)
-        axes[1, 1].set_title(f'Time Series Example: {top_station[2]}\n({len(station_data)} points)',
+        axes[1, 1].set_ylabel('水质指数', fontsize=11)
+        axes[1, 1].set_title(f'时间序列示例: {top_station[2]}\n({len(station_data)} 个点)',
                             fontsize=12, fontweight='bold')
         axes[1, 1].grid(True, alpha=0.3)
         axes[1, 1].tick_params(axis='x', rotation=45)
