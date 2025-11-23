@@ -378,9 +378,9 @@ def visualize_province(province, province_info, output_dir):
         # ⭐ 使用折线图代替散点图
         test_dates = pd.to_datetime(result['test_dates'])
         ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
-                color='steelblue', label='Actual (2024)', alpha=0.8)
+                color='steelblue', label='真实值 (2024)', alpha=0.8)
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
-                color='orangered', label='Predicted', alpha=0.8, linestyle='--')
+                color='orangered', label='预测值', alpha=0.8, linestyle='--')
 
         _ = min(y_test.min(), y_pred.min())  # unused
         _ = max(y_test.max(), y_pred.max())  # unused
@@ -393,8 +393,8 @@ def visualize_province(province, province_info, output_dir):
                 va='top', bbox=dict(boxstyle='round', fc='lightgreen', alpha=0.7))
 
         ax.set_title(indicator.replace('_', ' '), fontsize=9, fontweight='bold')
-        ax.set_xlabel('Date (2024)', fontsize=8)
-        ax.set_ylabel('Value', fontsize=8)
+        ax.set_xlabel('日期 (2024年)', fontsize=8)
+        ax.set_ylabel('数值', fontsize=8)
         ax.legend(fontsize=7)
         ax.grid(True, alpha=0.3)
 

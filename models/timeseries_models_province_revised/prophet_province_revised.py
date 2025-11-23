@@ -317,10 +317,10 @@ def visualize_province(province, province_info, output_dir):
                 color='green', label='Train Data', alpha=0.6)
         # 测试数据（实际值） - 2023年后20%
         ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
-                color='steelblue', label='Actual (Test)', alpha=0.8)
+                color='steelblue', label='真实值 (测试集)', alpha=0.8)
         # 测试预测值 - 2023年后20%
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
-                color='orangered', label='Predicted', alpha=0.8, linestyle='--')
+                color='orangered', label='预测值', alpha=0.8, linestyle='--')
 
         trend_text = f"趋势变化: {result['trend_strength']:.2f}" if result['has_trend'] else "无明显趋势"
         textstr = f"Model: Prophet\nR² = {m['R2']:.3f}\nRMSE = {m['RMSE']:.2f}\nN_test = {m['Sample_Size']}\n{trend_text}"
@@ -328,8 +328,8 @@ def visualize_province(province, province_info, output_dir):
                 va='top', bbox=dict(boxstyle='round', fc='lightyellow', alpha=0.7))
 
         ax.set_title(indicator.replace('_', ' '), fontsize=9, fontweight='bold')
-        ax.set_xlabel('Date (2023 only, 80/20 split)', fontsize=8)
-        ax.set_ylabel('Value', fontsize=8)
+        ax.set_xlabel('日期 (2023年数据, 80/20分割)', fontsize=8)
+        ax.set_ylabel('数值', fontsize=8)
         ax.legend(fontsize=6, loc='best')
         ax.grid(True, alpha=0.3)
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)

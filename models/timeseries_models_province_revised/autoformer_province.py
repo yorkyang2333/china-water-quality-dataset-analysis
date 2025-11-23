@@ -26,6 +26,7 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import pandas as pd
+import zhplot  # 自动配置matplotlib中文字体
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -607,8 +608,8 @@ def main():
 
             # 可视化
             plt.figure(figsize=(12, 6))
-            plt.plot(results['actuals'][:200], label='Actual', linewidth=2)
-            plt.plot(results['predictions'][:200], label='Predicted', alpha=0.7, linewidth=2)
+            plt.plot(results['actuals'][:200], label='真实值', linewidth=2)
+            plt.plot(results['predictions'][:200], label='预测值', alpha=0.7, linewidth=2)
             plt.title(f'Autoformer预测 - {province} - {indicator}')
             plt.xlabel('时间步')
             plt.ylabel(indicator)

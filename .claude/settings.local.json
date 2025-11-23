@@ -33,7 +33,10 @@
       "Bash(./models/timeseries_models_province_revised/v6_indicators_selection.md )",
       "Bash(./revise.md)",
       "Bash(tree:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(\"/Users/yorkyang2333/Documents/阳阳资料/高中/高二/上学期/数据分析比赛/团队项目/china-water-quality-dataset-analysis/docs/PAPER_MANUSCRIPT_CN_NEW.md\")",
+      "Bash(find:*)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []

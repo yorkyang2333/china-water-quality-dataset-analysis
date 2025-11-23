@@ -374,12 +374,12 @@ def visualize_training_history(history, indicator, output_dir):
     """可视化训练历史"""
     plt.figure(figsize=(10, 5))
 
-    plt.plot(history['train_loss'], label='Train Loss', linewidth=2, alpha=0.8)
-    plt.plot(history['val_loss'], label='Val Loss', linewidth=2, alpha=0.8)
+    plt.plot(history['train_loss'], label='训练损失', linewidth=2, alpha=0.8)
+    plt.plot(history['val_loss'], label='验证损失', linewidth=2, alpha=0.8)
 
-    plt.title(f'Training History - {indicator}', fontsize=12, fontweight='bold')
-    plt.xlabel('Epoch', fontsize=10)
-    plt.ylabel('Loss', fontsize=10)
+    plt.title(f'训练历史 - {indicator}', fontsize=12, fontweight='bold')
+    plt.xlabel('训练轮次', fontsize=10)
+    plt.ylabel('损失', fontsize=10)
     plt.legend(fontsize=10)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -396,13 +396,13 @@ def visualize_prediction(train_dates, y_train, test_dates, y_test, y_pred,
     plt.figure(figsize=(14, 7))
 
     plt.plot(train_dates, y_train, marker='o', linewidth=2, markersize=3,
-             color='green', label='Train Data (80%)', alpha=0.7)
+             color='green', label='训练数据 (80%)', alpha=0.7)
 
     plt.plot(test_dates, y_test, marker='o', linewidth=2.5, markersize=5,
-             color='steelblue', label='Actual (Test 20%)', alpha=0.9)
+             color='steelblue', label='真实值 (测试集 20%)', alpha=0.9)
 
     plt.plot(test_dates, y_pred, marker='s', linewidth=2.5, markersize=5,
-             color='orangered', label='Predicted (LSTM)', alpha=0.9, linestyle='--')
+             color='orangered', label='预测值 (LSTM)', alpha=0.9, linestyle='--')
 
     textstr = (f"R² = {metrics['R2']:.4f}\n"
                f"RMSE = {metrics['RMSE']:.3f}\n"

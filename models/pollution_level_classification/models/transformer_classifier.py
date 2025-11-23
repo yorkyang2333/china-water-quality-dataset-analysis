@@ -25,6 +25,7 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import pandas as pd
+import zhplot  # 自动配置matplotlib中文字体
 import matplotlib
 matplotlib.use('Agg')  # 非交互式后端
 import matplotlib.pyplot as plt

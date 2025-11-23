@@ -37,6 +37,7 @@ warnings.filterwarnings('ignore')
 
 import numpy as np
 import pandas as pd
+import zhplot  # 自动配置matplotlib中文字体
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt

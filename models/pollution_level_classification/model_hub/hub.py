@@ -282,6 +282,7 @@ class ModelHub:
 
     def plot_comparison_charts(self):
         """绘制对比图表"""
+        import zhplot  # 自动配置matplotlib中文字体
         import matplotlib.pyplot as plt
 
         df = self.get_comparison_table()

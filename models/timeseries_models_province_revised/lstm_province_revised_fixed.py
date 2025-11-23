@@ -506,15 +506,15 @@ def visualize_single_indicator(province_name, indicator, result, output_dir):
 
     # 训练数据
     plt.plot(train_dates, y_train, marker='o', linewidth=2, markersize=3,
-             color='green', label='Train Data (80%)', alpha=0.7)
+             color='green', label='训练数据 (80%)', alpha=0.7)
 
     # 测试数据实际值
     plt.plot(test_dates, y_test, marker='o', linewidth=2.5, markersize=5,
-             color='steelblue', label='Actual (Test 20%)', alpha=0.9)
+             color='steelblue', label='真实值 (测试集 20%)', alpha=0.9)
 
     # 预测值
     plt.plot(test_dates, y_pred, marker='s', linewidth=2.5, markersize=5,
-             color='orangered', label='Predicted (LSTM)', alpha=0.9, linestyle='--')
+             color='orangered', label='预测值 (LSTM)', alpha=0.9, linestyle='--')
 
     # 信息框
     params = result['best_params']

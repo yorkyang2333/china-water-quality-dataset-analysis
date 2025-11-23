@@ -499,15 +499,15 @@ def visualize_single_indicator(province_name, indicator, result, output_dir):
 
     # 训练数据（绿色）
     plt.plot(train_dates, y_train, marker='o', linewidth=2, markersize=4,
-             color='green', label='Train Data (80%)', alpha=0.7)
+             color='green', label='训练数据 (80%)', alpha=0.7)
 
     # 测试数据实际值（蓝色）
     plt.plot(test_dates, y_test, marker='o', linewidth=2.5, markersize=6,
-             color='steelblue', label='Actual (Test 20%)', alpha=0.9, zorder=3)
+             color='steelblue', label='真实值 (测试集 20%)', alpha=0.9, zorder=3)
 
     # 预测值（红色虚线）
     plt.plot(test_dates, y_pred, marker='s', linewidth=2.5, markersize=6,
-             color='orangered', label='Predicted (LSTM)', alpha=0.9, linestyle='--', zorder=2)
+             color='orangered', label='预测值 (LSTM)', alpha=0.9, linestyle='--', zorder=2)
 
     # 显示指标信息
     params = result['best_params']
@@ -636,11 +636,11 @@ def visualize_province(province_key, province_info, output_dir):
         m = result['metrics']
 
         ax.plot(train_dates, y_train, marker='o', linewidth=1.5, markersize=3,
-                color='green', label='Train Data', alpha=0.6)
+                color='green', label='训练数据', alpha=0.6)
         ax.plot(test_dates, y_test, marker='o', linewidth=2, markersize=5,
-                color='steelblue', label='Actual (Test)', alpha=0.8)
+                color='steelblue', label='真实值 (测试集)', alpha=0.8)
         ax.plot(test_dates, y_pred, marker='s', linewidth=2, markersize=5,
-                color='orangered', label='Predicted (LSTM)', alpha=0.8, linestyle='--')
+                color='orangered', label='预测值 (LSTM)', alpha=0.8, linestyle='--')
 
         params = result['best_params']
         textstr = (f"R² = {m['R2']:.3f}\n"

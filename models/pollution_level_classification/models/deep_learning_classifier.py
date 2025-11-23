@@ -13,6 +13,7 @@ GPU加速深度学习水质分类模型
 
 import pandas as pd
 import numpy as np
+import zhplot  # 自动配置matplotlib中文字体
 import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
