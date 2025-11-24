@@ -74,11 +74,19 @@ def train_xgboost_model(input_csv, output_dir):
 
     # --- 5. 模型评估 ---
     print("开始评估模型...")
-    y_pred = model.predict(X_test)
-    
-    accuracy = accuracy_score(y_test, y_pred)
-    report_text = classification_report(y_test, y_pred, target_names=le.classes_)
-    conf_matrix = confusion_matrix(y_test, y_pred)
+    y_pred_test = model.predict(X_test)
+    y_pred_train = model.predict(X_train)
+
+    train_accuracy = accuracy_score(y_train, y_pred_train)
+    test_accuracy = accuracy_score(y_test, y_pred_test)
+    accuracy = test_accuracy  # 保持向后兼容
+
+    print(f"训练集准确率: {train_accuracy:.4f}")
+    print(f"测试集准确率: {test_accuracy:.4f}")
+    print(f"过拟合检测: 准确率差异 = {train_accuracy - test_accuracy:.4f}")
+
+    report_text = classification_report(y_test, y_pred_test, target_names=le.classes_)
+    conf_matrix = confusion_matrix(y_test, y_pred_test)
 
     # --- 6. 生成并保存报告和图表 ---
     os.makedirs(output_dir, exist_ok=True)
@@ -98,18 +106,27 @@ def train_xgboost_model(input_csv, output_dir):
 
     2. 性能指标
     ------------------
-    - 准确率 (Accuracy): {accuracy:.4f}
+    - 训练集准确率 (Train Accuracy): {train_accuracy:.4f}
+    - 测试集准确率 (Test Accuracy): {test_accuracy:.4f}
+    - 准确率差异 (Overfitting Check): {train_accuracy - test_accuracy:.4f}
 
-    - 分类报告 (Classification Report):
+    - 分类报告 (Classification Report - Test Set):
 {report_text}
 
-    3. 结论与建议
+    3. 过拟合检测
     ------------------
-    - XGBoost模型的总体准确率达到了 {accuracy:.2%}，与随机森林模型表现相当，甚至在某些指标上略有提升。
+    - 训练集准确率: {train_accuracy:.2%}
+    - 测试集准确率: {test_accuracy:.2%}
+    - 准确率差异: {(train_accuracy - test_accuracy):.2%}
+    - 结论: {'轻微过拟合' if (train_accuracy - test_accuracy) > 0.05 else '无明显过拟合' if (train_accuracy - test_accuracy) > 0.01 else '无过拟合'}
+
+    4. 结论与建议
+    ------------------
+    - XGBoost模型的总体准确率达到了 {test_accuracy:.2%}，与随机森林模型表现相当，甚至在某些指标上略有提升。
     - 模型的F1分数在各个类别上表现均衡，证明了其强大的分类能力。
     - XGBoost作为一种高效的梯度提升算法，是本项目进行水质预测的另一个可靠选择。
 
-    4. 特征重要性
+    5. 特征重要性
     ------------------
     下图展示了对模型预测贡献最大的15个特征。
     """
@@ -158,7 +175,9 @@ def train_xgboost_model(input_csv, output_dir):
 if __name__ == '__main__':
     # 数据文件在项目根目录
     import sys
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # 脚本在 models/pollution_level_classification/models/ 目录下，需要向上3级
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
     input_csv_path = os.path.join(project_root, 'preprocessed_data_feature_eng.csv')
     output_dir_path = os.path.join(project_root, 'Outputs/Classification_XGBoost')
 
