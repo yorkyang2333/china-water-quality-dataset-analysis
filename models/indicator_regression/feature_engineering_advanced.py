@@ -229,14 +229,19 @@ def get_clean_features():
     - 假设场景分析
     - 学术论文报告
 
+    修改记录（2025-11-25）：
+    - 移除了Organic_acid_proxy（COD-BOD），因为：
+      * 预测COD时会泄露COD本身
+      * 预测BOD时会泄露BOD本身
+    - 仅保留3个真正无泄露的特征
+
     返回：
-        list: 4个无泄露特征名称
+        list: 3个无泄露特征名称
     """
     return [
         'DO_saturation_mg_L',      # 仅依赖水温（无泄露）
         'Alkalinity_proxy',        # 仅依赖电导率（无泄露）
         'Ionic_strength_proxy',    # 仅依赖电导率（无泄露）
-        'Organic_acid_proxy'       # COD - BOD（无泄露）
     ]
 
 
@@ -244,15 +249,19 @@ def engineer_clean_features(df):
     """
     生成仅包含无泄露特征的数据集（用于学术研究和真实预测）
 
+    修改记录（2025-11-25）：
+    - 移除了Organic_acid_proxy特征（COD-BOD组合泄露问题）
+    - 仅保留3个真正无泄露的特征
+
     参数：
         df: 输入数据框（必须包含基础指标）
 
     返回：
-        df: 添加了4个无泄露特征的数据框
+        df: 添加了3个无泄露特征的数据框
         features: 无泄露特征列表
     """
     print("\n[FEATURE ENGINEERING - CLEAN VERSION]")
-    print("生成无泄露高级特征（仅4个）...")
+    print("生成无泄露高级特征（仅3个）...")
 
     # 1. DO饱和度（Weiss公式）- 仅依赖水温
     T = df['Water_Temperature_C']
@@ -267,10 +276,9 @@ def engineer_clean_features(df):
     df['Ionic_strength_proxy'] = df['Conductivity_uS_cm'] / 1000
     print("  [OK] Ionic_strength_proxy (依赖: 电导率)")
 
-    # 4. 有机酸代理 - COD - BOD
-    df['Organic_acid_proxy'] = df['COD_mg_L'] - df['BOD_mg_L']
-    df['Organic_acid_proxy'] = df['Organic_acid_proxy'].clip(lower=0)
-    print("  [OK] Organic_acid_proxy (依赖: COD, BOD)")
+    # [REMOVED 2025-11-25] Organic_acid_proxy = COD - BOD
+    # 原因：预测COD或BOD时存在特征泄露问题
+    # 详见审稿意见第1点
 
     clean_features = get_clean_features()
     print(f"\n[OK] 无泄露特征生成完成: {len(clean_features)} 个")
