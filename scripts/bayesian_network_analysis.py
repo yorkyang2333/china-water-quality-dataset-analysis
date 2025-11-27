@@ -35,14 +35,14 @@ print(data['Coliform_Count_CFU_100mL'].describe())
 
 print("\n[OK] 构建人类活动代理变量...")
 
-# 1. 城市化指数：基于COD（有机污染）和NH3-N（生活污水指示）
-data['Urbanization_Index'] = (data['COD_mg_L'] + data['Ammonia_N_mg_L'] * 10) / 2
+# 1. 有机污染负荷：基于COD（有机污染）和NH3-N（生活污水指示）
+data['Organic_Pollution_Load'] = (data['COD_mg_L'] + data['Ammonia_N_mg_L'] * 10) / 2
 
 # 2. 污水处理覆盖率代理：使用溶解氧的倒数（DO低表示有机物多，污水处理可能不足）
 data['DO_Inverse'] = 1 / (data['Dissolved_Oxygen_mg_L'] + 0.1)
 
-# 3. 工业活动指标：使用重金属浓度
-data['Industrial_Activity'] = data['Total_Heavy_Metals_ug_L']
+# 3. 重金属污染压力：使用重金属浓度
+data['Heavy_Metal_Stress'] = data['Total_Heavy_Metals_ug_L']
 
 # 4. 降雨影响代理：使用浊度（降雨冲刷导致浊度升高）
 data['Rainfall_Proxy'] = data['Turbidity_NTU']
@@ -52,7 +52,7 @@ province_pollution_level = data.groupby('Province')['COD_mg_L'].mean()
 data['Province_Pollution_Level'] = data['Province'].map(province_pollution_level)
 
 print("\n[OK] 新增特征统计：")
-print(data[['Urbanization_Index', 'DO_Inverse', 'Industrial_Activity', 'Rainfall_Proxy']].describe())
+print(data[['Organic_Pollution_Load', 'DO_Inverse', 'Heavy_Metal_Stress', 'Rainfall_Proxy']].describe())
 
 # ============================================================
 # 第三步：离散化用于贝叶斯网络
@@ -63,8 +63,8 @@ print("\n[OK] 离散化变量...")
 # 定义离散化的特征和阈值
 discretization_features = {
     'Coliform_Count_CFU_100mL': [50, 100],  # [Low, Medium, High]
-    'Urbanization_Index': [10, 20],           # [Low, Medium, High]
-    'Industrial_Activity': [3, 6],            # [Low, Medium, High]
+    'Organic_Pollution_Load': [10, 20],           # [Low, Medium, High]
+    'Heavy_Metal_Stress': [3, 6],            # [Low, Medium, High]
     'Rainfall_Proxy': [5, 15],                # [Low, Medium, High]
     'DO_Inverse': [0.1, 0.15],               # [Good, Medium, Poor]
 }
@@ -96,8 +96,8 @@ print("="*60)
 from scipy.stats import spearmanr, pearsonr
 
 correlation_features = [
-    'Urbanization_Index',
-    'Industrial_Activity',
+    'Organic_Pollution_Load',
+    'Heavy_Metal_Stress',
     'Rainfall_Proxy',
     'DO_Inverse',
     'Province_Pollution_Level',
@@ -168,7 +168,7 @@ def calculate_conditional_probability(data, target, parent, target_state='High')
 
 print("\n[RESULT] 条件概率表（P(Coliform=High | Parent)）：\n")
 
-for parent_feature in ['Urbanization_Index', 'Industrial_Activity', 'Rainfall_Proxy', 'DO_Inverse']:
+for parent_feature in ['Organic_Pollution_Load', 'Heavy_Metal_Stress', 'Rainfall_Proxy', 'DO_Inverse']:
     if f'{parent_feature}_discrete' in data_discrete.columns:
         cond_probs = calculate_conditional_probability(
             data_discrete,
@@ -190,18 +190,18 @@ print("="*60)
 
 # 定义场景
 scenarios = {
-    '高城市化+低污水处理': {
-        'Urbanization_Index_discrete': 'High',
+    '高有机污染负荷+低污水处理': {
+        'Organic_Pollution_Load_discrete': 'High',
         'DO_Inverse_discrete': 'High',
-        'Industrial_Activity_discrete': 'Low'
+        'Heavy_Metal_Stress_discrete': 'Low'
     },
-    '高工业活动+高降雨': {
-        'Industrial_Activity_discrete': 'High',
+    '高重金属压力+高降雨': {
+        'Heavy_Metal_Stress_discrete': 'High',
         'Rainfall_Proxy_discrete': 'High',
         'DO_Inverse_discrete': 'Medium'
     },
-    '低城市化+良好污水处理': {
-        'Urbanization_Index_discrete': 'Low',
+    '低有机污染负荷+良好污水处理': {
+        'Organic_Pollution_Load_discrete': 'Low',
         'DO_Inverse_discrete': 'Low',
         'Rainfall_Proxy_discrete': 'Low'
     }
@@ -267,15 +267,15 @@ print("\n[OK] 生成可视化图表...")
 
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# 1. 大肠菌群与城市化的关系
+# 1. 大肠菌群与有机污染负荷的关系
 ax1 = axes[0, 0]
-urbanization_risk = data_discrete.groupby('Urbanization_Index_discrete').apply(
+organic_pollution_risk = data_discrete.groupby('Organic_Pollution_Load_discrete').apply(
     lambda x: (x['Coliform_Count_CFU_100mL_discrete'] == 'High').sum() / len(x) if len(x) > 0 else 0
 )
-urbanization_risk.plot(kind='bar', ax=ax1, color='steelblue')
-ax1.set_title('大肠菌群污染风险 vs 城市化程度', fontsize=12, fontweight='bold')
+organic_pollution_risk.plot(kind='bar', ax=ax1, color='steelblue')
+ax1.set_title('大肠菌群污染风险 vs 有机污染负荷', fontsize=12, fontweight='bold')
 ax1.set_ylabel('高风险污染概率')
-ax1.set_xlabel('城市化程度')
+ax1.set_xlabel('有机污染负荷')
 ax1.set_ylim(0, 1)
 
 # 2. 大肠菌群与污水处理的关系
@@ -289,15 +289,15 @@ ax2.set_ylabel('高风险污染概率')
 ax2.set_xlabel('污水处理状态\n(越低越好)')
 ax2.set_ylim(0, 1)
 
-# 3. 大肠菌群与工业活动的关系
+# 3. 大肠菌群与重金属污染压力的关系
 ax3 = axes[1, 0]
-industrial_risk = data_discrete.groupby('Industrial_Activity_discrete').apply(
+heavy_metal_risk = data_discrete.groupby('Heavy_Metal_Stress_discrete').apply(
     lambda x: (x['Coliform_Count_CFU_100mL_discrete'] == 'High').sum() / len(x) if len(x) > 0 else 0
 )
-industrial_risk.plot(kind='bar', ax=ax3, color='mediumseagreen')
-ax3.set_title('大肠菌群污染风险 vs 工业活动', fontsize=12, fontweight='bold')
+heavy_metal_risk.plot(kind='bar', ax=ax3, color='mediumseagreen')
+ax3.set_title('大肠菌群污染风险 vs 重金属污染压力', fontsize=12, fontweight='bold')
 ax3.set_ylabel('高风险污染概率')
-ax3.set_xlabel('工业活动强度')
+ax3.set_xlabel('重金属污染压力')
 ax3.set_ylim(0, 1)
 
 # 4. 大肠菌群与降雨的关系
@@ -342,19 +342,19 @@ Bayesian Network Analysis Report: E. coli Contamination and Human Activities
 {corr_df.to_string()}
 
 2. 条件概率结论：
-   - 高城市化地区的大肠菌群高风险污染概率：
-     {urbanization_risk.get('High', 0):.2%}
+   - 高有机污染负荷地区的大肠菌群高风险污染概率：
+     {organic_pollution_risk.get('High', 0):.2%}
 
    - 污水处理不足（DO_Inverse=High）地区的污染概率：
      {do_risk.get('High', 0):.2%}
 
-   - 高工业活动地区的污染概率：
-     {industrial_risk.get('High', 0):.2%}
+   - 高重金属污染压力地区的污染概率：
+     {heavy_metal_risk.get('High', 0):.2%}
 
 3. 风险评估情景：
-   场景1（高城市化+低污水处理）：高污染风险
-   场景2（高工业活动+高降雨）：中等污染风险
-   场景3（低城市化+良好污水处理）：低污染风险
+   场景1（高有机污染负荷+低污水处理）：高污染风险
+   场景2（高重金属污染压力+高降雨）：中等污染风险
+   场景3（低有机污染负荷+良好污水处理）：低污染风险
 
 4. 敏感性分析：
    污水处理覆盖率每提高10%，预期可降低高风险污染概率约
