@@ -2,7 +2,6 @@
 假设场景分析模块 (Scenario Analysis Module)
 用于模拟"如果某个污染物浓度变化，其他指标会如何变化"
 
-作者: Claude Code
 日期: 2025-11-14
 版本: v1.0
 """

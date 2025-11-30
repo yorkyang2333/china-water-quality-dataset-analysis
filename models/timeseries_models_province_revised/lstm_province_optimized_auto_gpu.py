@@ -43,7 +43,6 @@ LSTM Time Series Prediction - Enhanced with Auto Hyperparameter Tuning (Province
 依赖库：
 pip install torch pandas numpy scikit-learn matplotlib optuna
 
-作者：Claude Code
 日期：2025-10-29
 版本：v3.0 (Enhanced - Solve Flat Prediction Problem)
 """

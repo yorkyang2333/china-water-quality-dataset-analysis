@@ -21,7 +21,6 @@ v6.0 的修复（保留）：
 使用方法：
 python debug_beijing_v7_enhanced.py
 
-作者：Claude Code
 日期：2025-10-31
 版本：v7.0 (Enhanced Optimizations)
 """

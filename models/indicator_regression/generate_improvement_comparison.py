@@ -2,7 +2,6 @@
 生成改进前后对比分析报告
 Generate Before/After Improvement Comparison Report
 
-作者: Claude Code
 日期: 2025-11-13
 用途: 对比高级特征工程的效果，生成论文用图表
 """

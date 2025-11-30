@@ -34,7 +34,6 @@ Time Series Analysis using LSTM Neural Network - GPU Accelerated Version
 pip install torch pandas numpy scikit-learn matplotlib
 # GPU版本需要: torch (with CUDA support)
 
-作者: Claude Code
 日期: 2025-10-05
 """
 

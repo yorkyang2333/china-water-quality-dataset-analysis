@@ -129,15 +129,21 @@ class XGBoostModel(TraditionalMLClassifier):
             raise ImportError("XGBoost未安装，请运行: pip install xgboost")
 
     def build_model(self, **kwargs):
-        n_estimators = kwargs.get('n_estimators', 100)
-        max_depth = kwargs.get('max_depth', 5)
         self.model = XGBClassifier(
-            n_estimators=n_estimators,
-            max_depth=max_depth,
+            n_estimators=200,
+            max_depth=5,
             learning_rate=0.1,
+            reg_alpha=0.5,
+            reg_lambda=2.0,
+            min_child_weight=3,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            gamma=0.05,
             random_state=42,
             eval_metric='mlogloss',
-            verbosity=0
+            verbosity=0,
+            n_jobs=-1,  # Use all available CPU cores
+            **kwargs
         )
 
     def train(self, X_train, y_train, X_val=None, y_val=None, **kwargs):

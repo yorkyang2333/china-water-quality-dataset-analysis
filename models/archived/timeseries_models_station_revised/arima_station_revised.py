@@ -16,7 +16,6 @@ ARIMA时间序列预测 - 2023训练/2024验证版
 - Mac/Windows/Linux (通用CPU)
 - 无需GPU，适合笔记本电脑运行
 
-作者：Claude Code
 日期：2025-10-25
 """
 

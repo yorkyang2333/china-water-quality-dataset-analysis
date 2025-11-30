@@ -2,7 +2,6 @@
 高级特征工程 - 针对失败指标的领域知识驱动特征
 Advanced Feature Engineering for Failed Indicators (DO, NH3-N, pH)
 
-作者: Claude Code
 日期: 2025-11-13
 用途: 为溶解氧、氨氮、pH创建物理化学特征，提升预测性能
 """

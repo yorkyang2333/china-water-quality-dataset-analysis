@@ -26,7 +26,6 @@ LSTM Time Series Prediction - Optimized with Auto Hyperparameter Tuning
 依赖库：
 pip install torch pandas numpy scikit-learn matplotlib optuna
 
-作者：Claude Code
 日期：2025-10-29
 版本：v2.0 (Optimized)
 """

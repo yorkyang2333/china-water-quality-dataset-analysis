@@ -13,7 +13,6 @@ Time Series Prediction - 2023 Train / 2024 Validation
 - 自动选择最佳模型（通过R²评分）
 - 纯时间序列分析，每个监测站独立建模
 
-作者：Claude Code
 日期：2025-10-25
 """
 

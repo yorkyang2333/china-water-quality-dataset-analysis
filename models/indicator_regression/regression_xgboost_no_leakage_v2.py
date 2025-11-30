@@ -8,7 +8,6 @@ XGBoost Regression for Water Quality Indicators (No Data Leakage)
 - 移除Organic_acid_proxy特征（COD-BOD组合泄露）
 - 根据审稿意见重新评估真实R²性能
 
-作者: Claude Code
 版本: v2.0
 日期: 2025-11-25
 """

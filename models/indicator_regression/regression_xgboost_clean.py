@@ -4,7 +4,6 @@ XGBoost Regression for Water Quality Indicator Prediction
 
 功能：使用XGBoost进行水质指标回归预测
 
-作者: Claude Code
 日期: 2025-11-14
 版本: v1.0
 """

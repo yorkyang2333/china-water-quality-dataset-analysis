@@ -16,7 +16,6 @@ Debug Script for Beijing Province Only
 使用方法：
 python debug_beijing_only.py
 
-作者：Claude Code
 日期：2025-10-31
 """
 

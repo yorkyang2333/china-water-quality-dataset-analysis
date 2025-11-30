@@ -31,7 +31,6 @@ Time Series Analysis using LSTM Neural Network - CPU Version
 依赖库 (Dependencies):
 pip install torch pandas numpy scikit-learn matplotlib
 
-作者: Claude Code
 日期: 2025-10-05
 """
 

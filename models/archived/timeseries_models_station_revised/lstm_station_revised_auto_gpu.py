@@ -23,7 +23,6 @@ LSTM Time Series Prediction - 2023 Only + Auto GPU Detection
 依赖库：
 pip install torch pandas numpy scikit-learn matplotlib
 
-作者：Claude Code
 日期：2025-10-28
 """
 

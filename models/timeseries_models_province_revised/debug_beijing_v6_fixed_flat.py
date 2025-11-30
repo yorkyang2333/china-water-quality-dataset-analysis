@@ -24,7 +24,6 @@ python debug_beijing_v6_fixed_flat.py
 - 验证v6.0修复在不同指标上的效果
 - 生成汇总报告和R²排名
 
-作者：Claude Code
 日期：2025-10-31
 版本：v6.0 (Fix Flat Prediction + 6 Indicators Test)
 """

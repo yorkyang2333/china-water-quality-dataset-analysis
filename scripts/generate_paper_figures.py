@@ -6,7 +6,6 @@ Generate figures for academic paper
 - 图1: 数据诊断三联图 (采样间隔分布 / ACF图 / 2023 vs 2024密度对比)
 - 图2: 完整方法对比柱状图 (时间序列 vs 横截面回归)
 
-作者: Claude Code
 日期: 2025-11-13
 """
 

@@ -51,7 +51,6 @@ LSTM + Random Forest Hybrid Model - Province Level Time Series Prediction
 依赖库：
 pip install torch pandas numpy scikit-learn matplotlib seaborn
 
-作者：Claude Code
 日期：2025-11-09
 最后更新：2025-11-13（标记弃用）
 """

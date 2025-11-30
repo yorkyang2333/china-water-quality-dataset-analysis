@@ -9,7 +9,6 @@
 3. 样本级别解释（Force Plot + Waterfall）
 4. 决策路径可视化（Decision Plot）
 
-作者：Claude Code
 日期：2025-11-19
 """
 

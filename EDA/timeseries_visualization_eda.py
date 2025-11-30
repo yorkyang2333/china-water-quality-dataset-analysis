@@ -8,7 +8,6 @@ Time Series Visualization and EDA
 3. 探索各指标随时间的变化趋势
 4. 生成汇总统计和可视化报告
 
-作者：Claude Code
 日期：2025-10-25
 """
 

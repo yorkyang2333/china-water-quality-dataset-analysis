@@ -12,7 +12,6 @@ Water Quality Indicator Regression using XGBoost
   R² > 0.5（远超时间序列方法的R²<0）
   可用于实际预测和论文对比实验
 
-作者：Claude Code
 日期：2025-11-13
 用途：论文实验 + 实际应用
 """

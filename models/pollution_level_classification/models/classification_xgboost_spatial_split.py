@@ -9,7 +9,6 @@ XGBoost Classification with Spatial Cross-Validation (Leave-One-Station-Out)
 - 对比随机分割vs按站点分割的性能差异
 - 根据审稿意见重新评估真实泛化能力
 
-作者: Claude Code
 版本: v2.0
 日期: 2025-11-25
 """

@@ -29,7 +29,6 @@ LSTM Time Series Prediction - Fixed Version (Based on revise.md)
 依赖库：
 pip install torch pandas numpy scikit-learn matplotlib optuna
 
-作者：Claude Code (based on revise.md)
 日期：2025-10-31
 版本：v4.0 (Fixed - 解决水平线预测和训练慢问题)
 """
