@@ -1,7 +1,6 @@
 # 中国水质监测数据集分析项目 | China Water Quality Dataset Analysis
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Archived-lightgrey)
 
 > **本项目已结束并归档。**
