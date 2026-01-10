@@ -600,12 +600,6 @@ python start_all.py
 
 ---
 
-## 📄 许可证
-
-MIT License
-
----
-
 ## 🙏 致谢
 
 - **数据处理**: Pandas, NumPy, GeoPandas
